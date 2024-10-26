@@ -8,6 +8,7 @@ import org.dromara.workflow.domain.bo.InstanceBo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 流程实例 服务层
@@ -74,4 +75,12 @@ public interface IFlwInstanceService {
      * @return 结果
      */
     TableDataInfo<FlowInstanceVo> getPageByCurrent(InstanceBo instanceBo, PageQuery pageQuery);
+
+    /**
+     * 获取流程图,流程记录
+     *
+     * @param businessId 业务id
+     * @return 结果
+     */
+    Map<String, Object> getFlowImage(String businessId);
 }

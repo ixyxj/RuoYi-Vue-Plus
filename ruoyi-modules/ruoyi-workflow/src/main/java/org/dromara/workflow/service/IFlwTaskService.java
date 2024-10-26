@@ -1,6 +1,7 @@
 package org.dromara.workflow.service;
 
 import com.warm.flow.core.entity.HisTask;
+import com.warm.flow.core.entity.Instance;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.workflow.domain.bo.*;
@@ -94,4 +95,12 @@ public interface IFlwTaskService {
      * @return 结果
      */
     List<HisTask> getBackTaskNode(String instanceId);
+
+    /**
+     * 终止任务
+     *
+     * @param bo 参数
+     * @return 结果
+     */
+    boolean terminationTask(TerminationBo bo);
 }

@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 流程实例管理 控制层
@@ -106,5 +107,16 @@ public class FlwInstanceController extends BaseController {
     @GetMapping("/getPageByCurrent")
     public TableDataInfo<FlowInstanceVo> getPageByCurrent(InstanceBo instanceBo, PageQuery pageQuery) {
         return flwInstanceService.getPageByCurrent(instanceBo, pageQuery);
+    }
+
+
+    /**
+     * 获取流程图，流程记录
+     *
+     * @param businessId 业务id
+     */
+    @GetMapping("/getFlowImage/{businessId}")
+    public R<Map<String, Object>> getFlowImage(@PathVariable String businessId) {
+        return R.ok(flwInstanceService.getFlowImage(businessId));
     }
 }

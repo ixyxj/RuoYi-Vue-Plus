@@ -3,6 +3,7 @@ package org.dromara.workflow.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.warm.flow.core.enums.FlowStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.event.ProcessEvent;
@@ -84,7 +85,7 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
     public TestLeaveVo insertByBo(TestLeaveBo bo) {
         TestLeave add = MapstructUtils.convert(bo, TestLeave.class);
         if (StringUtils.isBlank(add.getStatus())) {
-            add.setStatus(BusinessStatusEnum.DRAFT.getStatus());
+            add.setStatus(FlowStatus.TOBESUBMIT.getKey());
         }
         boolean flag = baseMapper.insert(add) > 0;
         if (flag) {
@@ -116,25 +117,25 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
 
     /**
      * 总体流程监听(例如: 提交 退回 撤销 终止 作废等)
-     * 正常使用只需#processEvent.key=='leave1'
+     * 正常使用只需#processEvent.flowCode=='leave1'
      * 示例为了方便则使用startsWith匹配了全部示例key
      *
      * @param processEvent 参数
      */
-    @EventListener(condition = "#processEvent.key.startsWith('leave')")
+    @EventListener(condition = "#processEvent.flowCode.startsWith('leaveFlow-serial1')")
     public void processHandler(ProcessEvent processEvent) {
         log.info("当前任务执行了{}", processEvent.toString());
         TestLeave testLeave = baseMapper.selectById(Long.valueOf(processEvent.getBusinessKey()));
         testLeave.setStatus(processEvent.getStatus());
         if (processEvent.isSubmit()) {
-            testLeave.setStatus(BusinessStatusEnum.WAITING.getStatus());
+            testLeave.setStatus(FlowStatus.APPROVAL.getKey());
         }
         baseMapper.updateById(testLeave);
     }
 
     /**
      * 执行办理任务监听
-     * 示例：也可通过  @EventListener(condition = "#processTaskEvent.key=='leave1'")进行判断
+     * 示例：也可通过  @EventListener(condition = "#processTaskEvent.flowCode=='leave1'")进行判断
      * 在方法中判断流程节点key
      * if ("xxx".equals(processTaskEvent.getTaskDefinitionKey())) {
      * //执行业务逻辑
@@ -142,11 +143,11 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
      *
      * @param processTaskEvent 参数
      */
-    @EventListener(condition = "#processTaskEvent.key=='leave1' && #processTaskEvent.taskDefinitionKey=='Activity_14633hx'")
+    @EventListener(condition = "#processTaskEvent.flowCode=='leaveFlow-serial1' && #processTaskEvent.nodeCode=='Activity_14633hx'")
     public void processTaskHandler(ProcessTaskEvent processTaskEvent) {
         log.info("当前任务执行了{}", processTaskEvent.toString());
         TestLeave testLeave = baseMapper.selectById(Long.valueOf(processTaskEvent.getBusinessKey()));
-        testLeave.setStatus(BusinessStatusEnum.WAITING.getStatus());
+        testLeave.setStatus(FlowStatus.APPROVAL.getKey());
         baseMapper.updateById(testLeave);
     }
 }

@@ -2,29 +2,24 @@ package org.dromara.workflow.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.warm.flow.core.FlowFactory;
-import com.warm.flow.core.constant.ExceptionCons;
-import com.warm.flow.core.dto.FlowParams;
 import com.warm.flow.core.entity.*;
+import com.warm.flow.core.enums.CooperateType;
 import com.warm.flow.core.enums.FlowStatus;
 import com.warm.flow.core.enums.NodeType;
-import com.warm.flow.core.enums.SkipType;
-import com.warm.flow.core.service.DefService;
-import com.warm.flow.core.service.InsService;
-import com.warm.flow.core.service.NodeService;
-import com.warm.flow.core.service.TaskService;
-import com.warm.flow.core.utils.AssertUtil;
+import com.warm.flow.core.service.*;
 import com.warm.flow.orm.entity.FlowDefinition;
+import com.warm.flow.orm.entity.FlowHisTask;
 import com.warm.flow.orm.entity.FlowInstance;
 import com.warm.flow.orm.mapper.FlowDefinitionMapper;
+import com.warm.flow.orm.mapper.FlowHisTaskMapper;
 import com.warm.flow.orm.mapper.FlowInstanceMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.constant.UserConstants;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -32,15 +27,18 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.workflow.domain.bo.FlowInstanceBo;
 import org.dromara.workflow.domain.bo.InstanceBo;
+import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
 import org.dromara.workflow.mapper.FlwInstanceMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
-import org.dromara.workflow.utils.WorkflowUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 流程实例 服务层实现
@@ -53,9 +51,8 @@ import java.util.List;
 public class FlwInstanceServiceImpl implements IFlwInstanceService {
 
     private final InsService insService;
-    private final NodeService nodeService;
     private final DefService defService;
-    private final TaskService taskService;
+    private final FlowHisTaskMapper flowHisTaskMapper;
     private final FlowInstanceMapper flowInstanceMapper;
     private final FlwInstanceMapper flwInstanceMapper;
     private final FlowDefinitionMapper flowDefinitionMapper;
@@ -70,6 +67,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     public TableDataInfo<FlowInstanceVo> getPageByRunning(Instance instance, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("t.flow_status", FlowStatus.APPROVAL.getKey());
+        queryWrapper.eq("t.del_flag", UserConstants.USER_NORMAL);
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
         build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));
@@ -130,38 +128,15 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         return insService.remove(instanceIds);
     }
 
+    /**
+     * 撤销流程
+     *
+     * @param businessId 业务id
+     */
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean cancelProcessApply(String businessId) {
-        FlowInstance flowInstance = instanceByBusinessId(businessId);
-        if (ObjectUtil.isNull(flowInstance)) {
-            return false;
-        }
-        try {
-            Definition definition = defService.getById(flowInstance.getDefinitionId());
-            List<Task> list = taskService.list(FlowFactory.newTask().setInstanceId(flowInstance.getId()));
-            // 获取已发布的流程节点
-            List<Node> nodes = nodeService.getByFlowCode(definition.getFlowCode());
-            AssertUtil.isTrue(CollUtil.isEmpty(nodes), ExceptionCons.NOT_PUBLISH_NODE);
-            // 获取开始节点
-            Node startNode = nodes.stream().filter(t -> NodeType.isStart(t.getNodeType())).findFirst().orElse(null);
-            AssertUtil.isNull(startNode, ExceptionCons.LOST_START_NODE);
-
-            // 获取下一个节点，如果是网关节点，则重新获取后续节点
-            //List<Node> nextNodes = FlowFactory.taskService().getNextByCheckGateWay(new FlowParams(), getFirstBetween(startNode));
-            //Node node = nextNodes.get(0);
-            // FlowParams flowParams = FlowParams.build().nodeCode(node.getNodeCode()).skipType(SkipType.PASS.getKey()).permissionFlag(WorkflowUtils.permissionList());
-            // taskService.skip(list.get(0).getId(), flowParams);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        return false;
-    }
-
-    private Node getFirstBetween(Node startNode) {
-        List<Skip> skips = FlowFactory.skipService().list(FlowFactory.newSkip().setDefinitionId(startNode.getDefinitionId()).setNowNodeCode(startNode.getNodeCode()));
-        Skip skip = skips.get(0);
-        return FlowFactory.nodeService().getOne(FlowFactory.newNode().setDefinitionId(startNode.getDefinitionId()).setNodeCode(skip.getNextNodeCode()));
+        throw new RuntimeException("暂未开发");
     }
 
     /**
@@ -201,5 +176,59 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         build.setRows(flowInstanceVos);
         build.setTotal(page.getTotal());
         return build;
+    }
+
+    @Override
+    public Map<String, Object> getFlowImage(String businessId) {
+        Map<String, Object> map = new HashMap<>();
+        FlowInstance flowInstance = instanceByBusinessId(businessId);
+        LambdaQueryWrapper<FlowHisTask> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(FlowHisTask::getInstanceId, flowInstance.getId());
+        wrapper.eq(FlowHisTask::getNodeType, NodeType.BETWEEN.getKey());
+        wrapper.orderByDesc(FlowHisTask::getCreateTime);
+        List<FlowHisTask> flowHisTasks = flowHisTaskMapper.selectList(wrapper);
+        List<FlowHisTaskVo> list = BeanUtil.copyToList(flowHisTasks, FlowHisTaskVo.class);
+        for (FlowHisTaskVo vo : list) {
+            vo.setCooperateTypeName(CooperateType.getValueByKey(vo.getCooperateType()));
+            if (vo.getUpdateTime() != null && vo.getCreateTime() != null) {
+                vo.setRunDuration(getDuration(vo.getUpdateTime().getTime() - vo.getCreateTime().getTime()));
+            }
+        }
+        map.put("list", list);
+        try {
+            String flowChart = defService.flowChart(flowInstance.getId());
+            map.put("image", flowChart);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return map;
+    }
+
+    /**
+     * 任务完成时间处理
+     *
+     * @param time 时间
+     */
+    private String getDuration(long time) {
+
+        long day = time / (24 * 60 * 60 * 1000);
+        long hour = (time / (60 * 60 * 1000) - day * 24);
+        long minute = ((time / (60 * 1000)) - day * 24 * 60 - hour * 60);
+        long second = (time / 1000 - day * 24 * 60 * 60 - hour * 60 * 60 - minute * 60);
+
+        if (day > 0) {
+            return day + "天" + hour + "小时" + minute + "分钟";
+        }
+        if (hour > 0) {
+            return hour + "小时" + minute + "分钟";
+        }
+        if (minute > 0) {
+            return minute + "分钟";
+        }
+        if (second > 0) {
+            return second + "秒";
+        } else {
+            return 0 + "秒";
+        }
     }
 }

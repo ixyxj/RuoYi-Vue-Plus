@@ -5,13 +5,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.warm.flow.core.dto.FlowParams;
-import com.warm.flow.core.entity.HisTask;
-import com.warm.flow.core.entity.Instance;
-import com.warm.flow.core.entity.Task;
-import com.warm.flow.core.entity.User;
+import com.warm.flow.core.entity.*;
 import com.warm.flow.core.enums.FlowStatus;
 import com.warm.flow.core.enums.NodeType;
 import com.warm.flow.core.enums.SkipType;
+import com.warm.flow.core.service.DefService;
 import com.warm.flow.core.service.InsService;
 import com.warm.flow.core.service.TaskService;
 import com.warm.flow.core.service.UserService;
@@ -32,6 +30,7 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.workflow.domain.bo.*;
 import org.dromara.workflow.domain.vo.*;
+import org.dromara.workflow.handler.FlowProcessEventHandler;
 import org.dromara.workflow.mapper.FlwTaskMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.dromara.workflow.service.IFlwTaskService;
@@ -64,6 +63,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     private final FlowTaskMapper flowTaskMapper;
     private final FlowHisTaskMapper flowHisTaskMapper;
     private final FlowSkipMapper flowSkipMapper;
+    private final FlowProcessEventHandler flowProcessEventHandler;
+    private final DefService defService;
 
     /**
      * 启动任务
@@ -126,14 +127,31 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         try {
             String userId = String.valueOf(LoginHelper.getUserId());
             Long taskId = completeTaskBo.getTaskId();
+            FlowTask flowTask = flowTaskMapper.selectById(taskId);
+            Instance ins = insService.getById(flowTask.getInstanceId());
+            //流程定义
+            Definition definition = defService.getById(flowTask.getDefinitionId());
+            //流程提交监听
+            if (FlowStatus.TOBESUBMIT.getKey().equals(ins.getFlowStatus()) || FlowStatus.REJECT.getKey().equals(ins.getFlowStatus())) {
+                flowProcessEventHandler.processHandler(definition.getFlowCode(), ins.getBusinessId(), ins.getFlowStatus(), true);
+            }
+            //办理任务监听
+            flowProcessEventHandler.processTaskHandler(definition.getFlowCode(), flowTask.getNodeCode(),
+                taskId.toString(), ins.getBusinessId());
             FlowParams flowParams = new FlowParams();
             flowParams.variable(completeTaskBo.getVariables());
             flowParams.skipType(SkipType.PASS.getKey());
             flowParams.message(completeTaskBo.getMessage());
             flowParams.handler(userId);
             flowParams.permissionFlag(WorkflowUtils.permissionList());
-            Instance instance = taskService.skip(taskId, flowParams);
-            setHandler(instance);
+            setHandler(taskService.skip(taskId, flowParams));
+            //判断是否流程结束
+            Instance instance = insService.getById(ins.getId());
+            if (FlowStatus.isFinished(instance.getFlowStatus())) {
+                //流程结束执行监听
+                flowProcessEventHandler.processHandler(definition.getFlowCode(), instance.getBusinessId(),
+                    FlowStatus.FINISHED.getKey(), false);
+            }
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -297,6 +315,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
                 throw new ServiceException("任务不存在！");
             }
             Long definitionId = flowTasks.get(0).getDefinitionId();
+            Definition definition = defService.getById(definitionId);
             List<FlowSkip> flowSkips = flowSkipMapper.selectList(new LambdaQueryWrapper<>(FlowSkip.class).eq(FlowSkip::getDefinitionId, definitionId));
             FlowSkip flowSkip = StreamUtils.findFirst(flowSkips, e -> NodeType.START.getKey().equals(e.getNowNodeType()));
             //开始节点的下一节点
@@ -316,6 +335,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             flowParams.setPermissionFlag(WorkflowUtils.permissionList());
             Instance instance = taskService.skip(taskId, flowParams);
             setHandler(instance);
+            flowProcessEventHandler.processHandler(definition.getFlowCode(),
+                instance.getBusinessId(), FlowStatus.REJECT.getKey(), false);
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -339,5 +360,33 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             return flowHisTasks.stream().distinct().collect(Collectors.toList());
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * 终止任务
+     *
+     * @param bo 参数
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean terminationTask(TerminationBo bo) {
+        try {
+            FlowTask flowTask = flowTaskMapper.selectById(bo.getTaskId());
+            Instance ins = insService.getById(flowTask.getInstanceId());
+            //流程定义
+            Definition definition = defService.getById(flowTask.getDefinitionId());
+            FlowParams flowParams = new FlowParams();
+            flowParams.handler(String.valueOf(LoginHelper.getUserId()));
+            flowParams.message(bo.getComment());
+            flowParams.permissionFlag(WorkflowUtils.permissionList());
+            taskService.termination(bo.getTaskId(), flowParams);
+            //流程终止监听
+            flowProcessEventHandler.processHandler(definition.getFlowCode(),
+                ins.getBusinessId(), FlowStatus.INVALID.getKey(), false);
+            return true;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException(e.getMessage());
+        }
     }
 }

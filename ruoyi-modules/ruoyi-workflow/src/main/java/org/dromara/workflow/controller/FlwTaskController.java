@@ -158,12 +158,8 @@ public class FlwTaskController extends BaseController {
     @Log(title = "任务管理", businessType = BusinessType.INSERT)
     @RepeatSubmit()
     @PostMapping("/terminationTask")
-    public R<Instance> terminationTask(@RequestBody TerminationBo bo) {
-        FlowParams flowParams = new FlowParams();
-        flowParams.handler(String.valueOf(LoginHelper.getUserId()));
-        flowParams.message(bo.getComment());
-        flowParams.permissionFlag(WorkflowUtils.permissionList());
-        return R.ok(taskService.termination(bo.getTaskId(), flowParams));
+    public R<Boolean> terminationTask(@RequestBody TerminationBo bo) {
+        return R.ok(flwTaskService.terminationTask(bo));
     }
 
     /**

@@ -18,9 +18,9 @@ public class ProcessEvent implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 流程定义key
+     * 流程定义编码
      */
-    private String key;
+    private String flowCode;
 
     /**
      * 业务id

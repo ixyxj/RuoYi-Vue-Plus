@@ -68,6 +68,11 @@ public class FlowHisTaskVo implements Serializable {
     private Integer cooperateType;
 
     /**
+     * 协作方式(1审批 2转办 3委派 4会签 5票签 6加签 7减签)
+     */
+    private String cooperateTypeName;
+
+    /**
      * 业务id
      */
     private String businessId;
@@ -163,4 +168,9 @@ public class FlowHisTaskVo implements Serializable {
      * 流程定义编码
      */
     private String flowCode;
+
+    /**
+     * 运行时长
+     */
+    private String runDuration;
 }

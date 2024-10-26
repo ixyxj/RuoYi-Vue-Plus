@@ -172,17 +172,6 @@ public class FlwDefinitionController extends BaseController {
     }
 
     /**
-     * 查询流程图
-     *
-     * @param instanceId 流程实例id
-     * @throws IOException 异常
-     */
-    @GetMapping("/flowChart/{instanceId}")
-    public R<String> flowChart(@PathVariable Long instanceId) throws IOException {
-        return R.ok("操作成功", defService.flowChart(instanceId));
-    }
-
-    /**
      * 激活/挂起流程定义
      *
      * @param id     流程定义id

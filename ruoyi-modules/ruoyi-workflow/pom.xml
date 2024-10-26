@@ -74,6 +74,10 @@
             <groupId>io.github.minliuhua</groupId>
             <artifactId>warm-flow-plugin-spel</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.github.minliuhua</groupId>
+            <artifactId>warm-flow-plugin-ui-sb-web</artifactId>
+        </dependency>
     </dependencies>
 
 </project>
