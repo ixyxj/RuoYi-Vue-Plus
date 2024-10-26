@@ -121,6 +121,9 @@ security:
     # swagger 文档配置
     - /*/api-docs
     - /*/api-docs/**
+    # warm-flow-ui
+    - /warm-flow-ui/**
+    - /warm-flow/**
 
 # 多租户配置
 tenant:
@@ -225,8 +228,7 @@ xss:
   # 排除链接（多个用逗号分隔）
   excludeUrls:
     - /system/notice
-    - /workflow/model/save
-    - /workflow/model/editModelXml
+    - /warm-flow-ui/save-xml
 
 # 全局线程池相关配置
 # 如使用JDK21请直接使用虚拟线程 不要开启此配置
