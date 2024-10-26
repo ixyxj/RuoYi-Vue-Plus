@@ -3,10 +3,11 @@ package org.dromara.workflow.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.warm.flow.core.entity.Definition;
 import com.warm.flow.core.enums.PublishStatus;
 import com.warm.flow.core.service.DefService;
-import com.warm.flow.core.utils.page.Page;
 import com.warm.flow.orm.entity.FlowDefinition;
 import com.warm.flow.orm.mapper.FlowDefinitionMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,6 +20,7 @@ import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.workflow.domain.vo.FlowDefinitionVo;
+import org.dromara.workflow.mapper.FlwDefMapper;
 import org.dromara.workflow.service.IFlwDefinitionService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,8 +39,8 @@ import java.util.List;
 @Service
 public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
     private final DefService defService;
-
     private final FlowDefinitionMapper flowDefinitionMapper;
+    private final FlwDefMapper flwDefMapper;
 
     /**
      * 分页查询
@@ -48,10 +50,11 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
      */
     @Override
     public TableDataInfo<FlowDefinitionVo> page(FlowDefinition flowDefinition, PageQuery pageQuery) {
-        Page<Definition> page = Page.pageOf(pageQuery.getPageNum(), pageQuery.getPageSize());
-        page = defService.orderByCreateTime().desc().page(flowDefinition, page);
+        QueryWrapper<FlowDefinition> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc("create_time");
+        Page<FlowDefinition> page = flwDefMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowDefinitionVo> build = TableDataInfo.build();
-        build.setRows(BeanUtil.copyToList(page.getList(), FlowDefinitionVo.class));
+        build.setRows(BeanUtil.copyToList(page.getRecords(), FlowDefinitionVo.class));
         build.setTotal(page.getTotal());
         return build;
     }
@@ -65,7 +68,6 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
     public List<FlowDefinitionVo> getHisListByKey(String flowCode) {
         LambdaQueryWrapper<FlowDefinition> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(FlowDefinition::getFlowCode, flowCode);
-        wrapper.in(FlowDefinition::getIsPublish, Arrays.asList(PublishStatus.UNPUBLISHED.getKey(), PublishStatus.EXPIRED.getKey()));
         List<FlowDefinition> list = flowDefinitionMapper.selectList(wrapper);
         return BeanUtil.copyToList(list, FlowDefinitionVo.class);
     }
