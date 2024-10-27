@@ -22,12 +22,14 @@ import com.warm.flow.orm.mapper.FlowSkipMapper;
 import com.warm.flow.orm.mapper.FlowTaskMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.workflow.common.enums.TaskStatusEnum;
 import org.dromara.workflow.domain.bo.*;
 import org.dromara.workflow.domain.vo.*;
 import org.dromara.workflow.handler.FlowProcessEventHandler;
@@ -100,6 +102,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         flowParams.flowCode(wfDefinitionConfigVo.getProcessKey());
         flowParams.variable(startProcessBo.getVariables());
         flowParams.setHandler(String.valueOf(LoginHelper.getUserId()));
+        flowParams.flowStatus(BusinessStatusEnum.DRAFT.getStatus());
         Instance instance;
         try {
             instance = insService.start(startProcessBo.getBusinessKey(), flowParams);
@@ -132,7 +135,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             //流程定义
             Definition definition = defService.getById(flowTask.getDefinitionId());
             //流程提交监听
-            if (FlowStatus.TOBESUBMIT.getKey().equals(ins.getFlowStatus()) || FlowStatus.REJECT.getKey().equals(ins.getFlowStatus())) {
+            if (BusinessStatusEnum.DRAFT.getStatus().equals(ins.getFlowStatus()) || BusinessStatusEnum.CANCEL.getStatus().equals(ins.getFlowStatus())
+                || BusinessStatusEnum.BACK.getStatus().equals(ins.getFlowStatus())) {
                 flowProcessEventHandler.processHandler(definition.getFlowCode(), ins.getBusinessId(), ins.getFlowStatus(), true);
             }
             //办理任务监听
@@ -144,13 +148,17 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             flowParams.message(completeTaskBo.getMessage());
             flowParams.handler(userId);
             flowParams.permissionFlag(WorkflowUtils.permissionList());
+            flowParams.flowStatus(BusinessStatusEnum.WAITING.getStatus())
+                .hisStatus(TaskStatusEnum.PASS.getStatus());
             setHandler(taskService.skip(taskId, flowParams));
+            iFlwInstanceService.updateStatus(ins.getId(), BusinessStatusEnum.WAITING.getStatus());
             //判断是否流程结束
             Instance instance = insService.getById(ins.getId());
             if (FlowStatus.isFinished(instance.getFlowStatus())) {
+                iFlwInstanceService.updateStatus(instance.getId(), BusinessStatusEnum.FINISH.getStatus());
                 //流程结束执行监听
                 flowProcessEventHandler.processHandler(definition.getFlowCode(), instance.getBusinessId(),
-                    FlowStatus.FINISHED.getKey(), false);
+                    BusinessStatusEnum.FINISH.getStatus(), false);
             }
             return true;
         } catch (Exception e) {
@@ -194,7 +202,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     public TableDataInfo<FlowTaskVo> getPageByTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("t.processed_by", WorkflowUtils.permissionList());
-        queryWrapper.in("t.flow_status", FlowStatus.APPROVAL.getKey());
+        queryWrapper.in("t.flow_status", BusinessStatusEnum.WAITING.getStatus());
         Page<FlowTaskVo> page = buildTaskWaitingPage(pageQuery, queryWrapper, flowTaskBo);
         return TableDataInfo.build(page);
     }
@@ -326,9 +334,12 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             flowParams.variable(bo.getVariables());
             if (nextNodeCode.equals(bo.getNodeCode())) {
                 flowParams.skipType(SkipType.REJECT.getKey());
+                flowParams.flowStatus(BusinessStatusEnum.BACK.getStatus());
             } else {
                 flowParams.skipType(SkipType.PASS.getKey());
+                flowParams.flowStatus(BusinessStatusEnum.WAITING.getStatus());
             }
+            flowParams.hisStatus(TaskStatusEnum.BACK.getStatus());
             flowParams.message(bo.getMessage());
             flowParams.handler(userId);
             flowParams.nodeCode(bo.getNodeCode());
@@ -336,7 +347,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             Instance instance = taskService.skip(taskId, flowParams);
             setHandler(instance);
             flowProcessEventHandler.processHandler(definition.getFlowCode(),
-                instance.getBusinessId(), FlowStatus.REJECT.getKey(), false);
+                instance.getBusinessId(), BusinessStatusEnum.BACK.getStatus(), false);
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -379,10 +390,12 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             flowParams.handler(String.valueOf(LoginHelper.getUserId()));
             flowParams.message(bo.getComment());
             flowParams.permissionFlag(WorkflowUtils.permissionList());
+            flowParams.flowStatus(BusinessStatusEnum.TERMINATION.getStatus())
+                .hisStatus(TaskStatusEnum.TERMINATION.getStatus());
             taskService.termination(bo.getTaskId(), flowParams);
             //流程终止监听
             flowProcessEventHandler.processHandler(definition.getFlowCode(),
-                ins.getBusinessId(), FlowStatus.INVALID.getKey(), false);
+                ins.getBusinessId(), BusinessStatusEnum.TERMINATION.getStatus(), false);
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);

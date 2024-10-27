@@ -83,4 +83,12 @@ public interface IFlwInstanceService {
      * @return 结果
      */
     Map<String, Object> getFlowImage(String businessId);
+
+    /**
+     * 按照实例id更新状态
+     *
+     * @param instanceId 实例id
+     * @param status     状态
+     */
+    void updateStatus(Long instanceId, String status);
 }

@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.warm.flow.core.entity.*;
@@ -162,7 +163,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         List<FlowInstanceVo> flowInstanceVos = BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class);
         if (CollUtil.isNotEmpty(flowInstanceVos)) {
             List<Long> definitionIds = StreamUtils.toList(flowInstanceVos, FlowInstanceVo::getDefinitionId);
-            List<FlowDefinition> flowDefinitions = flowDefinitionMapper.selectBatchIds(definitionIds);
+            List<FlowDefinition> flowDefinitions = flowDefinitionMapper.selectByIds(definitionIds);
             for (FlowInstanceVo vo : flowInstanceVos) {
                 flowDefinitions.stream().filter(e -> e.getId().toString().equals(vo.getDefinitionId().toString())).findFirst().ifPresent(e -> {
                     vo.setFlowName(e.getFlowName());
@@ -178,9 +179,14 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         return build;
     }
 
+    /**
+     * 获取流程图,流程记录
+     *
+     * @param businessId 业务id
+     */
     @Override
     public Map<String, Object> getFlowImage(String businessId) {
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>(16);
         FlowInstance flowInstance = instanceByBusinessId(businessId);
         LambdaQueryWrapper<FlowHisTask> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(FlowHisTask::getInstanceId, flowInstance.getId());
@@ -230,5 +236,19 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         } else {
             return 0 + "秒";
         }
+    }
+
+    /**
+     * 按照实例id更新状态
+     *
+     * @param instanceId 实例id
+     * @param status     状态
+     */
+    @Override
+    public void updateStatus(Long instanceId, String status) {
+        LambdaUpdateWrapper<FlowInstance> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.set(FlowInstance::getFlowStatus, status);
+        wrapper.eq(FlowInstance::getId, instanceId);
+        flowInstanceMapper.update(wrapper);
     }
 }
