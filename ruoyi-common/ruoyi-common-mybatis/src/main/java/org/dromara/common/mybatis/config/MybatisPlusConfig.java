@@ -38,6 +38,7 @@ public class MybatisPlusConfig {
             TenantLineInnerInterceptor tenant = SpringUtils.getBean(TenantLineInnerInterceptor.class);
             interceptor.addInnerInterceptor(tenant);
         } catch (BeansException ignore) {
+            ignore.printStackTrace();
         }
         // 数据权限处理
         interceptor.addInnerInterceptor(dataPermissionInterceptor());

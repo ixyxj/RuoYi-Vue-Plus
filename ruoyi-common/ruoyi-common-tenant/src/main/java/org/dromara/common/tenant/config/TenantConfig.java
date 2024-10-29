@@ -4,7 +4,6 @@ import cn.dev33.satoken.dao.SaTokenDao;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
 import org.dromara.common.core.utils.reflect.ReflectUtils;
-import org.dromara.common.mybatis.config.MybatisPlusConfig;
 import org.dromara.common.redis.config.RedisConfig;
 import org.dromara.common.redis.config.properties.RedissonProperties;
 import org.dromara.common.tenant.core.TenantSaTokenDao;
@@ -16,7 +15,7 @@ import org.redisson.config.ClusterServersConfig;
 import org.redisson.config.SingleServerConfig;
 import org.redisson.spring.starter.RedissonAutoConfigurationCustomizer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.CacheManager;
@@ -33,18 +32,13 @@ import org.springframework.context.annotation.Primary;
 @ConditionalOnProperty(value = "tenant.enable", havingValue = "true")
 public class TenantConfig {
 
-    @ConditionalOnBean(MybatisPlusConfig.class)
-    @AutoConfiguration(after = {MybatisPlusConfig.class})
-    static class MybatisPlusConfiguration {
-
-        /**
-         * 多租户插件
-         */
-        @Bean
-        public TenantLineInnerInterceptor tenantLineInnerInterceptor(TenantProperties tenantProperties) {
-            return new TenantLineInnerInterceptor(new PlusTenantLineHandler(tenantProperties));
-        }
-
+    /**
+     * 多租户插件
+     */
+    @ConditionalOnClass(TenantLineInnerInterceptor.class)
+    @Bean
+    public TenantLineInnerInterceptor tenantLineInnerInterceptor(TenantProperties tenantProperties) {
+        return new TenantLineInnerInterceptor(new PlusTenantLineHandler(tenantProperties));
     }
 
     @Bean
