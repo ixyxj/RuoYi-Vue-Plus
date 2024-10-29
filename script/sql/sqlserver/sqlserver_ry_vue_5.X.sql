@@ -2,7 +2,7 @@ create table sys_social
 (
     id                 bigint            NOT NULL,
     user_id            bigint            NOT NULL,
-    tenant_id          nvarchar(20)      NULL,
+    tenant_id          nvarchar(20)      DEFAULT ('000000') NULL,
     auth_id            nvarchar(255)     NOT NULL,
     source             nvarchar(255)     NOT NULL,
     open_id            nvarchar(255)     NULL,
