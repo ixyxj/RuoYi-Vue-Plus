@@ -32,13 +32,18 @@ import org.springframework.context.annotation.Primary;
 @ConditionalOnProperty(value = "tenant.enable", havingValue = "true")
 public class TenantConfig {
 
-    /**
-     * 多租户插件
-     */
     @ConditionalOnClass(TenantLineInnerInterceptor.class)
-    @Bean
-    public TenantLineInnerInterceptor tenantLineInnerInterceptor(TenantProperties tenantProperties) {
-        return new TenantLineInnerInterceptor(new PlusTenantLineHandler(tenantProperties));
+    @AutoConfiguration
+    static class MybatisPlusConfiguration {
+
+        /**
+         * 多租户插件
+         */
+        @Bean
+        public TenantLineInnerInterceptor tenantLineInnerInterceptor(TenantProperties tenantProperties) {
+            return new TenantLineInnerInterceptor(new PlusTenantLineHandler(tenantProperties));
+        }
+
     }
 
     @Bean
