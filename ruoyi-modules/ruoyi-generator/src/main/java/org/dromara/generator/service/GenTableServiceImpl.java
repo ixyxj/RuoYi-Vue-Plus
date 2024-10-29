@@ -29,7 +29,6 @@ import org.dromara.common.core.utils.file.FileUtils;
 import org.dromara.common.json.utils.JsonUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
-import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.generator.constant.GenConstants;
 import org.dromara.generator.domain.GenTable;
 import org.dromara.generator.domain.GenTableColumn;
@@ -269,11 +268,10 @@ public class GenTableServiceImpl implements IGenTableService {
     @DSTransactional
     @Override
     public void importGenTable(List<GenTable> tableList, String dataName) {
-        Long operId = LoginHelper.getUserId();
         try {
             for (GenTable table : tableList) {
                 String tableName = table.getTableName();
-                GenUtils.initTable(table, operId);
+                GenUtils.initTable(table);
                 table.setDataName(dataName);
                 int row = baseMapper.insert(table);
                 if (row > 0) {
