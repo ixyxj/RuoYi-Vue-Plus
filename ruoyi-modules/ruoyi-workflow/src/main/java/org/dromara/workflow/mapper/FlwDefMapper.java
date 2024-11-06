@@ -13,6 +13,7 @@ import org.apache.ibatis.annotations.Param;
  * @date 2024-03-02
  */
 public interface FlwDefMapper {
+
     /**
      * 流程实例信息
      *
@@ -20,7 +21,6 @@ public interface FlwDefMapper {
      * @param queryWrapper 条件
      * @return 结果
      */
+    Page<FlowDefinition> page(@Param("page") Page<FlowDefinition> page, @Param(Constants.WRAPPER) Wrapper<FlowDefinition> queryWrapper);
 
-    Page<FlowDefinition> page(@Param("page") Page<FlowDefinition> page,
-                              @Param(Constants.WRAPPER) Wrapper<FlowDefinition> queryWrapper);
 }

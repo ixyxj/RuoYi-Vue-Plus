@@ -45,36 +45,30 @@ public class WorkflowUtils {
      * @return 用户
      */
     public static List<UserDTO> getHandlerUser(List<User> userList) {
-        List<UserDTO> userDTOList = new ArrayList<>();
-        if (CollUtil.isNotEmpty(userList)) {
-            UserService userService = SpringUtils.getBean(UserService.class);
-            List<Long> userIds = new ArrayList<>();
-            List<Long> roleIds = new ArrayList<>();
-            List<Long> deptIds = new ArrayList<>();
-            for (User user : userList) {
-                if (user.getProcessedBy().startsWith("user:")) {
-                    userIds.add(Long.valueOf(StringUtils.substringAfter(user.getProcessedBy(), StrUtil.C_COLON)));
-                } else if (user.getProcessedBy().startsWith("role:")) {
-                    roleIds.add(Long.valueOf(StringUtils.substringAfter(user.getProcessedBy(), StrUtil.C_COLON)));
-                } else if (user.getProcessedBy().startsWith("dept:")) {
-                    deptIds.add(Long.valueOf(StringUtils.substringAfter(user.getProcessedBy(), StrUtil.C_COLON)));
-                } else {
-                    userIds.add(Long.valueOf(user.getProcessedBy()));
-                }
-            }
-            List<UserDTO> users = userService.selectListByIds(userIds);
-            if (CollUtil.isNotEmpty(users)) {
-                userDTOList.addAll(users);
-            }
-            List<UserDTO> roleUsers = userService.selectUsersByRoleIds(roleIds);
-            if (CollUtil.isNotEmpty(roleUsers)) {
-                userDTOList.addAll(roleUsers);
-            }
-            List<UserDTO> deptUsers = userService.selectUsersByDeptIds(deptIds);
-            if (CollUtil.isNotEmpty(deptUsers)) {
-                userDTOList.addAll(deptUsers);
+        if (CollUtil.isEmpty(userList)) {
+            return List.of();
+        }
+        UserService userService = SpringUtils.getBean(UserService.class);
+        List<Long> userIds = new ArrayList<>();
+        List<Long> roleIds = new ArrayList<>();
+        List<Long> deptIds = new ArrayList<>();
+        for (User user : userList) {
+            String processedBy = user.getProcessedBy();
+            Long id = Long.valueOf(StringUtils.substringAfter(processedBy, StrUtil.C_COLON));
+            if (processedBy.startsWith("user:")) {
+                userIds.add(id);
+            } else if (processedBy.startsWith("role:")) {
+                roleIds.add(id);
+            } else if (processedBy.startsWith("dept:")) {
+                deptIds.add(id);
+            } else {
+                userIds.add(Long.valueOf(processedBy));
             }
         }
+        // 合并不同类型用户
+        List<UserDTO> userDTOList = new ArrayList<>(userService.selectListByIds(userIds));
+        userDTOList.addAll(userService.selectUsersByRoleIds(roleIds));
+        userDTOList.addAll(userService.selectUsersByDeptIds(deptIds));
         return userDTOList;
     }
 
@@ -85,21 +79,22 @@ public class WorkflowUtils {
      * @return 用户
      */
     public static Set<User> getUser(List<User> userList) {
+        if (CollUtil.isEmpty(userList)) {
+            return Set.of();
+        }
         Set<User> list = new HashSet<>();
-        if (CollUtil.isNotEmpty(userList)) {
-            UserService userService = SpringUtils.getBean(UserService.class);
-            for (User user : userList) {
-                // 根据 processedBy 前缀判断处理人类型，分别获取用户列表
-                List<UserDTO> users = getAssociatedUsers(userService, user);
-                // 转换为 FlowUser 并添加到结果集合
-                if (CollUtil.isNotEmpty(users)) {
-                    users.forEach(dto -> {
-                        FlowUser flowUser = new FlowUser();
-                        flowUser.setType(user.getType());
-                        flowUser.setProcessedBy(String.valueOf(dto.getUserId()));
-                        list.add(flowUser);
-                    });
-                }
+        UserService userService = SpringUtils.getBean(UserService.class);
+        for (User user : userList) {
+            // 根据 processedBy 前缀判断处理人类型，分别获取用户列表
+            List<UserDTO> users = getAssociatedUsers(userService, user);
+            // 转换为 FlowUser 并添加到结果集合
+            if (CollUtil.isNotEmpty(users)) {
+                users.forEach(dto -> {
+                    FlowUser flowUser = new FlowUser();
+                    flowUser.setType(user.getType());
+                    flowUser.setProcessedBy(String.valueOf(dto.getUserId()));
+                    list.add(flowUser);
+                });
             }
         }
         return list;
