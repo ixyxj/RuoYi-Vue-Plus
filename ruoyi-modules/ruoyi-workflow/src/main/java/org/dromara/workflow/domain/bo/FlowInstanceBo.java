@@ -37,5 +37,8 @@ public class FlowInstanceBo implements Serializable {
      */
     private Long instanceId;
 
+    /**
+     * 权限列表
+     */
     private List<String> permissionList;
 }

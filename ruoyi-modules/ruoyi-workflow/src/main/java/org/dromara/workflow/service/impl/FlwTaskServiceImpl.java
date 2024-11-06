@@ -31,7 +31,9 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.workflow.common.enums.TaskStatusEnum;
 import org.dromara.workflow.domain.bo.*;
-import org.dromara.workflow.domain.vo.*;
+import org.dromara.workflow.domain.vo.FlowHisTaskVo;
+import org.dromara.workflow.domain.vo.FlowTaskVo;
+import org.dromara.workflow.domain.vo.WfDefinitionConfigVo;
 import org.dromara.workflow.handler.FlowProcessEventHandler;
 import org.dromara.workflow.mapper.FlwTaskMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
@@ -44,7 +46,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.dromara.workflow.common.constant.FlowConstant.*;
+import static org.dromara.workflow.common.constant.FlowConstant.BUSINESS_KEY;
+import static org.dromara.workflow.common.constant.FlowConstant.INITIATOR;
 
 /**
  * 任务 服务层实现
@@ -76,36 +79,35 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> startWorkFlow(StartProcessBo startProcessBo) {
-        Map<String, Object> map = new HashMap<>(16);
-        if (StringUtils.isBlank(startProcessBo.getBusinessKey())) {
+        String businessKey = startProcessBo.getBusinessKey();
+        String userId = LoginHelper.getUserIdStr();
+        if (StringUtils.isBlank(businessKey)) {
             throw new ServiceException("启动工作流时必须包含业务ID");
         }
         // 启动流程实例（提交申请）
         Map<String, Object> variables = startProcessBo.getVariables();
         // 流程发起人
-        variables.put(INITIATOR, (String.valueOf(LoginHelper.getUserId())));
+        variables.put(INITIATOR, userId);
         // 业务id
-        variables.put(BUSINESS_KEY, startProcessBo.getBusinessKey());
+        variables.put(BUSINESS_KEY, businessKey);
         WfDefinitionConfigVo wfDefinitionConfigVo = wfDefinitionConfigService.getByTableNameLastVersion(startProcessBo.getTableName());
         if (wfDefinitionConfigVo == null) {
             throw new ServiceException("请到流程定义绑定业务表名与流程KEY！");
         }
 
-        FlowInstance flowInstance = iFlwInstanceService.instanceByBusinessId(startProcessBo.getBusinessKey());
+        FlowInstance flowInstance = iFlwInstanceService.instanceByBusinessId(businessKey);
         if (flowInstance != null) {
             List<Task> taskList = taskService.list(new FlowTask().setInstanceId(flowInstance.getId()));
-            map.put("processInstanceId", taskList.get(0).getInstanceId());
-            map.put("taskId", taskList.get(0).getId());
-            return map;
+            return buildMap(taskList.get(0).getInstanceId(), taskList.get(0).getId());
         }
         FlowParams flowParams = new FlowParams();
         flowParams.flowCode(wfDefinitionConfigVo.getProcessKey());
         flowParams.variable(startProcessBo.getVariables());
-        flowParams.setHandler(String.valueOf(LoginHelper.getUserId()));
+        flowParams.setHandler(userId);
         flowParams.flowStatus(BusinessStatusEnum.DRAFT.getStatus());
         Instance instance;
         try {
-            instance = insService.start(startProcessBo.getBusinessKey(), flowParams);
+            instance = insService.start(businessKey, flowParams);
         } catch (Exception e) {
             throw new ServiceException(e.getMessage());
         }
@@ -114,9 +116,18 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         if (taskList.size() > 1) {
             throw new ServiceException("请检查流程第一个环节是否为申请人！");
         }
-        map.put("processInstanceId", instance.getId());
-        map.put("taskId", taskList.get(0).getId());
-        return map;
+        return buildMap(instance.getId(), taskList.get(0).getId());
+    }
+
+    /**
+     * 构建一个包含给定 `processInstanceId` 和 `taskId` 的 Map
+     *
+     * @param instanceId 流程实例的 ID
+     * @param taskId     任务的 ID
+     * @return 返回一个包含 `processInstanceId` 和 `taskId` 的不可变 Map
+     */
+    private Map<String, Object> buildMap(Object instanceId, Object taskId) {
+        return Map.of("processInstanceId", instanceId, "taskId", taskId);
     }
 
     /**
@@ -128,35 +139,46 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     @Transactional(rollbackFor = Exception.class)
     public boolean completeTask(CompleteTaskBo completeTaskBo) {
         try {
-            String userId = String.valueOf(LoginHelper.getUserId());
+            // 获取当前用户ID作为任务处理人
+            String userId = LoginHelper.getUserIdStr();
+
+            // 获取任务ID并查询对应的流程任务和实例信息
             Long taskId = completeTaskBo.getTaskId();
             FlowTask flowTask = flowTaskMapper.selectById(taskId);
             Instance ins = insService.getById(flowTask.getInstanceId());
-            //流程定义
+
+            // 获取流程定义信息
             Definition definition = defService.getById(flowTask.getDefinitionId());
-            //流程提交监听
-            if (BusinessStatusEnum.DRAFT.getStatus().equals(ins.getFlowStatus()) || BusinessStatusEnum.CANCEL.getStatus().equals(ins.getFlowStatus())
-                || BusinessStatusEnum.BACK.getStatus().equals(ins.getFlowStatus())) {
+
+            // 检查流程状态是否为草稿、已撤销或已退回状态，若是则执行流程提交监听
+            if (BusinessStatusEnum.isDraftOrCancelOrBack(ins.getFlowStatus())) {
                 flowProcessEventHandler.processHandler(definition.getFlowCode(), ins.getBusinessId(), ins.getFlowStatus(), true);
             }
-            //办理任务监听
-            flowProcessEventHandler.processTaskHandler(definition.getFlowCode(), flowTask.getNodeCode(),
-                taskId.toString(), ins.getBusinessId());
+
+            // 办理任务监听，记录任务执行信息
+            flowProcessEventHandler.processTaskHandler(definition.getFlowCode(), flowTask.getNodeCode(), taskId.toString(), ins.getBusinessId());
+
+            // 构建流程参数，包括变量、跳转类型、消息、处理人、权限等信息
             FlowParams flowParams = new FlowParams();
             flowParams.variable(completeTaskBo.getVariables());
             flowParams.skipType(SkipType.PASS.getKey());
             flowParams.message(completeTaskBo.getMessage());
             flowParams.handler(userId);
             flowParams.permissionFlag(WorkflowUtils.permissionList());
-            flowParams.flowStatus(BusinessStatusEnum.WAITING.getStatus())
-                .hisStatus(TaskStatusEnum.PASS.getStatus());
+            flowParams.flowStatus(BusinessStatusEnum.WAITING.getStatus()).hisStatus(TaskStatusEnum.PASS.getStatus());
+
+            // 执行任务跳转，并根据返回的处理人设置下一步处理人
             setHandler(taskService.skip(taskId, flowParams));
+
+            // 更新实例状态为待审核状态
             iFlwInstanceService.updateStatus(ins.getId(), BusinessStatusEnum.WAITING.getStatus());
             //判断是否流程结束
             Instance instance = insService.getById(ins.getId());
+            // 重新获取实例信息，检查流程是否已结束
             if (FlowStatus.isFinished(instance.getFlowStatus())) {
+                // 若流程已结束，更新状态为已完成
                 iFlwInstanceService.updateStatus(instance.getId(), BusinessStatusEnum.FINISH.getStatus());
-                //流程结束执行监听
+                // 流程结束监听，处理结束后的业务逻辑
                 flowProcessEventHandler.processHandler(definition.getFlowCode(), instance.getBusinessId(),
                     BusinessStatusEnum.FINISH.getStatus(), false);
             }
@@ -174,19 +196,22 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      */
     private void setHandler(Instance instance) {
         if (instance != null) {
+            // 根据流程实例ID查询所有关联的任务
             List<FlowTask> flowTasks = flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class)
                 .eq(FlowTask::getInstanceId, instance.getId()));
+
+            // 遍历任务列表，处理每个任务的办理人
             for (FlowTask flowTask : flowTasks) {
+                // 获取与当前任务关联的用户列表
                 List<User> userList = userService.getByAssociateds(Collections.singletonList(flowTask.getId()));
-                if (CollUtil.isNotEmpty(userList)) {
-                    Set<User> users = WorkflowUtils.getUser(userList);
-                    if (CollUtil.isNotEmpty(users)) {
-                        userService.deleteByTaskIds(Collections.singletonList(flowTask.getId()));
-                        for (User user : users) {
-                            user.setAssociated(flowTask.getId());
-                        }
-                        userService.saveBatch(new ArrayList<>(users));
-                    }
+                // 通过工具方法过滤和获取有效用户
+                Set<User> users = WorkflowUtils.getUser(userList);
+                if (CollUtil.isNotEmpty(users)) {
+                    // 删除现有的任务办理人记录，确保后续数据清理和更新
+                    userService.deleteByTaskIds(Collections.singletonList(flowTask.getId()));
+                    // 将新的办理人关联到任务ID，并批量保存新的办理人列表
+                    users.forEach(user -> user.setAssociated(flowTask.getId()));
+                    userService.saveBatch(new ArrayList<>(users));
                 }
             }
         }
@@ -235,6 +260,14 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         return TableDataInfo.build(page);
     }
 
+    /**
+     * 构建待处理任务分页对象
+     *
+     * @param pageQuery    分页查询对象
+     * @param queryWrapper 查询条件封装对象
+     * @param flowTaskBo   流程任务业务对象
+     * @return 分页后的待处理任务列表
+     */
     private Page<FlowTaskVo> buildTaskWaitingPage(PageQuery pageQuery, QueryWrapper<FlowTaskBo> queryWrapper, FlowTaskBo flowTaskBo) {
         commonCondition(queryWrapper, flowTaskBo);
         Page<FlowTaskVo> page = flwTaskMapper.getTaskWaitByPage(pageQuery.build(), queryWrapper);
@@ -281,14 +314,21 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         return TableDataInfo.build(page);
     }
 
+    /**
+     * 构建已完成任务分页对象
+     *
+     * @param pageQuery    分页查询对象
+     * @param queryWrapper 查询条件封装对象
+     * @param flowTaskBo   流程任务业务对象
+     * @return 分页后的已完成任务列表
+     */
     private Page<FlowHisTaskVo> buildTaskFinishPage(PageQuery pageQuery, QueryWrapper<FlowTaskBo> queryWrapper, FlowTaskBo flowTaskBo) {
         commonCondition(queryWrapper, flowTaskBo);
         Page<FlowHisTaskVo> page = flwTaskMapper.getTaskFinishByPage(pageQuery.build(), queryWrapper);
         List<FlowHisTaskVo> records = page.getRecords();
+        // 如果有任务记录，为每条记录设置流程状态名称
         if (CollUtil.isNotEmpty(records)) {
-            for (FlowHisTaskVo data : records) {
-                data.setFlowStatusName(FlowStatus.getValueByKey(data.getFlowStatus()));
-            }
+            records.forEach(data -> data.setFlowStatusName(FlowStatus.getValueByKey(data.getFlowStatus())));
         }
         return page;
     }
@@ -316,7 +356,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     @Override
     public boolean backProcess(BackProcessBo bo) {
         try {
-            String userId = String.valueOf(LoginHelper.getUserId());
+            String userId = LoginHelper.getUserIdStr();
             Long taskId = bo.getTaskId();
             List<FlowTask> flowTasks = flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class).eq(FlowTask::getId, taskId));
             if (CollUtil.isEmpty(flowTasks)) {
@@ -387,7 +427,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             //流程定义
             Definition definition = defService.getById(flowTask.getDefinitionId());
             FlowParams flowParams = new FlowParams();
-            flowParams.handler(String.valueOf(LoginHelper.getUserId()));
+            flowParams.handler(LoginHelper.getUserIdStr());
             flowParams.message(bo.getComment());
             flowParams.permissionFlag(WorkflowUtils.permissionList());
             flowParams.flowStatus(BusinessStatusEnum.TERMINATION.getStatus())

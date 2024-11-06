@@ -173,7 +173,7 @@ public class FlwTaskController extends BaseController {
     public R<Void> delegateTask(@Validated({AddGroup.class}) @RequestBody DelegateBo bo) {
         return toAjax(taskService.depute(
             bo.getTaskId(),
-            String.valueOf(LoginHelper.getUserId()),
+            LoginHelper.getUserIdStr(),
             WorkflowUtils.permissionList(),
             Collections.singletonList(bo.getUserId()),
             bo.getMessage()));
@@ -190,7 +190,7 @@ public class FlwTaskController extends BaseController {
     public R<Void> transferTask(@Validated({AddGroup.class}) @RequestBody TransferBo bo) {
         return toAjax(taskService.transfer(
             bo.getTaskId(),
-            String.valueOf(LoginHelper.getUserId()),
+            LoginHelper.getUserIdStr(),
             WorkflowUtils.permissionList(),
             Collections.singletonList(bo.getUserId()),
             bo.getMessage()));
@@ -207,7 +207,7 @@ public class FlwTaskController extends BaseController {
     public R<Void> addSignature(@Validated({AddGroup.class}) @RequestBody AddSignatureBo bo) {
         return toAjax(taskService.addSignature(
             bo.getTaskId(),
-            String.valueOf(LoginHelper.getUserId()),
+            LoginHelper.getUserIdStr(),
             WorkflowUtils.permissionList(),
             bo.getUserIds(),
             bo.getMessage()));
@@ -224,7 +224,7 @@ public class FlwTaskController extends BaseController {
     public R<Void> reductionSignature(@Validated({AddGroup.class}) @RequestBody ReductionSignatureBo bo) {
         return toAjax(taskService.reductionSignature(
             bo.getTaskId(),
-            String.valueOf(LoginHelper.getUserId()),
+            LoginHelper.getUserIdStr(),
             WorkflowUtils.permissionList(),
             bo.getUserIds(),
             bo.getMessage()));
@@ -246,7 +246,7 @@ public class FlwTaskController extends BaseController {
             .setPermissionFlag(WorkflowUtils.permissionList())
             .setCooperateType(CooperateType.APPROVAL.getKey())
             .setMessage("修改任务办理人")
-            .setCurUser(String.valueOf(LoginHelper.getUserId()))
+            .setCurUser(LoginHelper.getUserIdStr())
             .setIgnore(false);
         return toAjax(taskService.updateHandler(modifyHandler));
     }

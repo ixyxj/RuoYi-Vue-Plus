@@ -6,7 +6,6 @@ import org.dromara.common.core.validate.AddGroup;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * 委派任务请求对象
