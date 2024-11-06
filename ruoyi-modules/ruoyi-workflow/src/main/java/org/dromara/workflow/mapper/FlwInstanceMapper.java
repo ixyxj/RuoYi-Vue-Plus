@@ -14,6 +14,7 @@ import org.dromara.workflow.domain.vo.FlowInstanceVo;
  * @date 2024-03-02
  */
 public interface FlwInstanceMapper {
+
     /**
      * 流程实例信息
      *
@@ -21,7 +22,6 @@ public interface FlwInstanceMapper {
      * @param queryWrapper 条件
      * @return 结果
      */
+    Page<FlowInstanceVo> page(@Param("page") Page<FlowInstanceVo> page, @Param(Constants.WRAPPER) Wrapper<FlowInstanceBo> queryWrapper);
 
-    Page<FlowInstanceVo> page(@Param("page") Page<FlowInstanceVo> page,
-                              @Param(Constants.WRAPPER) Wrapper<FlowInstanceBo> queryWrapper);
 }

@@ -3,9 +3,10 @@ package org.dromara.workflow.common.enums;
 import cn.hutool.core.util.StrUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 任务状态枚举
@@ -15,10 +16,12 @@ import java.util.Arrays;
 @Getter
 @AllArgsConstructor
 public enum FormTypeEnum {
+
     /**
      * 自定义表单
      */
     STATIC("static", "自定义表单"),
+
     /**
      * 动态表单
      */
@@ -34,21 +37,18 @@ public enum FormTypeEnum {
      */
     private final String desc;
 
+    private static final Map<String, String> TYPE_DESC_MAP = Arrays.stream(values())
+        .collect(Collectors.toConcurrentMap(FormTypeEnum::getType, FormTypeEnum::getDesc));
+
     /**
      * 表单类型
      *
      * @param formType 表单类型
      */
     public static String findByType(String formType) {
-        if (StringUtils.isBlank(formType)) {
-            return StrUtil.EMPTY;
-        }
-
-        return Arrays.stream(FormTypeEnum.values())
-            .filter(statusEnum -> statusEnum.getType().equals(formType))
-            .findFirst()
-            .map(FormTypeEnum::getDesc)
-            .orElse(StrUtil.EMPTY);
+        // 从缓存中直接获取描述
+        return TYPE_DESC_MAP.getOrDefault(formType, StrUtil.EMPTY);
     }
+
 }
 

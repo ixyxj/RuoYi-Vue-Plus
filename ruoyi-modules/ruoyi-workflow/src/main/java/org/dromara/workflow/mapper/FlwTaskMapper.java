@@ -17,6 +17,7 @@ import org.dromara.workflow.domain.vo.FlowTaskVo;
  * @date 2024-03-02
  */
 public interface FlwTaskMapper {
+
     /**
      * 获取待办信息
      *
@@ -24,8 +25,7 @@ public interface FlwTaskMapper {
      * @param queryWrapper 条件
      * @return 结果
      */
-    Page<FlowTaskVo> getTaskWaitByPage(@Param("page") Page<FlowTaskVo> page,
-                                       @Param(Constants.WRAPPER) Wrapper<FlowTaskBo> queryWrapper);
+    Page<FlowTaskVo> getTaskWaitByPage(@Param("page") Page<FlowTaskVo> page, @Param(Constants.WRAPPER) Wrapper<FlowTaskBo> queryWrapper);
 
     /**
      * 获取已办
@@ -34,8 +34,7 @@ public interface FlwTaskMapper {
      * @param queryWrapper 条件
      * @return 结果
      */
-    Page<FlowHisTaskVo> getTaskFinishByPage(@Param("page") Page<FlowTaskVo> page,
-                                            @Param(Constants.WRAPPER) Wrapper<FlowTaskBo> queryWrapper);
+    Page<FlowHisTaskVo> getTaskFinishByPage(@Param("page") Page<FlowTaskVo> page, @Param(Constants.WRAPPER) Wrapper<FlowTaskBo> queryWrapper);
 
     /**
      * 查询当前用户的抄送
@@ -44,6 +43,5 @@ public interface FlwTaskMapper {
      * @param queryWrapper 条件
      * @return 结果
      */
-    Page<FlowTaskVo> getTaskCopyByPage(@Param("page") Page<FlowTaskVo> page,
-                                       @Param(Constants.WRAPPER) QueryWrapper<FlowTaskBo> queryWrapper);
+    Page<FlowTaskVo> getTaskCopyByPage(@Param("page") Page<FlowTaskVo> page, @Param(Constants.WRAPPER) QueryWrapper<FlowTaskBo> queryWrapper);
 }

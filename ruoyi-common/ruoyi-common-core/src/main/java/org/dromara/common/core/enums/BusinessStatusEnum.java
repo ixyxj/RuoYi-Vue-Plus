@@ -16,18 +16,22 @@ import java.util.Arrays;
 @Getter
 @AllArgsConstructor
 public enum BusinessStatusEnum {
+
     /**
      * 已撤销
      */
     CANCEL("cancel", "已撤销"),
+
     /**
      * 草稿
      */
     DRAFT("draft", "草稿"),
+
     /**
      * 待审核
      */
     WAITING("waiting", "待审核"),
+
     /**
      * 已完成
      */
@@ -36,10 +40,12 @@ public enum BusinessStatusEnum {
      * 已作废
      */
     INVALID("invalid", "已作废"),
+
     /**
      * 已退回
      */
     BACK("back", "已退回"),
+
     /**
      * 已终止
      */
@@ -69,6 +75,16 @@ public enum BusinessStatusEnum {
             .findFirst()
             .map(BusinessStatusEnum::getDesc)
             .orElse(StrUtil.EMPTY);
+    }
+
+    /**
+     * 判断是否为指定的状态之一：草稿、已撤销或已退回
+     *
+     * @param status 要检查的状态
+     * @return 如果状态为草稿、已撤销或已退回之一，则返回 true；否则返回 false
+     */
+    public static boolean isDraftOrCancelOrBack(String status) {
+        return DRAFT.status.equals(status) || CANCEL.status.equals(status) || BACK.status.equals(status);
     }
 
     /**
