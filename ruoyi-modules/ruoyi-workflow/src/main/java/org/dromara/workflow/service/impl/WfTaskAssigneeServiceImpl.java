@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.dto.DeptDTO;
 import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
+import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.UserService;
 import org.dromara.common.core.utils.DateUtils;
 import org.dromara.workflow.common.enums.TaskAssigneeEnum;
@@ -48,41 +49,61 @@ public class WfTaskAssigneeServiceImpl implements HandlerSelectService {
      */
     @Override
     public HandlerSelectVo getHandlerSelect(HandlerQuery query) {
+        // 获取任务办理类型
         TaskAssigneeEnum type = TaskAssigneeEnum.fromDesc(query.getHandlerType());
+        // 转换查询条件为 TaskAssigneeBody
         TaskAssigneeBody taskQuery = BeanUtil.toBean(query, TaskAssigneeBody.class);
-        List<DeptDTO> depts = new ArrayList<>();
-        TaskAssigneeDTO dto = new TaskAssigneeDTO();
-        if (TaskAssigneeEnum.USER == type) {
-            // 处理用户相关的业务逻辑
-            dto = userService.selectUsersByUserList(taskQuery);
-            depts = userService.selectUsersByDeptList();
-        } else if (TaskAssigneeEnum.ROLE == type) {
-            // 处理角色相关的业务逻辑
-            dto = userService.selectUsersByRoleList(taskQuery);
-        } else if (TaskAssigneeEnum.DEPT == type) {
-            // 处理部门相关的业务逻辑
-            dto = userService.selectUsersByDeptList(taskQuery);
-        } else if (TaskAssigneeEnum.POST == type) {
-            // 处理岗位相关的业务逻辑
-            dto = userService.selectUsersByPostList(taskQuery);
-            depts = userService.selectUsersByDeptList();
-        }
 
-        // 业务系统机构，转成组件内部左侧树列表能够显示的数据
-        TreeFunDto<DeptDTO> treeFunDto = new TreeFunDto<>(depts)
+        // 统一查询并构建业务数据
+        TaskAssigneeDTO dto = fetchTaskAssigneeData(type, taskQuery);
+        List<DeptDTO> depts = fetchDeptData(type);
+
+        return getHandlerSelectVo(buildHandlerData(dto, type), buildDeptTree(depts));
+    }
+
+    /**
+     * 根据任务办理类型查询对应的数据
+     */
+    private TaskAssigneeDTO fetchTaskAssigneeData(TaskAssigneeEnum type, TaskAssigneeBody taskQuery) {
+        return switch (type) {
+            case USER -> userService.selectUsersByUserList(taskQuery);
+            case ROLE -> userService.selectUsersByRoleList(taskQuery);
+            case DEPT -> userService.selectUsersByDeptList(taskQuery);
+            case POST -> userService.selectUsersByPostList(taskQuery);
+            default -> throw new ServiceException("Unsupported handler type");
+        };
+    }
+
+    /**
+     * 根据任务办理类型获取部门数据
+     */
+    private List<DeptDTO> fetchDeptData(TaskAssigneeEnum type) {
+        if (type == TaskAssigneeEnum.USER || type == TaskAssigneeEnum.POST) {
+            return userService.selectUsersByDeptList();
+        }
+        return new ArrayList<>();
+    }
+
+    /**
+     * 构建部门树状结构
+     */
+    private TreeFunDto<DeptDTO> buildDeptTree(List<DeptDTO> depts) {
+        return new TreeFunDto<>(depts)
             .setId(dept -> String.valueOf(dept.getDeptId()))
             .setName(DeptDTO::getDeptName)
             .setParentId(dept -> String.valueOf(dept.getParentId()));
+    }
 
-        // 业务系统数据，转成组件内部能够显示的数据, total是业务数据总数，用于分页显示
-        HandlerFunDto<TaskAssigneeDTO.TaskHandler> handlerFunDto = new HandlerFunDto<>(dto.getList(), dto.getTotal())
+    /**
+     * 构建任务办理人数据
+     */
+    private HandlerFunDto<TaskAssigneeDTO.TaskHandler> buildHandlerData(TaskAssigneeDTO dto, TaskAssigneeEnum type) {
+        return new HandlerFunDto<>(dto.getList(), dto.getTotal())
             .setStorageId(assignee -> type.getCode() + assignee.getStorageId())
             .setHandlerCode(TaskAssigneeDTO.TaskHandler::getHandlerCode)
             .setHandlerName(TaskAssigneeDTO.TaskHandler::getHandlerName)
             .setGroupName(TaskAssigneeDTO.TaskHandler::getGroupName)
             .setCreateTime(assignee -> DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, assignee.getCreateTime()));
-
-        return getHandlerSelectVo(handlerFunDto, treeFunDto);
     }
 
 }
