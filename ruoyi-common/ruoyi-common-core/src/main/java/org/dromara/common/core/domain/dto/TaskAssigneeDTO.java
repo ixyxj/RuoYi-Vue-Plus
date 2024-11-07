@@ -3,6 +3,7 @@ package org.dromara.common.core.domain.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.dromara.common.core.utils.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -60,10 +61,10 @@ public class TaskAssigneeDTO implements Serializable {
         return sourceList.stream()
             .map(item -> new TaskHandler(
                 String.valueOf(storageId.apply(item)),
-                handlerCode != null ? handlerCode.apply(item) : "无",
-                handlerName != null ? handlerName.apply(item) : "无",
-                groupName != null ? groupName.apply(item) : "默认分组",
-                createTimeMapper != null ? createTimeMapper.apply(item) : new Date()
+                StringUtils.blankToDefault(handlerCode.apply(item), "无"),
+                StringUtils.blankToDefault(handlerName.apply(item), "无"),
+                StringUtils.blankToDefault(groupName != null ? groupName.apply(item) : null, "默认分组"),
+                createTimeMapper.apply(item)
             ))
             .collect(Collectors.toList());
     }

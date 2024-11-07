@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -252,16 +253,24 @@ public class SysPostServiceImpl implements ISysPostService, PostService {
     @Override
     public TaskAssigneeDTO selectPostsByTaskAssigneeList(TaskAssigneeBody taskQuery) {
         PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
-        // 使用 LambdaQueryWrapper 构建查询条件
-        LambdaQueryWrapper<SysPost> wrapper = new LambdaQueryWrapper<SysPost>()
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysPost::getPostCategory, taskQuery.getHandlerCode())
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysPost::getPostName, taskQuery.getHandlerName())
-            .like(StringUtils.isNotBlank(taskQuery.getGroupId()), SysPost::getDeptId, taskQuery.getGroupId())
-            .between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
-                SysPost::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
 
-        // 执行分页查询，并将查询结果封装为 SysPostVo 对象的 Page
-        Page<SysPostVo> page = baseMapper.selectVoPage(pageQuery.build(), wrapper);
+        SysPostBo post = new SysPostBo();
+        post.setPostCategory(taskQuery.getHandlerCode());
+        post.setPostName(taskQuery.getHandlerName());
+        Optional.ofNullable(taskQuery.getGroupId())
+            .filter(StringUtils::isNotBlank)
+            .map(Long::valueOf)
+            .ifPresent(post::setBelongDeptId);
+
+        LambdaQueryWrapper<SysPost> wrapper = buildQueryWrapper(post);
+        // 如果 beginTime 和 endTime 都有值，才添加到 params 中
+        if (StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime())) {
+            wrapper.between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
+                SysPost::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
+        }
+
+        Page<SysPostVo> page = baseMapper.selectPagePostList(pageQuery.build(), wrapper);
+        // TODO 需要回显部门名称
 
         // 使用封装的字段映射方法进行转换
         List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),

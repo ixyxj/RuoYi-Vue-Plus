@@ -84,7 +84,7 @@ public class WfTaskAssigneeServiceImpl implements HandlerSelectService {
      * 根据任务办理类型获取部门数据
      */
     private List<DeptDTO> fetchDeptData(TaskAssigneeEnum type) {
-        if (type == TaskAssigneeEnum.USER || type == TaskAssigneeEnum.POST) {
+        if (type == TaskAssigneeEnum.USER || type == TaskAssigneeEnum.DEPT || type == TaskAssigneeEnum.POST) {
             return deptService.selectDeptsByList();
         }
         return new ArrayList<>();

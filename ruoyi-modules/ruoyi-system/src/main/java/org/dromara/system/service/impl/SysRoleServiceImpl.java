@@ -524,15 +524,19 @@ public class SysRoleServiceImpl implements ISysRoleService, RoleService {
     @Override
     public TaskAssigneeDTO selectRolesByTaskAssigneeList(TaskAssigneeBody taskQuery) {
         PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
-        // 使用 LambdaQueryWrapper 构建查询条件
-        LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<SysRole>()
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysRole::getRoleKey, taskQuery.getHandlerCode())
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysRole::getRoleName, taskQuery.getHandlerName())
-            .between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
-                SysRole::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
 
-        // 执行分页查询，并将查询结果封装为 SysRoleVo 对象的 Page
-        Page<SysRoleVo> page = baseMapper.selectVoPage(pageQuery.build(), wrapper);
+        SysRoleBo role = new SysRoleBo();
+        role.setRoleKey(taskQuery.getHandlerCode());
+        role.setRoleName(taskQuery.getHandlerName());
+
+        // 如果 beginTime 和 endTime 都有值，才添加到 params 中
+        if (StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime())) {
+            Map<String, Object> params = role.getParams();
+            params.put("beginTime", taskQuery.getBeginTime());
+            params.put("endTime", taskQuery.getEndTime());
+        }
+        Page<SysRoleVo> page = baseMapper.selectPageRoleList(pageQuery.build(), this.buildQueryWrapper(role));
+        // TODO 回显数据范围
 
         // 使用封装的字段映射方法进行转换
         List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),

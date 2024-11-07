@@ -41,10 +41,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 用户 业务层处理
@@ -714,16 +711,22 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
     @Override
     public TaskAssigneeDTO selectUsersByTaskAssigneeList(TaskAssigneeBody taskQuery) {
         PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
-        // 使用 LambdaQueryWrapper 构建查询条件
-        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<SysUser>()
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysUser::getUserName, taskQuery.getHandlerCode())
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysUser::getNickName, taskQuery.getHandlerName())
-            .eq(StringUtils.isNotBlank(taskQuery.getGroupId()), SysUser::getDeptId, taskQuery.getGroupId())
-            .between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
-                SysUser::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
+        SysUserBo user = new SysUserBo();
+        user.setUserName(taskQuery.getHandlerCode());
+        user.setNickName(taskQuery.getHandlerName());
+        Optional.ofNullable(taskQuery.getGroupId())
+            .filter(StringUtils::isNotBlank)
+            .map(Long::valueOf)
+            .ifPresent(user::setDeptId);
 
-        // 执行分页查询，并将查询结果封装为 SysUserVo 对象的 Page
-        Page<SysUserVo> page = baseMapper.selectVoPage(pageQuery.build(), wrapper);
+        // 如果 beginTime 和 endTime 都有值，才添加到 params 中
+        if (StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime())) {
+            Map<String, Object> params = user.getParams();
+            params.put("beginTime", taskQuery.getBeginTime());
+            params.put("endTime", taskQuery.getEndTime());
+        }
+        Page<SysUserVo> page = baseMapper.selectPageUserList(pageQuery.build(), this.buildQueryWrapper(user));
+        // TODO 需要回显部门名称
 
         // 使用封装的字段映射方法进行转换
         List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),

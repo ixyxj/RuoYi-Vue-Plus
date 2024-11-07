@@ -41,6 +41,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 部门管理 服务实现
@@ -179,7 +180,9 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
      */
     @Override
     public List<DeptDTO> selectDeptsByList() {
-        List<SysDeptVo> list = baseMapper.selectVoList();
+        List<SysDeptVo> list = baseMapper.selectDeptList(new LambdaQueryWrapper<SysDept>()
+            .select(SysDept::getDeptId, SysDept::getDeptName, SysDept::getParentId)
+            .eq(SysDept::getStatus, UserConstants.DEPT_NORMAL));
         return BeanUtil.copyToList(list, DeptDTO.class);
     }
 
@@ -193,18 +196,36 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
     public TaskAssigneeDTO selectDeptsByTaskAssigneeList(TaskAssigneeBody taskQuery) {
         PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
         // 使用 LambdaQueryWrapper 构建查询条件
-        LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<SysDept>()
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysDept::getDeptCategory, taskQuery.getHandlerCode())
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysDept::getDeptName, taskQuery.getHandlerName())
-            .between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
-                SysDept::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
+        LambdaQueryWrapper<SysDept> wrapper = Wrappers.lambdaQuery();
+        wrapper.eq(SysDept::getDelFlag, UserConstants.DEL_FLAG_NORMAL);
+        wrapper.like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysDept::getDeptCategory, taskQuery.getHandlerCode());
+        wrapper.like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysDept::getDeptName, taskQuery.getHandlerName());
+        if (StringUtils.isNotBlank(taskQuery.getGroupId())) {
+            //部门树搜索
+            wrapper.and(x -> {
+                List<Long> deptIds = baseMapper.selectList(new LambdaQueryWrapper<SysDept>()
+                        .select(SysDept::getDeptId)
+                        .apply(DataBaseHelper.findInSet(taskQuery.getGroupId(), "ancestors")))
+                    .stream()
+                    .map(SysDept::getDeptId)
+                    .collect(Collectors.toList());
+                deptIds.add(Long.valueOf(taskQuery.getGroupId()));
+                x.in(SysDept::getDeptId, deptIds);
+            });
+        }
+        wrapper.between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
+            SysDept::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
+        wrapper.orderByAsc(SysDept::getAncestors);
+        wrapper.orderByAsc(SysDept::getParentId);
+        wrapper.orderByAsc(SysDept::getOrderNum);
+        wrapper.orderByAsc(SysDept::getDeptId);
 
-        // 执行分页查询，并将查询结果封装为 SysDeptVo 对象的 Page
-        Page<SysDeptVo> page = baseMapper.selectVoPage(pageQuery.build(), wrapper);
+        Page<SysDeptVo> page = baseMapper.selectPageDeptList(pageQuery.build(), wrapper);
+        // TODO 需要回显父部门名称
 
         // 使用封装的字段映射方法进行转换
         List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
-            SysDeptVo::getDeptId, SysDeptVo::getDeptCategory, SysDeptVo::getDeptName, null, SysDeptVo::getCreateTime);
+            SysDeptVo::getDeptId, SysDeptVo::getDeptCategory, SysDeptVo::getDeptName, SysDeptVo::getParentName, SysDeptVo::getCreateTime);
 
         return new TaskAssigneeDTO(page.getTotal(), handlers);
     }

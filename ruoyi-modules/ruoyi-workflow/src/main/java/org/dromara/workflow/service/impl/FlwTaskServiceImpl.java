@@ -98,7 +98,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         FlowInstance flowInstance = iFlwInstanceService.instanceByBusinessId(businessKey);
         if (flowInstance != null) {
             List<Task> taskList = taskService.list(new FlowTask().setInstanceId(flowInstance.getId()));
-            return buildMap(taskList.get(0).getInstanceId(), taskList.get(0).getId());
+            return Map.of("processInstanceId", taskList.get(0).getInstanceId(), "taskId", taskList.get(0).getId());
         }
         FlowParams flowParams = new FlowParams();
         flowParams.flowCode(wfDefinitionConfigVo.getProcessKey());
@@ -116,18 +116,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         if (taskList.size() > 1) {
             throw new ServiceException("请检查流程第一个环节是否为申请人！");
         }
-        return buildMap(instance.getId(), taskList.get(0).getId());
-    }
-
-    /**
-     * 构建一个包含给定 `processInstanceId` 和 `taskId` 的 Map
-     *
-     * @param instanceId 流程实例的 ID
-     * @param taskId     任务的 ID
-     * @return 返回一个包含 `processInstanceId` 和 `taskId` 的不可变 Map
-     */
-    private Map<String, Object> buildMap(Object instanceId, Object taskId) {
-        return Map.of("processInstanceId", instanceId, "taskId", taskId);
+        return Map.of("processInstanceId", instance.getId(), "taskId", taskList.get(0).getId());
     }
 
     /**
