@@ -63,7 +63,7 @@ public class TaskAssigneeDTO implements Serializable {
                 handlerCode != null ? handlerCode.apply(item) : "无",
                 handlerName != null ? handlerName.apply(item) : "无",
                 groupName != null ? groupName.apply(item) : "默认分组",
-                createTimeMapper != null ? createTimeMapper.apply(item) : null
+                createTimeMapper != null ? createTimeMapper.apply(item) : new Date()
             ))
             .collect(Collectors.toList());
     }
