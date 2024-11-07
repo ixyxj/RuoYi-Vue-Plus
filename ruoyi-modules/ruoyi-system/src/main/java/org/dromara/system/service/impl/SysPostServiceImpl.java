@@ -270,11 +270,10 @@ public class SysPostServiceImpl implements ISysPostService, PostService {
         }
 
         Page<SysPostVo> page = baseMapper.selectPagePostList(pageQuery.build(), wrapper);
-        // TODO 需要回显部门名称
 
         // 使用封装的字段映射方法进行转换
         List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
-            SysPostVo::getPostId, SysPostVo::getPostCategory, SysPostVo::getPostName, SysPostVo::getDeptName, SysPostVo::getCreateTime);
+            SysPostVo::getPostId, SysPostVo::getPostCategory, SysPostVo::getPostName, SysPostVo::getDeptId, SysPostVo::getCreateTime);
 
         return new TaskAssigneeDTO(page.getTotal(), handlers);
     }

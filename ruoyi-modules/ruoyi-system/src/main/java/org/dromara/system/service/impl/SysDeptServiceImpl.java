@@ -221,11 +221,10 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
         wrapper.orderByAsc(SysDept::getDeptId);
 
         Page<SysDeptVo> page = baseMapper.selectPageDeptList(pageQuery.build(), wrapper);
-        // TODO 需要回显父部门名称
 
         // 使用封装的字段映射方法进行转换
         List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
-            SysDeptVo::getDeptId, SysDeptVo::getDeptCategory, SysDeptVo::getDeptName, SysDeptVo::getParentName, SysDeptVo::getCreateTime);
+            SysDeptVo::getDeptId, SysDeptVo::getDeptCategory, SysDeptVo::getDeptName, SysDeptVo::getParentId, SysDeptVo::getCreateTime);
 
         return new TaskAssigneeDTO(page.getTotal(), handlers);
     }

@@ -726,11 +726,10 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
             params.put("endTime", taskQuery.getEndTime());
         }
         Page<SysUserVo> page = baseMapper.selectPageUserList(pageQuery.build(), this.buildQueryWrapper(user));
-        // TODO 需要回显部门名称
 
         // 使用封装的字段映射方法进行转换
         List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
-            SysUserVo::getUserId, SysUserVo::getUserName, SysUserVo::getNickName, SysUserVo::getDeptName, SysUserVo::getCreateTime);
+            SysUserVo::getUserId, SysUserVo::getUserName, SysUserVo::getNickName, SysUserVo::getDeptId, SysUserVo::getCreateTime);
 
         return new TaskAssigneeDTO(page.getTotal(), handlers);
     }

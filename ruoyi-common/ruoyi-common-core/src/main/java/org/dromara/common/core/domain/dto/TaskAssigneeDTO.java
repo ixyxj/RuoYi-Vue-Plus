@@ -3,7 +3,6 @@ package org.dromara.common.core.domain.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.dromara.common.core.utils.StringUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -56,17 +55,16 @@ public class TaskAssigneeDTO implements Serializable {
         Function<T, Long> storageId,
         Function<T, String> handlerCode,
         Function<T, String> handlerName,
-        Function<T, String> groupName,
+        Function<T, Long> groupName,
         Function<T, Date> createTimeMapper) {
         return sourceList.stream()
             .map(item -> new TaskHandler(
                 String.valueOf(storageId.apply(item)),
-                StringUtils.blankToDefault(handlerCode.apply(item), "无"),
-                StringUtils.blankToDefault(handlerName.apply(item), "无"),
-                StringUtils.blankToDefault(groupName != null ? groupName.apply(item) : null, "默认分组"),
+                handlerCode.apply(item),
+                handlerName.apply(item),
+                groupName != null ? String.valueOf(groupName.apply(item)) : null,
                 createTimeMapper.apply(item)
-            ))
-            .collect(Collectors.toList());
+            )).collect(Collectors.toList());
     }
 
     @Data
@@ -82,17 +80,17 @@ public class TaskAssigneeDTO implements Serializable {
         /**
          * 权限编码
          */
-        private String handlerCode = "无";
+        private String handlerCode;
 
         /**
          * 权限名称
          */
-        private String handlerName = "无";
+        private String handlerName;
 
         /**
          * 权限分组
          */
-        private String groupName = "默认分组";
+        private String groupName;
 
         /**
          * 创建时间

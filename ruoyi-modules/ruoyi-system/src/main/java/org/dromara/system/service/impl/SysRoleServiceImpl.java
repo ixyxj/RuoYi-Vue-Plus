@@ -536,7 +536,6 @@ public class SysRoleServiceImpl implements ISysRoleService, RoleService {
             params.put("endTime", taskQuery.getEndTime());
         }
         Page<SysRoleVo> page = baseMapper.selectPageRoleList(pageQuery.build(), this.buildQueryWrapper(role));
-        // TODO 回显数据范围
 
         // 使用封装的字段映射方法进行转换
         List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),

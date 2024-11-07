@@ -17,11 +17,13 @@ import org.dromara.common.core.service.PostService;
 import org.dromara.common.core.service.RoleService;
 import org.dromara.common.core.service.UserService;
 import org.dromara.common.core.utils.DateUtils;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.workflow.common.enums.TaskAssigneeEnum;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 流程设计器-获取办理人权限设置列表
@@ -32,6 +34,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class WfTaskAssigneeServiceImpl implements HandlerSelectService {
+    final static String DEFAULT_GROUP_NAME = "默认分组";
     private final UserService userService;
     private final DeptService deptService;
     private final RoleService roleService;
@@ -106,9 +109,12 @@ public class WfTaskAssigneeServiceImpl implements HandlerSelectService {
     private HandlerFunDto<TaskAssigneeDTO.TaskHandler> buildHandlerData(TaskAssigneeDTO dto, TaskAssigneeEnum type) {
         return new HandlerFunDto<>(dto.getList(), dto.getTotal())
             .setStorageId(assignee -> type.getCode() + assignee.getStorageId())
-            .setHandlerCode(TaskAssigneeDTO.TaskHandler::getHandlerCode)
-            .setHandlerName(TaskAssigneeDTO.TaskHandler::getHandlerName)
-            .setGroupName(TaskAssigneeDTO.TaskHandler::getGroupName)
+            .setHandlerCode(assignee -> StringUtils.blankToDefault(assignee.getHandlerCode(), "无"))
+            .setHandlerName(assignee -> StringUtils.blankToDefault(assignee.getHandlerName(), "无"))
+            .setGroupName(assignee -> StringUtils.defaultIfBlank(
+                Optional.ofNullable(assignee.getGroupName())
+                    .map(deptService::selectDeptNameByIds)
+                    .orElse(DEFAULT_GROUP_NAME), DEFAULT_GROUP_NAME))
             .setCreateTime(assignee -> DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, assignee.getCreateTime()));
     }
 
