@@ -17,11 +17,7 @@ import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.DeptService;
-import org.dromara.common.core.utils.MapstructUtils;
-import org.dromara.common.core.utils.SpringUtils;
-import org.dromara.common.core.utils.StringUtils;
-import org.dromara.common.core.utils.StreamUtils;
-import org.dromara.common.core.utils.TreeBuildUtils;
+import org.dromara.common.core.utils.*;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.helper.DataBaseHelper;
 import org.dromara.common.redis.utils.CacheUtils;
@@ -42,7 +38,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 部门管理 服务实现
@@ -215,13 +210,10 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
         if (StringUtils.isNotBlank(taskQuery.getGroupId())) {
             //部门树搜索
             wrapper.and(x -> {
-                List<Long> deptIds = baseMapper.selectList(new LambdaQueryWrapper<SysDept>()
-                        .select(SysDept::getDeptId)
-                        .apply(DataBaseHelper.findInSet(taskQuery.getGroupId(), "ancestors")))
-                    .stream()
-                    .map(SysDept::getDeptId)
-                    .collect(Collectors.toList());
-                deptIds.add(Long.valueOf(taskQuery.getGroupId()));
+                Long parentId = Long.valueOf(taskQuery.getGroupId());
+                List<SysDept> deptList = baseMapper.selectListByParentId(parentId);
+                List<Long> deptIds = StreamUtils.toList(deptList, SysDept::getDeptId);
+                deptIds.add(parentId);
                 x.in(SysDept::getDeptId, deptIds);
             });
         }
