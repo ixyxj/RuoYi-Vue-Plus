@@ -14,8 +14,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.constant.TenantConstants;
 import org.dromara.common.core.constant.UserConstants;
+import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.model.LoginUser;
+import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.service.RoleService;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -45,7 +48,7 @@ import java.util.*;
  */
 @RequiredArgsConstructor
 @Service
-public class SysRoleServiceImpl implements ISysRoleService {
+public class SysRoleServiceImpl implements ISysRoleService, RoleService {
 
     private final SysRoleMapper baseMapper;
     private final SysRoleMenuMapper roleMenuMapper;
@@ -348,7 +351,7 @@ public class SysRoleServiceImpl implements ISysRoleService {
     private int insertRoleMenu(SysRoleBo role) {
         int rows = 1;
         // 新增用户与角色管理
-        List<SysRoleMenu> list = new ArrayList<SysRoleMenu>();
+        List<SysRoleMenu> list = new ArrayList<>();
         for (Long menuId : role.getMenuIds()) {
             SysRoleMenu rm = new SysRoleMenu();
             rm.setRoleId(role.getRoleId());
@@ -369,7 +372,7 @@ public class SysRoleServiceImpl implements ISysRoleService {
     private int insertRoleDept(SysRoleBo role) {
         int rows = 1;
         // 新增角色与部门（数据权限）管理
-        List<SysRoleDept> list = new ArrayList<SysRoleDept>();
+        List<SysRoleDept> list = new ArrayList<>();
         for (Long deptId : role.getDeptIds()) {
             SysRoleDept rd = new SysRoleDept();
             rd.setRoleId(role.getRoleId());
@@ -511,4 +514,31 @@ public class SysRoleServiceImpl implements ISysRoleService {
             }
         });
     }
+
+    /**
+     * 查询角色并返回任务指派的列表，支持分页
+     *
+     * @param taskQuery 查询条件
+     * @return 办理人
+     */
+    @Override
+    public TaskAssigneeDTO selectRolesByTaskAssigneeList(TaskAssigneeBody taskQuery) {
+        PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
+        // 使用 LambdaQueryWrapper 构建查询条件
+        LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<SysRole>()
+            .like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysRole::getRoleKey, taskQuery.getHandlerCode())
+            .like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysRole::getRoleName, taskQuery.getHandlerName())
+            .between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
+                SysRole::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
+
+        // 执行分页查询，并将查询结果封装为 SysRoleVo 对象的 Page
+        Page<SysRoleVo> page = baseMapper.selectVoPage(pageQuery.build(), wrapper);
+
+        // 使用封装的字段映射方法进行转换
+        List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
+            SysRoleVo::getRoleId, SysRoleVo::getRoleKey, SysRoleVo::getRoleName, null, SysRoleVo::getCreateTime);
+
+        return new TaskAssigneeDTO(page.getTotal(), handlers);
+    }
+
 }

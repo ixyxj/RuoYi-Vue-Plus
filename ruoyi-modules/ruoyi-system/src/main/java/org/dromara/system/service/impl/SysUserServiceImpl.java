@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.constant.CacheNames;
 import org.dromara.common.core.constant.UserConstants;
-import org.dromara.common.core.domain.dto.DeptDTO;
 import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
@@ -31,7 +30,10 @@ import org.dromara.common.mybatis.helper.DataBaseHelper;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.system.domain.*;
 import org.dromara.system.domain.bo.SysUserBo;
-import org.dromara.system.domain.vo.*;
+import org.dromara.system.domain.vo.SysPostVo;
+import org.dromara.system.domain.vo.SysRoleVo;
+import org.dromara.system.domain.vo.SysUserExportVo;
+import org.dromara.system.domain.vo.SysUserVo;
 import org.dromara.system.mapper.*;
 import org.dromara.system.service.ISysUserService;
 import org.springframework.cache.annotation.CacheEvict;
@@ -704,39 +706,13 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
     }
 
     /**
-     * 查询并返回任务指派的列表，支持分页
+     * 查询用户并返回任务指派的列表，支持分页
      *
      * @param taskQuery 查询条件
      * @return 办理人
      */
     @Override
-    public TaskAssigneeDTO selectUsersByRoleList(TaskAssigneeBody taskQuery) {
-        PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
-        // 使用 LambdaQueryWrapper 构建查询条件
-        LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<SysRole>()
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysRole::getRoleKey, taskQuery.getHandlerCode())
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysRole::getRoleName, taskQuery.getHandlerName())
-            .between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
-                SysRole::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
-
-        // 执行分页查询，并将查询结果封装为 SysRoleVo 对象的 Page
-        Page<SysRoleVo> page = roleMapper.selectVoPage(pageQuery.build(), wrapper);
-
-        // 使用封装的字段映射方法进行转换
-        List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
-            SysRoleVo::getRoleId, SysRoleVo::getRoleKey, SysRoleVo::getRoleName, null, SysRoleVo::getCreateTime);
-
-        return new TaskAssigneeDTO(page.getTotal(), handlers);
-    }
-
-    /**
-     * 查询并返回任务指派的列表，支持分页
-     *
-     * @param taskQuery 查询条件
-     * @return 办理人
-     */
-    @Override
-    public TaskAssigneeDTO selectUsersByUserList(TaskAssigneeBody taskQuery) {
+    public TaskAssigneeDTO selectUsersByTaskAssigneeList(TaskAssigneeBody taskQuery) {
         PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
         // 使用 LambdaQueryWrapper 构建查询条件
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<SysUser>()
@@ -752,70 +728,6 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
         // 使用封装的字段映射方法进行转换
         List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
             SysUserVo::getUserId, SysUserVo::getUserName, SysUserVo::getNickName, SysUserVo::getDeptName, SysUserVo::getCreateTime);
-
-        return new TaskAssigneeDTO(page.getTotal(), handlers);
-    }
-
-    /**
-     * 查询并返回任务指派的列表，支持分页
-     *
-     * @param taskQuery 查询条件
-     * @return 办理人
-     */
-    @Override
-    public TaskAssigneeDTO selectUsersByDeptList(TaskAssigneeBody taskQuery) {
-        PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
-        // 使用 LambdaQueryWrapper 构建查询条件
-        LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<SysDept>()
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysDept::getDeptCategory, taskQuery.getHandlerCode())
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysDept::getDeptName, taskQuery.getHandlerName())
-            .between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
-                SysDept::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
-
-        // 执行分页查询，并将查询结果封装为 SysDeptVo 对象的 Page
-        Page<SysDeptVo> page = deptMapper.selectVoPage(pageQuery.build(), wrapper);
-
-        // 使用封装的字段映射方法进行转换
-        List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
-            SysDeptVo::getDeptId, SysDeptVo::getDeptCategory, SysDeptVo::getDeptName, null, SysDeptVo::getCreateTime);
-
-        return new TaskAssigneeDTO(page.getTotal(), handlers);
-    }
-
-    /**
-     * 查询部门
-     *
-     * @return 部门列表
-     */
-    @Override
-    public List<DeptDTO> selectUsersByDeptList() {
-        List<SysDeptVo> list = deptMapper.selectVoList();
-        return BeanUtil.copyToList(list, DeptDTO.class);
-    }
-
-    /**
-     * 查询并返回任务指派的列表，支持分页
-     *
-     * @param taskQuery 查询条件
-     * @return 办理人
-     */
-    @Override
-    public TaskAssigneeDTO selectUsersByPostList(TaskAssigneeBody taskQuery) {
-        PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
-        // 使用 LambdaQueryWrapper 构建查询条件
-        LambdaQueryWrapper<SysPost> wrapper = new LambdaQueryWrapper<SysPost>()
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysPost::getPostCategory, taskQuery.getHandlerCode())
-            .like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysPost::getPostName, taskQuery.getHandlerName())
-            .like(StringUtils.isNotBlank(taskQuery.getGroupId()), SysPost::getDeptId, taskQuery.getGroupId())
-            .between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
-                SysPost::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
-
-        // 执行分页查询，并将查询结果封装为 SysPostVo 对象的 Page
-        Page<SysPostVo> page = postMapper.selectVoPage(pageQuery.build(), wrapper);
-
-        // 使用封装的字段映射方法进行转换
-        List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
-            SysPostVo::getPostId, SysPostVo::getPostCategory, SysPostVo::getPostName, SysPostVo::getDeptName, SysPostVo::getCreateTime);
 
         return new TaskAssigneeDTO(page.getTotal(), handlers);
     }

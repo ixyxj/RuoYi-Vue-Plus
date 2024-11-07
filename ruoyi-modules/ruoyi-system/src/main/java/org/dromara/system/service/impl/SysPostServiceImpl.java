@@ -7,7 +7,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.constant.UserConstants;
+import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
+import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.service.PostService;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -36,7 +39,7 @@ import java.util.stream.Collectors;
  */
 @RequiredArgsConstructor
 @Service
-public class SysPostServiceImpl implements ISysPostService {
+public class SysPostServiceImpl implements ISysPostService, PostService {
 
     private final SysPostMapper baseMapper;
     private final SysDeptMapper deptMapper;
@@ -239,4 +242,32 @@ public class SysPostServiceImpl implements ISysPostService {
         SysPost post = MapstructUtils.convert(bo, SysPost.class);
         return baseMapper.updateById(post);
     }
+
+    /**
+     * 查询岗位并返回任务指派的列表，支持分页
+     *
+     * @param taskQuery 查询条件
+     * @return 办理人
+     */
+    @Override
+    public TaskAssigneeDTO selectPostsByTaskAssigneeList(TaskAssigneeBody taskQuery) {
+        PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
+        // 使用 LambdaQueryWrapper 构建查询条件
+        LambdaQueryWrapper<SysPost> wrapper = new LambdaQueryWrapper<SysPost>()
+            .like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysPost::getPostCategory, taskQuery.getHandlerCode())
+            .like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysPost::getPostName, taskQuery.getHandlerName())
+            .like(StringUtils.isNotBlank(taskQuery.getGroupId()), SysPost::getDeptId, taskQuery.getGroupId())
+            .between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
+                SysPost::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
+
+        // 执行分页查询，并将查询结果封装为 SysPostVo 对象的 Page
+        Page<SysPostVo> page = baseMapper.selectVoPage(pageQuery.build(), wrapper);
+
+        // 使用封装的字段映射方法进行转换
+        List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
+            SysPostVo::getPostId, SysPostVo::getPostCategory, SysPostVo::getPostName, SysPostVo::getDeptName, SysPostVo::getCreateTime);
+
+        return new TaskAssigneeDTO(page.getTotal(), handlers);
+    }
+
 }

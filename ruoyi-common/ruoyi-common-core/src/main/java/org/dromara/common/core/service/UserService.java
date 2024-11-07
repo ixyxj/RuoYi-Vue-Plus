@@ -1,6 +1,5 @@
 package org.dromara.common.core.service;
 
-import org.dromara.common.core.domain.dto.DeptDTO;
 import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
@@ -87,42 +86,11 @@ public interface UserService {
     List<UserDTO> selectUsersByDeptIds(List<Long> deptIds);
 
     /**
-     * 查询角色并返回任务指派的列表，支持分页
-     *
-     * @param taskQuery 查询条件
-     * @return 办理人
-     */
-    TaskAssigneeDTO selectUsersByRoleList(TaskAssigneeBody taskQuery);
-
-    /**
      * 查询用户并返回任务指派的列表，支持分页
      *
      * @param taskQuery 查询条件
      * @return 办理人
      */
-    TaskAssigneeDTO selectUsersByUserList(TaskAssigneeBody taskQuery);
-
-    /**
-     * 查询部门并返回任务指派的列表，支持分页
-     *
-     * @param taskQuery 查询条件
-     * @return 办理人
-     */
-    TaskAssigneeDTO selectUsersByDeptList(TaskAssigneeBody taskQuery);
-
-    /**
-     * 查询部门
-     *
-     * @return 部门列表
-     */
-    List<DeptDTO> selectUsersByDeptList();
-
-    /**
-     * 查询岗位并返回任务指派的列表，支持分页
-     *
-     * @param taskQuery 查询条件
-     * @return 办理人
-     */
-    TaskAssigneeDTO selectUsersByPostList(TaskAssigneeBody taskQuery);
+    TaskAssigneeDTO selectUsersByTaskAssigneeList(TaskAssigneeBody taskQuery);
 
 }

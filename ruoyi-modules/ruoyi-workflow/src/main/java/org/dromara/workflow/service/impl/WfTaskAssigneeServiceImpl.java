@@ -12,6 +12,9 @@ import org.dromara.common.core.domain.dto.DeptDTO;
 import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.service.DeptService;
+import org.dromara.common.core.service.PostService;
+import org.dromara.common.core.service.RoleService;
 import org.dromara.common.core.service.UserService;
 import org.dromara.common.core.utils.DateUtils;
 import org.dromara.workflow.common.enums.TaskAssigneeEnum;
@@ -30,6 +33,9 @@ import java.util.List;
 @Service
 public class WfTaskAssigneeServiceImpl implements HandlerSelectService {
     private final UserService userService;
+    private final DeptService deptService;
+    private final RoleService roleService;
+    private final PostService postService;
 
     /**
      * 获取办理人权限设置列表tabs页签
@@ -66,10 +72,10 @@ public class WfTaskAssigneeServiceImpl implements HandlerSelectService {
      */
     private TaskAssigneeDTO fetchTaskAssigneeData(TaskAssigneeEnum type, TaskAssigneeBody taskQuery) {
         return switch (type) {
-            case USER -> userService.selectUsersByUserList(taskQuery);
-            case ROLE -> userService.selectUsersByRoleList(taskQuery);
-            case DEPT -> userService.selectUsersByDeptList(taskQuery);
-            case POST -> userService.selectUsersByPostList(taskQuery);
+            case USER -> userService.selectUsersByTaskAssigneeList(taskQuery);
+            case ROLE -> roleService.selectRolesByTaskAssigneeList(taskQuery);
+            case DEPT -> deptService.selectDeptsByTaskAssigneeList(taskQuery);
+            case POST -> postService.selectPostsByTaskAssigneeList(taskQuery);
             default -> throw new ServiceException("Unsupported handler type");
         };
     }
@@ -79,7 +85,7 @@ public class WfTaskAssigneeServiceImpl implements HandlerSelectService {
      */
     private List<DeptDTO> fetchDeptData(TaskAssigneeEnum type) {
         if (type == TaskAssigneeEnum.USER || type == TaskAssigneeEnum.POST) {
-            return userService.selectUsersByDeptList();
+            return deptService.selectDeptsByList();
         }
         return new ArrayList<>();
     }

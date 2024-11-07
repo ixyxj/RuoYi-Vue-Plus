@@ -1,5 +1,6 @@
 package org.dromara.system.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.tree.Tree;
@@ -7,15 +8,20 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.constant.CacheNames;
 import org.dromara.common.core.constant.UserConstants;
+import org.dromara.common.core.domain.dto.DeptDTO;
+import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
+import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.DeptService;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.core.utils.TreeBuildUtils;
+import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.helper.DataBaseHelper;
 import org.dromara.common.redis.utils.CacheUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
@@ -164,6 +170,43 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
             }
         }
         return String.join(StringUtils.SEPARATOR, list);
+    }
+
+    /**
+     * 查询部门
+     *
+     * @return 部门列表
+     */
+    @Override
+    public List<DeptDTO> selectDeptsByList() {
+        List<SysDeptVo> list = baseMapper.selectVoList();
+        return BeanUtil.copyToList(list, DeptDTO.class);
+    }
+
+    /**
+     * 查询部门并返回任务指派的列表，支持分页
+     *
+     * @param taskQuery 查询条件
+     * @return 办理人
+     */
+    @Override
+    public TaskAssigneeDTO selectDeptsByTaskAssigneeList(TaskAssigneeBody taskQuery) {
+        PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
+        // 使用 LambdaQueryWrapper 构建查询条件
+        LambdaQueryWrapper<SysDept> wrapper = new LambdaQueryWrapper<SysDept>()
+            .like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysDept::getDeptCategory, taskQuery.getHandlerCode())
+            .like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysDept::getDeptName, taskQuery.getHandlerName())
+            .between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
+                SysDept::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
+
+        // 执行分页查询，并将查询结果封装为 SysDeptVo 对象的 Page
+        Page<SysDeptVo> page = baseMapper.selectVoPage(pageQuery.build(), wrapper);
+
+        // 使用封装的字段映射方法进行转换
+        List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
+            SysDeptVo::getDeptId, SysDeptVo::getDeptCategory, SysDeptVo::getDeptName, null, SysDeptVo::getCreateTime);
+
+        return new TaskAssigneeDTO(page.getTotal(), handlers);
     }
 
     /**
