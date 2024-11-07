@@ -20,6 +20,7 @@ import org.dromara.common.core.service.DeptService;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StringUtils;
+import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.TreeBuildUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.helper.DataBaseHelper;
@@ -109,11 +110,22 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
         if (CollUtil.isEmpty(depts)) {
             return CollUtil.newArrayList();
         }
-        return TreeBuildUtils.build(depts, (dept, tree) ->
-            tree.setId(dept.getDeptId())
-                .setParentId(dept.getParentId())
-                .setName(dept.getDeptName())
-                .setWeight(dept.getOrderNum()));
+        // 获取当前列表中每一个节点的parentId，然后在列表中查找是否有id与其parentId对应，若无对应，则表明此时节点列表中，该节点在当前列表中属于顶级节点
+        List<Tree<Long>> treeList = CollUtil.newArrayList();
+        for (SysDeptVo d : depts) {
+            Long parentId = d.getParentId();
+            SysDeptVo sysDeptVo = StreamUtils.findFirst(depts, it -> it.getDeptId().longValue() == parentId);
+            if (ObjectUtil.isNull(sysDeptVo)) {
+                List<Tree<Long>> trees = TreeBuildUtils.build(depts, parentId, (dept, tree) ->
+                    tree.setId(dept.getDeptId())
+                        .setParentId(dept.getParentId())
+                        .setName(dept.getDeptName())
+                        .setWeight(dept.getOrderNum()));
+                Tree<Long> tree = trees.stream().filter(it -> it.getId().longValue() == d.getDeptId()).findFirst().get();
+                treeList.add(tree);
+            }
+        }
+        return treeList;
     }
 
     /**
@@ -328,11 +340,14 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
     public int updateDept(SysDeptBo bo) {
         SysDept dept = MapstructUtils.convert(bo, SysDept.class);
         SysDept oldDept = baseMapper.selectById(dept.getDeptId());
+        if (ObjectUtil.isNull(oldDept)) {
+            throw new ServiceException("部门不存在，无法修改");
+        }
         if (!oldDept.getParentId().equals(dept.getParentId())) {
             // 如果是新父部门 则校验是否具有新父部门权限 避免越权
             this.checkDeptDataScope(dept.getParentId());
             SysDept newParentDept = baseMapper.selectById(dept.getParentId());
-            if (ObjectUtil.isNotNull(newParentDept) && ObjectUtil.isNotNull(oldDept)) {
+            if (ObjectUtil.isNotNull(newParentDept)) {
                 String newAncestors = newParentDept.getAncestors() + StringUtils.SEPARATOR + newParentDept.getDeptId();
                 String oldAncestors = oldDept.getAncestors();
                 dept.setAncestors(newAncestors);

@@ -6,7 +6,6 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.utils.StreamUtils;
-import org.dromara.common.mybatis.helper.DataBaseHelper;
 import org.dromara.system.domain.SysDept;
 import org.dromara.system.domain.SysRoleDept;
 import org.dromara.system.mapper.SysDeptMapper;
@@ -63,9 +62,7 @@ public class SysDataScopeServiceImpl implements ISysDataScopeService {
         if (ObjectUtil.isNull(deptId)) {
             return "-1";
         }
-        List<SysDept> deptList = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
-            .select(SysDept::getDeptId)
-            .apply(DataBaseHelper.findInSet(deptId, "ancestors")));
+        List<SysDept> deptList = deptMapper.selectListByParentId(deptId);
         List<Long> ids = StreamUtils.toList(deptList, SysDept::getDeptId);
         ids.add(deptId);
         if (CollUtil.isNotEmpty(ids)) {

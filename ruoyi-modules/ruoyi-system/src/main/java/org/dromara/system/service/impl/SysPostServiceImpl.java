@@ -16,7 +16,6 @@ import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
-import org.dromara.common.mybatis.helper.DataBaseHelper;
 import org.dromara.system.domain.SysDept;
 import org.dromara.system.domain.SysPost;
 import org.dromara.system.domain.SysUserPost;
@@ -82,12 +81,8 @@ public class SysPostServiceImpl implements ISysPostService, PostService {
         } else if (ObjectUtil.isNotNull(bo.getBelongDeptId())) {
             //部门树搜索
             wrapper.and(x -> {
-                List<Long> deptIds = deptMapper.selectList(new LambdaQueryWrapper<SysDept>()
-                        .select(SysDept::getDeptId)
-                        .apply(DataBaseHelper.findInSet(bo.getBelongDeptId(), "ancestors")))
-                    .stream()
-                    .map(SysDept::getDeptId)
-                    .collect(Collectors.toList());
+                List<SysDept> deptList = deptMapper.selectListByParentId(bo.getBelongDeptId());
+                List<Long> deptIds = StreamUtils.toList(deptList, SysDept::getDeptId);
                 deptIds.add(bo.getBelongDeptId());
                 x.in(SysPost::getDeptId, deptIds);
             });

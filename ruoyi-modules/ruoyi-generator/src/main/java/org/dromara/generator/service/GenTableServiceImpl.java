@@ -29,7 +29,6 @@ import org.dromara.common.core.utils.file.FileUtils;
 import org.dromara.common.json.utils.JsonUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
-import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.generator.constant.GenConstants;
 import org.dromara.generator.domain.GenTable;
 import org.dromara.generator.domain.GenTableColumn;
@@ -106,7 +105,8 @@ public class GenTableServiceImpl implements IGenTableService {
             .like(StringUtils.isNotBlank(genTable.getTableName()), "lower(table_name)", StringUtils.lowerCase(genTable.getTableName()))
             .like(StringUtils.isNotBlank(genTable.getTableComment()), "lower(table_comment)", StringUtils.lowerCase(genTable.getTableComment()))
             .between(params.get("beginTime") != null && params.get("endTime") != null,
-                "create_time", params.get("beginTime"), params.get("endTime"));
+                "create_time", params.get("beginTime"), params.get("endTime"))
+            .orderByAsc("table_id");
         return wrapper;
     }
 
@@ -269,11 +269,10 @@ public class GenTableServiceImpl implements IGenTableService {
     @DSTransactional
     @Override
     public void importGenTable(List<GenTable> tableList, String dataName) {
-        Long operId = LoginHelper.getUserId();
         try {
             for (GenTable table : tableList) {
                 String tableName = table.getTableName();
-                GenUtils.initTable(table, operId);
+                GenUtils.initTable(table);
                 table.setDataName(dataName);
                 int row = baseMapper.insert(table);
                 if (row > 0) {
