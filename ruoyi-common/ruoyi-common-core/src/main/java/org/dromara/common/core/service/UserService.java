@@ -1,6 +1,8 @@
 package org.dromara.common.core.service;
 
+import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.dto.UserDTO;
+import org.dromara.common.core.domain.model.TaskAssigneeBody;
 
 import java.util.List;
 
@@ -82,4 +84,12 @@ public interface UserService {
      * @return 用户
      */
     List<UserDTO> selectUsersByDeptIds(List<Long> deptIds);
+
+    /**
+     * 查询角色信息
+     *
+     * @return 角色信息列表
+     */
+    TaskAssigneeDTO selectUsersByRoleList(TaskAssigneeBody taskQuery);
+
 }

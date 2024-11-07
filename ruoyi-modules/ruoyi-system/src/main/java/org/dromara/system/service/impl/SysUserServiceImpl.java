@@ -15,7 +15,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.constant.CacheNames;
 import org.dromara.common.core.constant.UserConstants;
+import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.dto.UserDTO;
+import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.UserService;
 import org.dromara.common.core.utils.MapstructUtils;
@@ -702,4 +704,35 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
             .in(SysUser::getDeptId, deptIds));
         return BeanUtil.copyToList(list, UserDTO.class);
     }
+
+    /**
+     * 根据角色列表查询用户信息。
+     *
+     * @param taskQuery 包含查询条件的请求体对象，包含分页参数、权限编码、权限名称、时间范围等信息。
+     * @return 返回包含查询结果的 `TaskAssigneeDTO` 对象，其中包含符合条件的总记录数和处理人列表。
+     */
+    @Override
+    public TaskAssigneeDTO selectUsersByRoleList(TaskAssigneeBody taskQuery) {
+        // 创建分页查询对象，并设置分页大小和页码
+        PageQuery pageQuery = new PageQuery();
+        pageQuery.setPageSize(taskQuery.getPageSize());
+        pageQuery.setPageNum(taskQuery.getPageNum());
+
+        // 使用 LambdaQueryWrapper 构建查询条件
+        LambdaQueryWrapper<SysRole> wrapper = new LambdaQueryWrapper<SysRole>()
+            .like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysRole::getRoleKey, taskQuery.getHandlerCode())
+            .like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysRole::getRoleName, taskQuery.getHandlerName())
+            .between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
+                SysRole::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
+
+        // 执行分页查询，并将查询结果封装为 SysRoleVo 对象的 Page
+        Page<SysRoleVo> page = roleMapper.selectVoPage(pageQuery.build(), wrapper);
+
+        // 使用封装的字段映射方法进行转换
+        List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
+            SysRoleVo::getRoleId, SysRoleVo::getRoleKey, SysRoleVo::getRoleName, null, SysRoleVo::getCreateTime);
+
+        return new TaskAssigneeDTO(page.getTotal(), handlers);
+    }
+
 }

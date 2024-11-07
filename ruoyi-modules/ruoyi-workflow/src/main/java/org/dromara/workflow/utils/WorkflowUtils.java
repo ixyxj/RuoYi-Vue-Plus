@@ -13,6 +13,7 @@ import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.workflow.common.enums.TaskAssigneeEnum;
 
 import java.util.*;
 
@@ -32,9 +33,9 @@ public class WorkflowUtils {
     public static List<String> permissionList() {
         List<RoleDTO> roles = LoginHelper.getLoginUser().getRoles();
         Long deptId = LoginHelper.getDeptId();
-        List<String> permissionList = StreamUtils.toList(roles, role -> "role:" + role.getRoleId());
+        List<String> permissionList = StreamUtils.toList(roles, role -> TaskAssigneeEnum.ROLE.getCode() + role.getRoleId());
         permissionList.add(LoginHelper.getUserIdStr());
-        permissionList.add("dept:" + deptId);
+        permissionList.add(TaskAssigneeEnum.DEPT.getCode() + deptId);
         return permissionList;
     }
 
@@ -55,11 +56,11 @@ public class WorkflowUtils {
         for (User user : userList) {
             String processedBy = user.getProcessedBy();
             Long id = Long.valueOf(StringUtils.substringAfter(processedBy, StrUtil.C_COLON));
-            if (processedBy.startsWith("user:")) {
+            if (processedBy.startsWith(TaskAssigneeEnum.USER.getCode())) {
                 userIds.add(id);
-            } else if (processedBy.startsWith("role:")) {
+            } else if (processedBy.startsWith(TaskAssigneeEnum.ROLE.getCode())) {
                 roleIds.add(id);
-            } else if (processedBy.startsWith("dept:")) {
+            } else if (processedBy.startsWith(TaskAssigneeEnum.DEPT.getCode())) {
                 deptIds.add(id);
             } else {
                 userIds.add(Long.valueOf(processedBy));
@@ -111,14 +112,13 @@ public class WorkflowUtils {
         String processedBy = user.getProcessedBy();
         // 提取 processedBy 字段中 ":" 后的部分作为ID
         Long id = Long.valueOf(StringUtils.substringAfter(processedBy, StrUtil.C_COLON));
-
-        if (processedBy.startsWith("user:")) {
+        if (processedBy.startsWith(TaskAssigneeEnum.USER.getCode())) {
             // 如果前缀为 "user:"，根据用户ID查询
             return userService.selectListByIds(List.of(id));
-        } else if (processedBy.startsWith("role:")) {
+        } else if (processedBy.startsWith(TaskAssigneeEnum.ROLE.getCode())) {
             // 如果前缀为 "role:"，根据角色ID查询用户
             return userService.selectUsersByRoleIds(List.of(id));
-        } else if (processedBy.startsWith("dept:")) {
+        } else if (processedBy.startsWith(TaskAssigneeEnum.DEPT.getCode())) {
             // 如果前缀为 "dept:"，根据部门ID查询用户
             return userService.selectUsersByDeptIds(List.of(id));
         }
