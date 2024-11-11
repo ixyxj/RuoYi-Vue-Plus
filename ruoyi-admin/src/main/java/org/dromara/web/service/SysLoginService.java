@@ -12,11 +12,11 @@ import lombok.extern.slf4j.Slf4j;
 import me.zhyd.oauth.model.AuthUser;
 import org.dromara.common.core.constant.CacheConstants;
 import org.dromara.common.core.constant.Constants;
+import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.constant.TenantConstants;
 import org.dromara.common.core.domain.dto.RoleDTO;
 import org.dromara.common.core.domain.model.LoginUser;
 import org.dromara.common.core.enums.LoginType;
-import org.dromara.common.core.enums.TenantStatus;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.exception.user.UserException;
 import org.dromara.common.core.utils.*;
@@ -233,7 +233,7 @@ public class SysLoginService {
         if (ObjectUtil.isNull(tenant)) {
             log.info("登录租户：{} 不存在.", tenantId);
             throw new TenantException("tenant.not.exists");
-        } else if (TenantStatus.DISABLE.getCode().equals(tenant.getStatus())) {
+        } else if (SystemConstants.DISABLE.equals(tenant.getStatus())) {
             log.info("登录租户：{} 已被停用.", tenantId);
             throw new TenantException("tenant.blocked");
         } else if (ObjectUtil.isNotNull(tenant.getExpireTime())

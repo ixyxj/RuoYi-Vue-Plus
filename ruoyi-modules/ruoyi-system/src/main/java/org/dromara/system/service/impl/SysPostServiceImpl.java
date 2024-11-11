@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.constant.UserConstants;
+import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.exception.ServiceException;
@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * 岗位信息 服务层处理
@@ -133,7 +132,7 @@ public class SysPostServiceImpl implements ISysPostService, PostService {
     public List<SysPostVo> selectPostByIds(List<Long> postIds) {
         return baseMapper.selectVoList(new LambdaQueryWrapper<SysPost>()
             .select(SysPost::getPostId, SysPost::getPostName, SysPost::getPostCode)
-            .eq(SysPost::getStatus, UserConstants.POST_NORMAL)
+            .eq(SysPost::getStatus, SystemConstants.NORMAL)
             .in(CollUtil.isNotEmpty(postIds), SysPost::getPostId, postIds));
     }
 

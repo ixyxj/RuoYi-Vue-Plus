@@ -12,7 +12,7 @@ import me.zhyd.oauth.model.AuthResponse;
 import me.zhyd.oauth.model.AuthUser;
 import me.zhyd.oauth.request.AuthRequest;
 import me.zhyd.oauth.utils.AuthStateUtils;
-import org.dromara.common.core.constant.UserConstants;
+import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.domain.model.LoginBody;
 import org.dromara.common.core.domain.model.RegisterBody;
@@ -92,7 +92,7 @@ public class AuthController {
         if (ObjectUtil.isNull(client) || !StringUtils.contains(client.getGrantType(), grantType)) {
             log.info("客户端id: {} 认证类型：{} 异常!.", clientId, grantType);
             return R.fail(MessageUtils.message("auth.grant.type.error"));
-        } else if (!UserConstants.NORMAL.equals(client.getStatus())) {
+        } else if (!SystemConstants.NORMAL.equals(client.getStatus())) {
             return R.fail(MessageUtils.message("auth.grant.type.blocked"));
         }
         // 校验租户
