@@ -27,6 +27,7 @@ import org.dromara.system.mapper.SysUserMapper;
 import org.dromara.system.service.ISysDeptService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -250,6 +251,7 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
      * @param bo 部门信息
      * @return 结果
      */
+    @CacheEvict(cacheNames = CacheNames.SYS_DEPT_AND_CHILD, allEntries = true)
     @Override
     public int insertDept(SysDeptBo bo) {
         SysDept info = baseMapper.selectById(bo.getParentId());
@@ -268,7 +270,10 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
      * @param bo 部门信息
      * @return 结果
      */
-    @CacheEvict(cacheNames = CacheNames.SYS_DEPT, key = "#bo.deptId")
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.SYS_DEPT, key = "#bo.deptId"),
+        @CacheEvict(cacheNames = CacheNames.SYS_DEPT_AND_CHILD, allEntries = true)
+    })
     @Override
     public int updateDept(SysDeptBo bo) {
         SysDept dept = MapstructUtils.convert(bo, SysDept.class);
@@ -341,7 +346,10 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
      * @param deptId 部门ID
      * @return 结果
      */
-    @CacheEvict(cacheNames = CacheNames.SYS_DEPT, key = "#deptId")
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.SYS_DEPT, key = "#deptId"),
+        @CacheEvict(cacheNames = CacheNames.SYS_DEPT_AND_CHILD, key = "#deptId")
+    })
     @Override
     public int deleteDeptById(Long deptId) {
         return baseMapper.deleteById(deptId);
