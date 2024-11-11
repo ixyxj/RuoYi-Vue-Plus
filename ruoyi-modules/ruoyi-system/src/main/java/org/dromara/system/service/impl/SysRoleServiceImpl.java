@@ -391,6 +391,7 @@ public class SysRoleServiceImpl implements ISysRoleService {
      * @param roleId 角色ID
      * @return 结果
      */
+    @CacheEvict(cacheNames = CacheNames.SYS_ROLE_CUSTOM, key = "#roleId")
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int deleteRoleById(Long roleId) {
