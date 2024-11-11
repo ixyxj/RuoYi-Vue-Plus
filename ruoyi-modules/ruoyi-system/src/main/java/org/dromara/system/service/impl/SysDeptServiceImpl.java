@@ -9,14 +9,10 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.constant.CacheNames;
-import org.dromara.common.core.constant.UserConstants;
+import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.DeptService;
-import org.dromara.common.core.utils.MapstructUtils;
-import org.dromara.common.core.utils.SpringUtils;
-import org.dromara.common.core.utils.StringUtils;
-import org.dromara.common.core.utils.StreamUtils;
-import org.dromara.common.core.utils.TreeBuildUtils;
+import org.dromara.common.core.utils.*;
 import org.dromara.common.mybatis.helper.DataBaseHelper;
 import org.dromara.common.redis.utils.CacheUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
@@ -71,7 +67,7 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
     @Override
     public List<Tree<Long>> selectDeptTreeList(SysDeptBo bo) {
         // 只查询未禁用部门
-        bo.setStatus(UserConstants.DEPT_NORMAL);
+        bo.setStatus(SystemConstants.NORMAL);
         LambdaQueryWrapper<SysDept> lqw = buildQueryWrapper(bo);
         List<SysDeptVo> depts = baseMapper.selectDeptList(lqw);
         return buildDeptTreeSelect(depts);
@@ -79,7 +75,7 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
 
     private LambdaQueryWrapper<SysDept> buildQueryWrapper(SysDeptBo bo) {
         LambdaQueryWrapper<SysDept> lqw = Wrappers.lambdaQuery();
-        lqw.eq(SysDept::getDelFlag, UserConstants.DEL_FLAG_NORMAL);
+        lqw.eq(SysDept::getDelFlag, SystemConstants.NORMAL);
         lqw.eq(ObjectUtil.isNotNull(bo.getDeptId()), SysDept::getDeptId, bo.getDeptId());
         lqw.eq(ObjectUtil.isNotNull(bo.getParentId()), SysDept::getParentId, bo.getParentId());
         lqw.like(StringUtils.isNotBlank(bo.getDeptName()), SysDept::getDeptName, bo.getDeptName());
@@ -156,7 +152,7 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
     public List<SysDeptVo> selectDeptByIds(List<Long> deptIds) {
         return baseMapper.selectDeptList(new LambdaQueryWrapper<SysDept>()
             .select(SysDept::getDeptId, SysDept::getDeptName, SysDept::getLeader)
-            .eq(SysDept::getStatus, UserConstants.DEPT_NORMAL)
+            .eq(SysDept::getStatus, SystemConstants.NORMAL)
             .in(CollUtil.isNotEmpty(deptIds), SysDept::getDeptId, deptIds));
     }
 
@@ -187,7 +183,7 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
     @Override
     public long selectNormalChildrenDeptById(Long deptId) {
         return baseMapper.selectCount(new LambdaQueryWrapper<SysDept>()
-            .eq(SysDept::getStatus, UserConstants.DEPT_NORMAL)
+            .eq(SysDept::getStatus, SystemConstants.NORMAL)
             .apply(DataBaseHelper.findInSet(deptId, "ancestors")));
     }
 
@@ -258,7 +254,7 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
     public int insertDept(SysDeptBo bo) {
         SysDept info = baseMapper.selectById(bo.getParentId());
         // 如果父节点不为正常状态,则不允许新增子节点
-        if (!UserConstants.DEPT_NORMAL.equals(info.getStatus())) {
+        if (!SystemConstants.NORMAL.equals(info.getStatus())) {
             throw new ServiceException("部门停用，不允许新增");
         }
         SysDept dept = MapstructUtils.convert(bo, SysDept.class);
@@ -294,8 +290,8 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
             dept.setAncestors(oldDept.getAncestors());
         }
         int result = baseMapper.updateById(dept);
-        if (UserConstants.DEPT_NORMAL.equals(dept.getStatus()) && StringUtils.isNotEmpty(dept.getAncestors())
-            && !StringUtils.equals(UserConstants.DEPT_NORMAL, dept.getAncestors())) {
+        if (SystemConstants.NORMAL.equals(dept.getStatus()) && StringUtils.isNotEmpty(dept.getAncestors())
+            && !StringUtils.equals(SystemConstants.NORMAL, dept.getAncestors())) {
             // 如果该部门是启用状态，则启用该部门的所有上级部门
             updateParentDeptStatusNormal(dept);
         }
@@ -311,7 +307,7 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
         String ancestors = dept.getAncestors();
         Long[] deptIds = Convert.toLongArray(ancestors);
         baseMapper.update(null, new LambdaUpdateWrapper<SysDept>()
-            .set(SysDept::getStatus, UserConstants.DEPT_NORMAL)
+            .set(SysDept::getStatus, SystemConstants.NORMAL)
             .in(SysDept::getDeptId, Arrays.asList(deptIds)));
     }
 
