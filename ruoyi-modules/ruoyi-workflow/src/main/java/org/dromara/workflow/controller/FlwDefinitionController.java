@@ -21,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
-
 /**
  * 流程定义管理 控制层
  *
@@ -179,11 +178,7 @@ public class FlwDefinitionController extends BaseController {
      */
     @PutMapping("/updateDefinitionState/{id}/{active}")
     public R<Boolean> active(@PathVariable Long id, @PathVariable boolean active) {
-        if (active) {
-            return R.ok(defService.unActive(id));
-        } else {
-            return R.ok(defService.active(id));
-        }
+        return R.ok(active ? defService.unActive(id) : defService.active(id));
     }
 
 }
