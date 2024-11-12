@@ -25,10 +25,10 @@ public @interface Sensitive {
     /**
      * 角色标识符 多个角色满足一个即可
      */
-    String[] roleKey();
+    String[] roleKey() default {};
 
     /**
      * 权限标识符 多个权限满足一个即可
      */
-    String[] perms();
+    String[] perms() default {};
 }
