@@ -697,6 +697,28 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
     }
 
     /**
+     * 通过岗位ID查询用户
+     *
+     * @param postIds 岗位ids
+     * @return 用户
+     */
+    @Override
+    public List<UserDTO> selectUsersByPostIds(List<Long> postIds) {
+        if (CollUtil.isEmpty(postIds)) {
+            return List.of();
+        }
+
+        // 通过岗位ID获取用户岗位信息
+        List<SysUserPost> userPosts = userPostMapper.selectList(
+            new LambdaQueryWrapper<SysUserPost>().in(SysUserPost::getPostId, postIds));
+
+        // 获取用户ID列表
+        Set<Long> userIds = StreamUtils.toSet(userPosts, SysUserPost::getUserId);
+
+        return selectListByIds(new ArrayList<>(userIds));
+    }
+
+    /**
      * 查询用户并返回任务指派的列表，支持分页
      *
      * @param taskQuery 查询条件

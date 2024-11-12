@@ -152,7 +152,7 @@ public class WfTaskAssigneeServiceImpl implements IWfTaskAssigneeService, Handle
             case USER -> userService.selectListByIds(ids);
             case ROLE -> userService.selectUsersByRoleIds(ids);
             case DEPT -> userService.selectUsersByDeptIds(ids);
-            // todo 岗位后续待添加
+            case POST -> userService.selectUsersByPostIds(ids);
             default -> Collections.emptyList();
         };
     }

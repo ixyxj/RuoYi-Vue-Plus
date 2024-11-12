@@ -86,6 +86,14 @@ public interface UserService {
     List<UserDTO> selectUsersByDeptIds(List<Long> deptIds);
 
     /**
+     * 通过岗位ID查询用户
+     *
+     * @param postIds 岗位ids
+     * @return 用户
+     */
+    List<UserDTO> selectUsersByPostIds(List<Long> postIds);
+
+    /**
      * 查询用户并返回任务指派的列表，支持分页
      *
      * @param taskQuery 查询条件
