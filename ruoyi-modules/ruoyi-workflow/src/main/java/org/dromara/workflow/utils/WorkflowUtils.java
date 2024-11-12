@@ -40,7 +40,8 @@ public class WorkflowUtils {
                     .map(role -> TaskAssigneeEnum.ROLE.getCode() + role.getRoleId()),
 
                 // 岗位权限前缀
-                loginUser.getPosts().stream()
+                Stream.ofNullable(loginUser.getPosts())
+                    .flatMap(Collection::stream)
                     .map(post -> TaskAssigneeEnum.POST.getCode() + post.getPostId()),
 
                 // 用户和部门权限
