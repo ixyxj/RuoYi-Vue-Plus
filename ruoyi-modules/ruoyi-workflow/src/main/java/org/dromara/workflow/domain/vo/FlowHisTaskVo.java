@@ -1,5 +1,6 @@
 package org.dromara.workflow.domain.vo;
 
+import com.warm.flow.core.enums.FlowStatus;
 import lombok.Data;
 import org.dromara.common.translation.annotation.Translation;
 import org.dromara.common.translation.constant.TransConstant;
@@ -173,4 +174,10 @@ public class FlowHisTaskVo implements Serializable {
      * 运行时长
      */
     private String runDuration;
+
+    public void setFlowStatus(String flowStatus) {
+        this.flowStatus = flowStatus;
+        // TODO 建议前端使用字典
+        this.flowStatusName = FlowStatus.getValueByKey(flowStatus);
+    }
 }

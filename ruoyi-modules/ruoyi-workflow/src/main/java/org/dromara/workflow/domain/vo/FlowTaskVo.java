@@ -2,7 +2,8 @@ package org.dromara.workflow.domain.vo;
 
 import com.warm.flow.core.entity.User;
 import lombok.Data;
-import org.dromara.common.core.domain.dto.UserDTO;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -118,9 +119,10 @@ public class FlowTaskVo implements Serializable {
     private String flowStatusName;
 
     /**
-     * 办理人
+     * 办理人名称
      */
-    private List<UserDTO> userDTOList;
+    @Translation(type = TransConstant.TASK_ID_TO_ASSIGNEE, mapper = "id")
+    private String transactorNames;
 
     /**
      * 办理人类型

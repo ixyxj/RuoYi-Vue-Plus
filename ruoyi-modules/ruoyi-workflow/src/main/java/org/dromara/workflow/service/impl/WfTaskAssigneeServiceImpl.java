@@ -1,6 +1,7 @@
 package org.dromara.workflow.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.warm.flow.ui.dto.HandlerFunDto;
 import com.warm.flow.ui.dto.HandlerQuery;
 import com.warm.flow.ui.dto.TreeFunDto;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.dto.DeptDTO;
 import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
+import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.DeptService;
@@ -19,9 +21,11 @@ import org.dromara.common.core.service.UserService;
 import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.workflow.common.enums.TaskAssigneeEnum;
+import org.dromara.workflow.service.IWfTaskAssigneeService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,7 +37,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class WfTaskAssigneeServiceImpl implements HandlerSelectService {
+public class WfTaskAssigneeServiceImpl implements IWfTaskAssigneeService, HandlerSelectService {
     final static String DEFAULT_GROUP_NAME = "默认分组";
     private final UserService userService;
     private final DeptService deptService;
@@ -116,6 +120,41 @@ public class WfTaskAssigneeServiceImpl implements HandlerSelectService {
                     .map(deptService::selectDeptNameByIds)
                     .orElse(DEFAULT_GROUP_NAME), DEFAULT_GROUP_NAME))
             .setCreateTime(assignee -> DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, assignee.getCreateTime()));
+    }
+
+    /**
+     * 根据存储标识符（storageId）解析分配类型和ID，并获取对应的用户列表
+     *
+     * @param storageId 包含分配类型和ID的字符串（例如 "user:123" 或 "role:456"）
+     * @return 与分配类型和ID匹配的用户列表，如果格式无效则返回空列表
+     */
+    @Override
+    public List<UserDTO> fetchUsersByStorageId(String storageId) {
+        String[] parts = storageId.split(StrUtil.COLON, 2);
+        if (parts.length < 2) {
+            return Collections.emptyList();
+        }
+        return getUsersByType(TaskAssigneeEnum.fromCode(parts[0] + StrUtil.COLON), List.of(Long.valueOf(parts[1])));
+    }
+
+    /**
+     * 根据指定的任务分配类型（TaskAssigneeEnum）和 ID 列表，获取对应的用户信息列表
+     *
+     * @param type 任务分配类型，表示用户、角色、部门或其他（TaskAssigneeEnum 枚举值）
+     * @param ids  与指定分配类型关联的 ID 列表（例如用户ID、角色ID、部门ID等）
+     * @return 返回包含用户信息的列表。如果类型为用户（USER），则通过用户ID列表查询；
+     * 如果类型为角色（ROLE），则通过角色ID列表查询；
+     * 如果类型为部门（DEPT），则通过部门ID列表查询；
+     * 如果类型为岗位（POST）或无法识别的类型，则返回空列表
+     */
+    private List<UserDTO> getUsersByType(TaskAssigneeEnum type, List<Long> ids) {
+        return switch (type) {
+            case USER -> userService.selectListByIds(ids);
+            case ROLE -> userService.selectUsersByRoleIds(ids);
+            case DEPT -> userService.selectUsersByDeptIds(ids);
+            // todo 岗位后续待添加
+            default -> Collections.emptyList();
+        };
     }
 
 }

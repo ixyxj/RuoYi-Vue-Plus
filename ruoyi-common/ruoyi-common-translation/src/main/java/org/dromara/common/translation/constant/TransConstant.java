@@ -32,4 +32,9 @@ public interface TransConstant {
      */
     String OSS_ID_TO_URL = "oss_id_to_url";
 
+    /**
+     * 任务Id转任务办理人名称
+     */
+    String TASK_ID_TO_ASSIGNEE = "task_id_to_assignee";
+
 }

@@ -1,6 +1,5 @@
 package org.dromara.workflow.domain.bo;
 
-import jakarta.validation.constraints.Future;
 import lombok.Data;
 
 import java.io.Serial;

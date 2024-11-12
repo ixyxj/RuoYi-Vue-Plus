@@ -3,6 +3,7 @@ package org.dromara.workflow.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.warm.flow.core.dto.FlowParams;
 import com.warm.flow.core.entity.*;
@@ -22,8 +23,10 @@ import com.warm.flow.orm.mapper.FlowSkipMapper;
 import com.warm.flow.orm.mapper.FlowTaskMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.service.AssigneeService;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -43,7 +46,10 @@ import org.dromara.workflow.utils.WorkflowUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.dromara.workflow.common.constant.FlowConstant.BUSINESS_KEY;
@@ -57,7 +63,7 @@ import static org.dromara.workflow.common.constant.FlowConstant.INITIATOR;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class FlwTaskServiceImpl implements IFlwTaskService {
+public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
 
     private final TaskService taskService;
     private final InsService insService;
@@ -184,25 +190,29 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      * @param instance 实例
      */
     private void setHandler(Instance instance) {
-        if (instance != null) {
-            // 根据流程实例ID查询所有关联的任务
-            List<FlowTask> flowTasks = flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class)
-                .eq(FlowTask::getInstanceId, instance.getId()));
+        if (instance == null) {
+            return;
+        }
+        // 根据流程实例ID查询所有关联的任务
+        List<FlowTask> flowTasks = flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class)
+            .eq(FlowTask::getInstanceId, instance.getId()));
+        List<User> userList = new ArrayList<>();
 
-            // 遍历任务列表，处理每个任务的办理人
-            for (FlowTask flowTask : flowTasks) {
-                // 获取与当前任务关联的用户列表
-                List<User> userList = userService.getByAssociateds(Collections.singletonList(flowTask.getId()));
-                // 通过工具方法过滤和获取有效用户
-                Set<User> users = WorkflowUtils.getUser(userList);
-                if (CollUtil.isNotEmpty(users)) {
-                    // 删除现有的任务办理人记录，确保后续数据清理和更新
-                    userService.deleteByTaskIds(Collections.singletonList(flowTask.getId()));
-                    // 将新的办理人关联到任务ID，并批量保存新的办理人列表
-                    users.forEach(user -> user.setAssociated(flowTask.getId()));
-                    userService.saveBatch(new ArrayList<>(users));
-                }
+        // 遍历任务列表，处理每个任务的办理人
+        for (FlowTask flowTask : flowTasks) {
+            // 获取与当前任务关联的用户列表
+            List<User> associatedUsers = userService.getByAssociateds(Collections.singletonList(flowTask.getId()));
+            if (CollUtil.isNotEmpty(associatedUsers)) {
+                userList.addAll(WorkflowUtils.getUser(associatedUsers, flowTask.getId()));
             }
+        }
+
+        // 批量删除现有任务的办理人记录
+        userService.deleteByTaskIds(StreamUtils.toList(flowTasks, FlowTask::getId));
+
+        // 确保要保存的 userList 不为空
+        if (CollUtil.isNotEmpty(userList)) {
+            userService.saveBatch(userList);
         }
     }
 
@@ -214,10 +224,11 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      */
     @Override
     public TableDataInfo<FlowTaskVo> getPageByTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        QueryWrapper<FlowTaskBo> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
+        queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
         queryWrapper.in("t.processed_by", WorkflowUtils.permissionList());
         queryWrapper.in("t.flow_status", BusinessStatusEnum.WAITING.getStatus());
-        Page<FlowTaskVo> page = buildTaskWaitingPage(pageQuery, queryWrapper, flowTaskBo);
+        Page<FlowTaskVo> page = flwTaskMapper.getTaskWaitByPage(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
     }
 
@@ -229,9 +240,10 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      */
     @Override
     public TableDataInfo<FlowHisTaskVo> getPageByTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        QueryWrapper<FlowTaskBo> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
+        queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
         queryWrapper.in("t.approver", LoginHelper.getUserId());
-        Page<FlowHisTaskVo> page = buildTaskFinishPage(pageQuery, queryWrapper, flowTaskBo);
+        Page<FlowHisTaskVo> page = flwTaskMapper.getTaskFinishByPage(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
     }
 
@@ -243,51 +255,11 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      */
     @Override
     public TableDataInfo<FlowTaskVo> getPageByAllTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        QueryWrapper<FlowTaskBo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("t.processed_by", WorkflowUtils.permissionList());
-        Page<FlowTaskVo> page = buildTaskWaitingPage(pageQuery, queryWrapper, flowTaskBo);
-        return TableDataInfo.build(page);
-    }
-
-    /**
-     * 构建待处理任务分页对象
-     *
-     * @param pageQuery    分页查询对象
-     * @param queryWrapper 查询条件封装对象
-     * @param flowTaskBo   流程任务业务对象
-     * @return 分页后的待处理任务列表
-     */
-    private Page<FlowTaskVo> buildTaskWaitingPage(PageQuery pageQuery, QueryWrapper<FlowTaskBo> queryWrapper, FlowTaskBo flowTaskBo) {
-        commonCondition(queryWrapper, flowTaskBo);
-        Page<FlowTaskVo> page = flwTaskMapper.getTaskWaitByPage(pageQuery.build(), queryWrapper);
-        List<FlowTaskVo> records = page.getRecords();
-        if (CollUtil.isNotEmpty(records)) {
-            List<Long> taskIds = StreamUtils.toList(records, FlowTaskVo::getId);
-            List<User> userList = userService.getByAssociateds(taskIds);
-            for (FlowTaskVo data : records) {
-                if (CollUtil.isNotEmpty(userList)) {
-                    List<User> users = StreamUtils.filter(userList, e -> e.getAssociated().toString().equals(data.getId().toString()));
-                    data.setUserList(CollUtil.isEmpty(users) ? Collections.emptyList() : users);
-                    data.setUserDTOList(WorkflowUtils.getHandlerUser(users));
-                }
-                data.setFlowStatusName(FlowStatus.getValueByKey(data.getFlowStatus()));
-            }
-        }
-        return page;
-    }
-
-    /**
-     * 通用条件
-     *
-     * @param queryWrapper 查询条件
-     * @param flowTaskBo   参数
-     */
-    private void commonCondition(QueryWrapper<FlowTaskBo> queryWrapper, FlowTaskBo flowTaskBo) {
-        queryWrapper.like(StringUtils.isNotBlank(flowTaskBo.getNodeName()), "t.node_name", flowTaskBo.getNodeName());
-        queryWrapper.like(StringUtils.isNotBlank(flowTaskBo.getFlowName()), "t.flow_name", flowTaskBo.getFlowName());
-        queryWrapper.eq(StringUtils.isNotBlank(flowTaskBo.getFlowCode()), "t.flow_code", flowTaskBo.getFlowCode());
+        QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
-        queryWrapper.orderByDesc("t.create_time");
+        queryWrapper.in("t.processed_by", WorkflowUtils.permissionList());
+        Page<FlowTaskVo> page = flwTaskMapper.getTaskWaitByPage(pageQuery.build(), queryWrapper);
+        return TableDataInfo.build(page);
     }
 
     /**
@@ -298,28 +270,9 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      */
     @Override
     public TableDataInfo<FlowHisTaskVo> getPageByAllTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        QueryWrapper<FlowTaskBo> queryWrapper = new QueryWrapper<>();
-        Page<FlowHisTaskVo> page = buildTaskFinishPage(pageQuery, queryWrapper, flowTaskBo);
-        return TableDataInfo.build(page);
-    }
-
-    /**
-     * 构建已完成任务分页对象
-     *
-     * @param pageQuery    分页查询对象
-     * @param queryWrapper 查询条件封装对象
-     * @param flowTaskBo   流程任务业务对象
-     * @return 分页后的已完成任务列表
-     */
-    private Page<FlowHisTaskVo> buildTaskFinishPage(PageQuery pageQuery, QueryWrapper<FlowTaskBo> queryWrapper, FlowTaskBo flowTaskBo) {
-        commonCondition(queryWrapper, flowTaskBo);
+        QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         Page<FlowHisTaskVo> page = flwTaskMapper.getTaskFinishByPage(pageQuery.build(), queryWrapper);
-        List<FlowHisTaskVo> records = page.getRecords();
-        // 如果有任务记录，为每条记录设置流程状态名称
-        if (CollUtil.isNotEmpty(records)) {
-            records.forEach(data -> data.setFlowStatusName(FlowStatus.getValueByKey(data.getFlowStatus())));
-        }
-        return page;
+        return TableDataInfo.build(page);
     }
 
     /**
@@ -330,11 +283,18 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      */
     @Override
     public TableDataInfo<FlowTaskVo> getPageByTaskCopy(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        QueryWrapper<FlowTaskBo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.like(StringUtils.isNotBlank(flowTaskBo.getFlowName()), "t.flow_name", flowTaskBo.getFlowName());
-        queryWrapper.eq(StringUtils.isNotBlank(flowTaskBo.getFlowCode()), "t.flow_code", flowTaskBo.getFlowCode());
+        QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         Page<FlowTaskVo> page = flwTaskMapper.getTaskCopyByPage(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
+    }
+
+    private QueryWrapper<FlowTaskBo> buildQueryWrapper(FlowTaskBo flowTaskBo) {
+        QueryWrapper<FlowTaskBo> wrapper = Wrappers.query();
+        wrapper.like(StringUtils.isNotBlank(flowTaskBo.getNodeName()), "t.node_name", flowTaskBo.getNodeName());
+        wrapper.like(StringUtils.isNotBlank(flowTaskBo.getFlowName()), "t.flow_name", flowTaskBo.getFlowName());
+        wrapper.eq(StringUtils.isNotBlank(flowTaskBo.getFlowCode()), "t.flow_code", flowTaskBo.getFlowCode());
+        wrapper.orderByDesc("t.create_time");
+        return wrapper;
     }
 
     /**
@@ -431,4 +391,38 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             throw new ServiceException(e.getMessage());
         }
     }
+
+    /**
+     * 通过taskId查询对应的任务办理人
+     *
+     * @param taskIds taskId串逗号分隔
+     * @return 任务办理人名称串逗号分隔
+     */
+    @Override
+    public String selectAssigneeByIds(String taskIds) {
+        if (StringUtils.isBlank(taskIds)) {
+            return null;
+        }
+        List<User> userList = userService.getByAssociateds(List.of(Long.valueOf(taskIds)));
+        // 获取处理用户的昵称并将其合并为一个字符串
+        return WorkflowUtils.getHandlerUser(userList).stream()
+            .map(UserDTO::getNickName)
+            .collect(Collectors.joining(","));
+    }
+
+    /**
+     * 通过taskId查询对应的任务办理人列表
+     *
+     * @param taskIds taskId串逗号分隔
+     * @return 列表
+     */
+    @Override
+    public List<UserDTO> selectByIds(String taskIds) {
+        if (StringUtils.isBlank(taskIds)) {
+            return Collections.emptyList();
+        }
+        List<User> userList = userService.getByAssociateds(List.of(Long.valueOf(taskIds)));
+        return WorkflowUtils.getHandlerUser(userList);
+    }
+
 }
