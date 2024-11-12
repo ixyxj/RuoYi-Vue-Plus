@@ -6,16 +6,17 @@ import com.warm.flow.core.entity.User;
 import com.warm.flow.orm.entity.FlowUser;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.dromara.common.core.domain.dto.RoleDTO;
 import org.dromara.common.core.domain.dto.UserDTO;
+import org.dromara.common.core.domain.model.LoginUser;
 import org.dromara.common.core.service.UserService;
 import org.dromara.common.core.utils.SpringUtils;
-import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.workflow.common.enums.TaskAssigneeEnum;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 工作流工具
@@ -31,12 +32,16 @@ public class WorkflowUtils {
      * @return 权限列表
      */
     public static List<String> permissionList() {
-        List<RoleDTO> roles = LoginHelper.getLoginUser().getRoles();
-        Long deptId = LoginHelper.getDeptId();
-        List<String> permissionList = StreamUtils.toList(roles, role -> TaskAssigneeEnum.ROLE.getCode() + role.getRoleId());
-        permissionList.add(LoginHelper.getUserIdStr());
-        permissionList.add(TaskAssigneeEnum.DEPT.getCode() + deptId);
-        return permissionList;
+        LoginUser loginUser = LoginHelper.getLoginUser();
+        Long deptId = loginUser.getDeptId();
+        //todo 岗位获取待考虑
+        return Stream.concat(
+            loginUser.getRoles().stream().map(role -> TaskAssigneeEnum.ROLE.getCode() + role.getRoleId()),
+            Stream.of(
+                TaskAssigneeEnum.USER.getCode() + loginUser.getUserId(),
+                TaskAssigneeEnum.DEPT.getCode() + deptId
+            )
+        ).collect(Collectors.toList());
     }
 
     /**
