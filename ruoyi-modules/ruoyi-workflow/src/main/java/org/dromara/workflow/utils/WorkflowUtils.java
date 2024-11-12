@@ -7,7 +7,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.domain.model.LoginUser;
-import org.dromara.common.core.service.PostService;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.workflow.common.enums.TaskAssigneeEnum;
@@ -34,7 +33,6 @@ public class WorkflowUtils {
         LoginUser loginUser = LoginHelper.getLoginUser();
         Long userId = loginUser.getUserId();
         Long deptId = loginUser.getDeptId();
-        List<Long> postIds = SpringUtils.getBean(PostService.class).selectPostIdByUserIdList(userId);
         // 使用一个流来构建权限列表
         return Stream.of(
                 // 角色权限前缀
@@ -42,8 +40,8 @@ public class WorkflowUtils {
                     .map(role -> TaskAssigneeEnum.ROLE.getCode() + role.getRoleId()),
 
                 // 岗位权限前缀
-                postIds.stream()
-                    .map(postId -> TaskAssigneeEnum.POST.getCode() + postId),
+                loginUser.getPosts().stream()
+                    .map(post -> TaskAssigneeEnum.POST.getCode() + post.getPostId()),
 
                 // 用户和部门权限
                 Stream.of(
