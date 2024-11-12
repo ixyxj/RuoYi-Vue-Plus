@@ -37,46 +37,45 @@
             <groupId>org.dromara</groupId>
             <artifactId>ruoyi-common-mybatis</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>ruoyi-common-web</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>ruoyi-common-log</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>ruoyi-common-idempotent</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>ruoyi-common-excel</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>ruoyi-common-translation</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>ruoyi-common-tenant</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>ruoyi-common-security</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>io.github.minliuhua</groupId>
-            <artifactId>warm-flow-mybatis-plus-sb-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.github.minliuhua</groupId>
-            <artifactId>warm-flow-plugin-spel</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.github.minliuhua</groupId>
-            <artifactId>warm-flow-plugin-ui-sb-web</artifactId>
+            <groupId>org.dromara</groupId>
+            <artifactId>ruoyi-common-workflow</artifactId>
         </dependency>
     </dependencies>
 

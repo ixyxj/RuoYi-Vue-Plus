@@ -1,4 +1,4 @@
-package org.dromara.workflow.common.enums;
+package org.dromara.common.workflow.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -81,7 +81,7 @@ public enum TaskAssigneeEnum {
     /**
      * 获取所有办理人类型的描述列表
      * <p>
-     * 获取当前枚举类所有项的描述字段列表，通常用于展示选择项。
+     * 获取当前枚举类所有项的描述字段列表，通常用于展示选择项
      * </p>
      *
      * @return List<String> 返回所有办理人类型的描述列表
@@ -95,7 +95,7 @@ public enum TaskAssigneeEnum {
     /**
      * 获取所有办理人类型的代码列表
      * <p>
-     * 获取当前枚举类所有项的代码字段列表，通常用于程序内部逻辑的判断。
+     * 获取当前枚举类所有项的代码字段列表，通常用于程序内部逻辑的判断
      * </p>
      *
      * @return List<String> 返回所有办理人类型的代码列表

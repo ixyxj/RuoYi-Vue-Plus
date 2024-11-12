@@ -20,7 +20,7 @@ import org.dromara.common.core.service.RoleService;
 import org.dromara.common.core.service.UserService;
 import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.core.utils.StringUtils;
-import org.dromara.workflow.common.enums.TaskAssigneeEnum;
+import org.dromara.common.workflow.enums.TaskAssigneeEnum;
 import org.dromara.workflow.service.IWfTaskAssigneeService;
 import org.springframework.stereotype.Service;
 

@@ -179,6 +179,13 @@
                 <version>${revision}</version>
             </dependency>
 
+            <!-- workflow模块 -->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>ruoyi-common-workflow</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
