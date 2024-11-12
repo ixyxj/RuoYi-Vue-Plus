@@ -34,6 +34,7 @@ import org.dromara.system.mapper.*;
 import org.dromara.system.service.ISysUserService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -329,8 +330,11 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
      * @param user 用户信息
      * @return 结果
      */
+    @Caching(evict = {
+        @CacheEvict(cacheNames = CacheNames.SYS_NICKNAME, key = "#user.userId"),
+        @CacheEvict(cacheNames = CacheNames.SYS_POST_ID, key = "#user.userId")}
+    )
     @Override
-    @CacheEvict(cacheNames = CacheNames.SYS_NICKNAME, key = "#user.userId")
     @Transactional(rollbackFor = Exception.class)
     public int updateUser(SysUserBo user) {
         // 新增用户与角色管理

@@ -56,6 +56,11 @@ public interface CacheNames {
     String SYS_DEPT = "sys_dept#30d";
 
     /**
+     * 岗位 ID 列表
+     */
+    String SYS_POST_ID = "sys_post_id#30d";
+
+    /**
      * OSS内容
      */
     String SYS_OSS = "sys_oss#30d";

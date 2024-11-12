@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import org.dromara.common.core.constant.CacheNames;
 import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
@@ -25,6 +26,7 @@ import org.dromara.system.mapper.SysDeptMapper;
 import org.dromara.system.mapper.SysPostMapper;
 import org.dromara.system.mapper.SysUserPostMapper;
 import org.dromara.system.service.ISysPostService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -236,6 +238,21 @@ public class SysPostServiceImpl implements ISysPostService, PostService {
     public int updatePost(SysPostBo bo) {
         SysPost post = MapstructUtils.convert(bo, SysPost.class);
         return baseMapper.updateById(post);
+    }
+
+    /**
+     * 根据用户 ID 查询其所属的岗位 ID 列表
+     *
+     * @param userId 用户 ID，用于确定用户所属的岗位
+     * @return 与该用户关联的岗位 ID 列表，如果未找到则返回空列表
+     */
+    @Cacheable(cacheNames = CacheNames.SYS_POST_ID, key = "#userId")
+    @Override
+    public List<Long> selectPostIdByUserIdList(Long userId) {
+        // 通过岗位ID获取用户岗位信息
+        List<SysUserPost> userPosts = userPostMapper.selectList(
+            new LambdaQueryWrapper<SysUserPost>().eq(SysUserPost::getUserId, userId));
+        return StreamUtils.toList(userPosts, SysUserPost::getPostId);
     }
 
     /**
