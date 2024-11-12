@@ -34,7 +34,6 @@
         <module>ruoyi-common-tenant</module>
         <module>ruoyi-common-websocket</module>
         <module>ruoyi-common-sse</module>
-        <module>ruoyi-common-workflow</module>
     </modules>
 
     <artifactId>ruoyi-common</artifactId>

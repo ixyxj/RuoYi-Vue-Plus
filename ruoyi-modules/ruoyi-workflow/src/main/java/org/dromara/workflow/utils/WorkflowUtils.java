@@ -10,7 +10,7 @@ import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.domain.model.LoginUser;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
-import org.dromara.common.workflow.enums.TaskAssigneeEnum;
+import org.dromara.workflow.common.enums.TaskAssigneeEnum;
 import org.dromara.workflow.service.IWfTaskAssigneeService;
 
 import java.util.HashSet;

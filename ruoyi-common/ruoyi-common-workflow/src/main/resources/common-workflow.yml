@@ -1,8 +1,0 @@
-# warm-flow工作流配置
-warm-flow:
-  # 是否开启工作流，默认true
-  enabled: true
-  # 是否显示banner图，默认是
-  banner: true
-  # 是否开启设计器ui，默认true
-  ui: true
