@@ -1,14 +1,14 @@
 package org.dromara.workflow.utils;
 
 import cn.hutool.core.collection.CollUtil;
-import com.warm.flow.core.entity.User;
-import com.warm.flow.orm.entity.FlowUser;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.domain.model.LoginUser;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.warm.flow.core.entity.User;
+import org.dromara.warm.flow.orm.entity.FlowUser;
 import org.dromara.workflow.common.enums.TaskAssigneeEnum;
 import org.dromara.workflow.service.IWfTaskAssigneeService;
 

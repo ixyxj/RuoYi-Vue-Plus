@@ -1,9 +1,9 @@
 package org.dromara.workflow.domain.vo;
 
-import com.warm.flow.core.enums.FlowStatus;
 import lombok.Data;
 import org.dromara.common.translation.annotation.Translation;
 import org.dromara.common.translation.constant.TransConstant;
+import org.dromara.warm.flow.core.enums.FlowStatus;
 
 import java.io.Serial;
 import java.io.Serializable;

@@ -3,8 +3,8 @@ package org.dromara.workflow.mapper;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.toolkit.Constants;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.warm.flow.orm.entity.FlowDefinition;
 import org.apache.ibatis.annotations.Param;
+import org.dromara.warm.flow.orm.entity.FlowDefinition;
 
 /**
  * 实例信息Mapper接口

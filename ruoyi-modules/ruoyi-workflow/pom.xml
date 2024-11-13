@@ -67,15 +67,15 @@
         </dependency>
 
         <dependency>
-            <groupId>io.github.minliuhua</groupId>
+            <groupId>org.dromara</groupId>
             <artifactId>warm-flow-mybatis-plus-sb-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.github.minliuhua</groupId>
+            <groupId>org.dromara</groupId>
             <artifactId>warm-flow-plugin-spel</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.github.minliuhua</groupId>
+            <groupId>org.dromara</groupId>
             <artifactId>warm-flow-plugin-ui-sb-web</artifactId>
         </dependency>
     </dependencies>
