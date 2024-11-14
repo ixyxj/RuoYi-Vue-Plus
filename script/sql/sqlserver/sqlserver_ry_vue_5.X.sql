@@ -2005,7 +2005,7 @@ CREATE TABLE sys_oper_log
     oper_param     nvarchar(5000) DEFAULT ''    NULL,
     json_result    nvarchar(5000) DEFAULT ''    NULL,
     status         int            DEFAULT ((0)) NULL,
-    error_msg      nvarchar(2000) DEFAULT ''    NULL,
+    error_msg      nvarchar(5000) DEFAULT ''    NULL,
     oper_time      datetime2(7)                 NULL,
     cost_time      bigint         DEFAULT ((0)) NULL,
     CONSTRAINT PK__sys_oper__34723BF9BD954573 PRIMARY KEY CLUSTERED (oper_id)

@@ -557,7 +557,7 @@ create table sys_oper_log (
     oper_param        varchar(5000)   default ''                 comment '请求参数',
     json_result       varchar(5000)   default ''                 comment '返回参数',
     status            int(1)          default 0                  comment '操作状态（0正常 1异常）',
-    error_msg         varchar(2000)   default ''                 comment '错误消息',
+    error_msg         varchar(5000)   default ''                 comment '错误消息',
     oper_time         datetime                                   comment '操作时间',
     cost_time         bigint(20)      default 0                  comment '消耗时间',
     primary key (oper_id),

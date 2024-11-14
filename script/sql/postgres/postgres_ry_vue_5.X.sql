@@ -744,7 +744,7 @@ create table if not exists sys_oper_log
     oper_param     varchar(5000) default ''::varchar,
     json_result    varchar(5000) default ''::varchar,
     status         int4          default 0,
-    error_msg      varchar(2000) default ''::varchar,
+    error_msg      varchar(5000) default ''::varchar,
     oper_time      timestamp,
     cost_time      int8          default 0,
     constraint sys_oper_log_pk primary key (oper_id)

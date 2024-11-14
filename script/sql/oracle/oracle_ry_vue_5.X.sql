@@ -741,7 +741,7 @@ create table sys_oper_log (
   oper_param        varchar2(5500)  default '',
   json_result       varchar2(5500)  default '',
   status            number(1)       default 0,
-  error_msg         varchar2(2100)  default '',
+  error_msg         varchar2(5500)  default '',
   oper_time         date,
   cost_time         number(20)      default 0
 );
