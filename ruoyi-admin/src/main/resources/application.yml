@@ -118,8 +118,6 @@ security:
     - /error
     - /*/api-docs
     - /*/api-docs/**
-    # warm-flow-ui
-    - /warm-flow-ui/**
 
 # 多租户配置
 tenant:
@@ -273,4 +271,4 @@ websocket:
 warm-flow:
   # 是否开启工作流，默认true
   enabled: true
-  token-name: ${sa-token.token-name}
+  token-name: ${sa-token.token-name},clientid
