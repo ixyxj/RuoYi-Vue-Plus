@@ -12,6 +12,7 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.common.web.core.BaseController;
+import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.dto.ModifyHandler;
 import org.dromara.warm.flow.core.entity.HisTask;
 import org.dromara.warm.flow.core.entity.Instance;
@@ -168,12 +169,12 @@ public class FlwTaskController extends BaseController {
     @RepeatSubmit()
     @PostMapping("/delegateTask")
     public R<Void> delegateTask(@Validated({AddGroup.class}) @RequestBody DelegateBo bo) {
-        return toAjax(taskService.depute(
-            bo.getTaskId(),
-            LoginHelper.getUserIdStr(),
-            WorkflowUtils.permissionList(),
-            Collections.singletonList(bo.getUserId()),
-            bo.getMessage()));
+        FlowParams flowParams = new FlowParams();
+        flowParams.addHandlers(Collections.singletonList(bo.getUserId()));
+        flowParams.handler(LoginHelper.getUserIdStr());
+        flowParams.permissionFlag(WorkflowUtils.permissionList());
+        flowParams.message(bo.getMessage());
+        return toAjax(taskService.depute(bo.getTaskId(), flowParams));
     }
 
     /**
@@ -185,12 +186,12 @@ public class FlwTaskController extends BaseController {
     @RepeatSubmit()
     @PostMapping("/transferTask")
     public R<Void> transferTask(@Validated({AddGroup.class}) @RequestBody TransferBo bo) {
-        return toAjax(taskService.transfer(
-            bo.getTaskId(),
-            LoginHelper.getUserIdStr(),
-            WorkflowUtils.permissionList(),
-            Collections.singletonList(bo.getUserId()),
-            bo.getMessage()));
+        FlowParams flowParams = new FlowParams();
+        flowParams.addHandlers(Collections.singletonList(bo.getUserId()));
+        flowParams.handler(LoginHelper.getUserIdStr());
+        flowParams.permissionFlag(WorkflowUtils.permissionList());
+        flowParams.message(bo.getMessage());
+        return toAjax(taskService.transfer(bo.getTaskId(), flowParams));
     }
 
     /**
@@ -202,12 +203,12 @@ public class FlwTaskController extends BaseController {
     @RepeatSubmit()
     @PostMapping("/addSignature")
     public R<Void> addSignature(@Validated({AddGroup.class}) @RequestBody AddSignatureBo bo) {
-        return toAjax(taskService.addSignature(
-            bo.getTaskId(),
-            LoginHelper.getUserIdStr(),
-            WorkflowUtils.permissionList(),
-            bo.getUserIds(),
-            bo.getMessage()));
+        FlowParams flowParams = new FlowParams();
+        flowParams.addHandlers(bo.getUserIds());
+        flowParams.handler(LoginHelper.getUserIdStr());
+        flowParams.permissionFlag(WorkflowUtils.permissionList());
+        flowParams.message(bo.getMessage());
+        return toAjax(taskService.addSignature(bo.getTaskId(), flowParams));
     }
 
     /**
@@ -219,12 +220,12 @@ public class FlwTaskController extends BaseController {
     @RepeatSubmit()
     @PostMapping("/reductionSignature")
     public R<Void> reductionSignature(@Validated({AddGroup.class}) @RequestBody ReductionSignatureBo bo) {
-        return toAjax(taskService.reductionSignature(
-            bo.getTaskId(),
-            LoginHelper.getUserIdStr(),
-            WorkflowUtils.permissionList(),
-            bo.getUserIds(),
-            bo.getMessage()));
+        FlowParams flowParams = new FlowParams();
+        flowParams.reductionHandlers(bo.getUserIds());
+        flowParams.handler(LoginHelper.getUserIdStr());
+        flowParams.permissionFlag(WorkflowUtils.permissionList());
+        flowParams.message(bo.getMessage());
+        return toAjax(taskService.reductionSignature(bo.getTaskId(), flowParams));
     }
 
     /**
@@ -237,15 +238,12 @@ public class FlwTaskController extends BaseController {
     @RepeatSubmit()
     @PutMapping("/updateAssignee/{taskId}/{userId}")
     public R<Void> updateAssignee(@PathVariable Long taskId, @PathVariable String userId) {
-        ModifyHandler modifyHandler = new ModifyHandler()
-            .setTaskId(taskId)
-            .setAddHandlers(Collections.singletonList(userId))
-            .setPermissionFlag(WorkflowUtils.permissionList())
-            .setCooperateType(CooperateType.APPROVAL.getKey())
-            .setMessage("修改任务办理人")
-            .setCurUser(LoginHelper.getUserIdStr())
-            .setIgnore(false);
-        return toAjax(taskService.updateHandler(modifyHandler));
+        FlowParams flowParams = new FlowParams();
+        flowParams.addHandlers(Collections.singletonList(userId));
+        flowParams.cooperateType(CooperateType.APPROVAL.getKey());
+        flowParams.ignore(false);
+        flowParams.message("修改任务办理人");
+        return toAjax(taskService.updateHandler(taskId, flowParams));
     }
 
     /**

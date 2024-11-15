@@ -22,9 +22,9 @@ public interface AssigneeService {
     /**
      * 通过taskId查询对应的任务办理人列表
      *
-     * @param taskIds taskId串逗号分隔
+     * @param taskIdList 任务id
      * @return 列表
      */
-    List<UserDTO> selectByIds(String taskIds);
+    List<UserDTO> selectByIds(List<Long> taskIdList);
 
 }

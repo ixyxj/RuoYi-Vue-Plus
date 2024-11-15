@@ -19,7 +19,9 @@ public class TaskAssigneeTranslationImpl implements TranslationInterface<String>
 
     @Override
     public String translation(Object key, String other) {
-        if (key instanceof String id) {
+        if (key instanceof Long id) {
+            return assigneeService.selectAssigneeByIds(id.toString());
+        } else if (key instanceof String id) {
             return assigneeService.selectAssigneeByIds(id);
         }
         return null;

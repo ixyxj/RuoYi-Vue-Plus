@@ -18,7 +18,6 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.entity.*;
-import org.dromara.warm.flow.core.enums.FlowStatus;
 import org.dromara.warm.flow.core.enums.NodeType;
 import org.dromara.warm.flow.core.enums.SkipType;
 import org.dromara.warm.flow.core.service.DefService;
@@ -167,16 +166,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
 
             // 更新实例状态为待审核状态
             iFlwInstanceService.updateStatus(ins.getId(), BusinessStatusEnum.WAITING.getStatus());
-            //判断是否流程结束
-            Instance instance = insService.getById(ins.getId());
-            // 重新获取实例信息，检查流程是否已结束
-            if (FlowStatus.isFinished(instance.getFlowStatus())) {
-                // 若流程已结束，更新状态为已完成
-                iFlwInstanceService.updateStatus(instance.getId(), BusinessStatusEnum.FINISH.getStatus());
-                // 流程结束监听，处理结束后的业务逻辑
-                flowProcessEventHandler.processHandler(definition.getFlowCode(), instance.getBusinessId(),
-                    BusinessStatusEnum.FINISH.getStatus(), false);
-            }
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -257,7 +246,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     public TableDataInfo<FlowTaskVo> getPageByAllTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
-        queryWrapper.in("t.processed_by", WorkflowUtils.permissionList());
         Page<FlowTaskVo> page = flwTaskMapper.getTaskWaitByPage(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
     }
@@ -321,11 +309,10 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
 
             FlowParams flowParams = new FlowParams();
             flowParams.variable(bo.getVariables());
+            flowParams.skipType(SkipType.PASS.getKey());
             if (nextNodeCode.equals(bo.getNodeCode())) {
-                flowParams.skipType(SkipType.REJECT.getKey());
                 flowParams.flowStatus(BusinessStatusEnum.BACK.getStatus());
             } else {
-                flowParams.skipType(SkipType.PASS.getKey());
                 flowParams.flowStatus(BusinessStatusEnum.WAITING.getStatus());
             }
             flowParams.hisStatus(TaskStatusEnum.BACK.getStatus());
@@ -413,15 +400,15 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     /**
      * 通过taskId查询对应的任务办理人列表
      *
-     * @param taskIds taskId串逗号分隔
+     * @param taskIdList 任务id
      * @return 列表
      */
     @Override
-    public List<UserDTO> selectByIds(String taskIds) {
-        if (StringUtils.isBlank(taskIds)) {
+    public List<UserDTO> selectByIds(List<Long> taskIdList) {
+        if (CollUtil.isEmpty(taskIdList)) {
             return Collections.emptyList();
         }
-        List<User> userList = userService.getByAssociateds(List.of(Long.valueOf(taskIds)));
+        List<User> userList = userService.getByAssociateds(taskIdList);
         return WorkflowUtils.getHandlerUser(userList);
     }
 

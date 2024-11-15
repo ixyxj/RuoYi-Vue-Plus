@@ -99,7 +99,8 @@
                 c.flow_code
             from flow_his_task a
             LEFT JOIN flow_instance b on a.instance_id = b.id
-            LEFT JOIN flow_definition c on a.definition_id = c.id
+            LEFT JOIN flow_definition c on a.definition_id = c.id where
+            a.del_flag ='0' and b.del_flag = '0' and c.del_flag = '0' and a.node_type not in ('0')
         ) t ${ew.getCustomSqlSegment}
     </select>
 
@@ -119,7 +120,7 @@
              LEFT JOIN flow_instance b ON a.associated = b.id
              LEFT JOIN flow_definition d on b.definition_id=d.id
          WHERE
-             a.type = 4 and a.del_flag = '0'
+             a.type = 4 and a.del_flag = '0' and b.del_flag = '0'
        ) t ${ew.getCustomSqlSegment}
     </select>
 </mapper>

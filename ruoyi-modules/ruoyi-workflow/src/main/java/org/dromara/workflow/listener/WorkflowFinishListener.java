@@ -3,12 +3,13 @@ package org.dromara.workflow.listener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.event.ProcessEvent;
+import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.warm.flow.core.entity.Definition;
 import org.dromara.warm.flow.core.entity.Instance;
+import org.dromara.warm.flow.core.enums.FlowStatus;
 import org.dromara.warm.flow.core.listener.Listener;
 import org.dromara.warm.flow.core.listener.ListenerVariable;
-import org.dromara.workflow.common.enums.WorkflowStatus;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.springframework.stereotype.Component;
 
@@ -45,15 +46,14 @@ public class WorkflowFinishListener implements Listener {
     public void notify(ListenerVariable listenerVariable) {
         log.info("流程结束监听器");
         Instance instance = listenerVariable.getInstance();
-        WorkflowStatus status = WorkflowStatus.getByKey(instance.getFlowStatus());
         Definition definition = listenerVariable.getDefinition();
         ProcessEvent processEvent = new ProcessEvent();
         //检查流程是否已结束
-        if (WorkflowStatus.isFinished(status)) {
+        if (FlowStatus.isFinished(instance.getFlowStatus())) {
             // 若流程已结束，更新状态为已完成
-            iFlwInstanceService.updateStatus(instance.getId(), status.getStatus());
+            iFlwInstanceService.updateStatus(instance.getId(), BusinessStatusEnum.FINISH.getStatus());
             // 流程结束监听，处理结束后的业务逻辑
-            processEvent.setStatus(status.getStatus());
+            processEvent.setStatus(BusinessStatusEnum.FINISH.getStatus());
             processEvent.setSubmit(false);
             processEvent.setFlowCode(definition.getFlowCode());
             processEvent.setBusinessKey(instance.getBusinessId());

@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.constant.SystemConstants;
+import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -68,7 +69,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     public TableDataInfo<FlowInstanceVo> getPageByRunning(Instance instance, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("t.flow_status", FlowStatus.APPROVAL.getKey());
+        queryWrapper.eq("t.flow_status", BusinessStatusEnum.WAITING.getStatus());
         queryWrapper.eq("t.del_flag", SystemConstants.NORMAL);
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
@@ -86,7 +87,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     public TableDataInfo<FlowInstanceVo> getPageByFinish(Instance instance, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("t.flow_status", Arrays.asList(FlowStatus.FINISHED.getKey(), FlowStatus.AUTO_PASS.getKey()));
+        queryWrapper.eq("t.flow_status", BusinessStatusEnum.FINISH.getStatus());
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
         build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));
