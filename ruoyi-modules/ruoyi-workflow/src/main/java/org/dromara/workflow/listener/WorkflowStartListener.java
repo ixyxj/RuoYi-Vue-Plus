@@ -7,7 +7,7 @@ import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.listener.Listener;
 import org.dromara.warm.flow.core.listener.ListenerVariable;
-import org.dromara.workflow.common.enums.TaskAssigneeEnum;
+import org.dromara.common.core.enums.TaskAssigneeEnum;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;

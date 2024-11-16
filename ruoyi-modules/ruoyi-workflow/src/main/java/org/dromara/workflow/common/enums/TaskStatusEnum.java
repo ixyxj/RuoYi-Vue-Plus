@@ -55,7 +55,7 @@ public enum TaskStatusEnum {
     /**
      * 委托
      */
-    PENDING("pending", "委托"),
+    DEPUTE("depute", "委托"),
 
     /**
      * 抄送

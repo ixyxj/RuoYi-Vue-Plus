@@ -15,6 +15,8 @@ import org.dromara.common.core.enums.UserType;
 
 import java.util.Set;
 
+import static org.dromara.common.core.enums.TaskAssigneeEnum.USER;
+
 /**
  * 登录鉴权助手
  * <p>
@@ -89,10 +91,10 @@ public class LoginHelper {
     }
 
     /**
-     * 获取用户id
+     * 获取用户id(工作流使用)
      */
     public static String getUserIdStr() {
-        return Convert.toStr(getExtra(USER_KEY));
+        return USER.getCode()+Convert.toStr(getExtra(USER_KEY));
     }
 
     /**

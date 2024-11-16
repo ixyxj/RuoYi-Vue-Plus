@@ -20,7 +20,7 @@ import org.dromara.warm.flow.ui.dto.HandlerQuery;
 import org.dromara.warm.flow.ui.dto.TreeFunDto;
 import org.dromara.warm.flow.ui.service.HandlerSelectService;
 import org.dromara.warm.flow.ui.vo.HandlerSelectVo;
-import org.dromara.workflow.common.enums.TaskAssigneeEnum;
+import org.dromara.common.core.enums.TaskAssigneeEnum;
 import org.dromara.workflow.service.IWfTaskAssigneeService;
 import org.springframework.stereotype.Service;
 

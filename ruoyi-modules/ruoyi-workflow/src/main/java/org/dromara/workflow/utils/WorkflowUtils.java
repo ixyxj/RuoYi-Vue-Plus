@@ -9,14 +9,14 @@ import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.entity.User;
 import org.dromara.warm.flow.orm.entity.FlowUser;
-import org.dromara.workflow.common.enums.TaskAssigneeEnum;
+import org.dromara.common.core.enums.TaskAssigneeEnum;
 import org.dromara.workflow.service.IWfTaskAssigneeService;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.dromara.workflow.common.enums.TaskAssigneeEnum.USER;
+import static org.dromara.common.core.enums.TaskAssigneeEnum.USER;
 
 /**
  * 工作流工具

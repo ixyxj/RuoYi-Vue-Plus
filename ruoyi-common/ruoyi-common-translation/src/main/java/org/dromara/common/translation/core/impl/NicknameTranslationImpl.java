@@ -2,9 +2,15 @@ package org.dromara.common.translation.core.impl;
 
 import lombok.AllArgsConstructor;
 import org.dromara.common.core.service.UserService;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.translation.annotation.TranslationType;
 import org.dromara.common.translation.constant.TransConstant;
 import org.dromara.common.translation.core.TranslationInterface;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.dromara.common.core.enums.TaskAssigneeEnum.USER;
 
 /**
  * 用户名称翻译实现
@@ -22,6 +28,11 @@ public class NicknameTranslationImpl implements TranslationInterface<String> {
         if (key instanceof Long id) {
             return userService.selectNicknameByIds(id.toString());
         } else if (key instanceof String ids) {
+            if (StringUtils.isNotBlank(ids)) {
+                ids = Stream.of(ids.split(StringUtils.SEPARATOR))
+                    .map(userId -> userId.contains(USER.getCode()) ? userId.replaceAll(USER.getCode(), StringUtils.EMPTY) : userId)
+                    .collect(Collectors.joining(StringUtils.SEPARATOR));
+            }
             return userService.selectNicknameByIds(ids);
         }
         return null;

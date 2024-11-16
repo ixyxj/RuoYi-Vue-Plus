@@ -52,7 +52,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.dromara.workflow.common.constant.FlowConstant.*;
-import static org.dromara.workflow.common.enums.TaskAssigneeEnum.USER;
+import static org.dromara.common.core.enums.TaskAssigneeEnum.USER;
 
 /**
  * 任务 服务层实现

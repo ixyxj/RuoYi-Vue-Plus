@@ -34,7 +34,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.dromara.workflow.common.enums.TaskAssigneeEnum.USER;
+import static org.dromara.common.core.enums.TaskAssigneeEnum.USER;
 
 /**
  * 任务管理 控制层
