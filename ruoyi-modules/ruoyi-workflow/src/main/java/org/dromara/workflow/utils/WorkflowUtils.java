@@ -16,6 +16,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.dromara.workflow.common.enums.TaskAssigneeEnum.USER;
+
 /**
  * 工作流工具
  *
@@ -46,7 +48,7 @@ public class WorkflowUtils {
 
                 // 用户和部门权限
                 Stream.of(
-                    TaskAssigneeEnum.USER.getCode() + userId,
+                    USER.getCode() + userId,
                     TaskAssigneeEnum.DEPT.getCode() + deptId
                 )
             )
@@ -94,7 +96,7 @@ public class WorkflowUtils {
                 users.forEach(dto -> {
                     FlowUser flowUser = new FlowUser();
                     flowUser.setType(user.getType());
-                    flowUser.setProcessedBy(String.valueOf(dto.getUserId()));
+                    flowUser.setProcessedBy(USER.getCode()+dto.getUserId());
                     flowUser.setAssociated(taskId);
                     list.add(flowUser);
                 });

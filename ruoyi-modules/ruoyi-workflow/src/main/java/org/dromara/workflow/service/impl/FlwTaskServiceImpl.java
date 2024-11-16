@@ -51,8 +51,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.dromara.workflow.common.constant.FlowConstant.BUSINESS_KEY;
-import static org.dromara.workflow.common.constant.FlowConstant.INITIATOR;
+import static org.dromara.workflow.common.constant.FlowConstant.*;
+import static org.dromara.workflow.common.enums.TaskAssigneeEnum.USER;
 
 /**
  * 任务 服务层实现
@@ -92,7 +92,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         // 启动流程实例（提交申请）
         Map<String, Object> variables = startProcessBo.getVariables();
         // 流程发起人
-        variables.put(INITIATOR, userId);
+        variables.put(INITIATOR, USER.getCode()+userId);
         // 业务id
         variables.put(BUSINESS_KEY, businessKey);
         WfDefinitionConfigVo wfDefinitionConfigVo = wfDefinitionConfigService.getByTableNameLastVersion(startProcessBo.getTableName());
@@ -103,7 +103,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         FlowInstance flowInstance = iFlwInstanceService.instanceByBusinessId(businessKey);
         if (flowInstance != null) {
             List<Task> taskList = taskService.list(new FlowTask().setInstanceId(flowInstance.getId()));
-            return Map.of("processInstanceId", taskList.get(0).getInstanceId(), "taskId", taskList.get(0).getId());
+            return Map.of(PROCESS_INSTANCE_ID, taskList.get(0).getInstanceId(), "taskId", taskList.get(0).getId());
         }
         FlowParams flowParams = new FlowParams();
         flowParams.flowCode(wfDefinitionConfigVo.getProcessKey());
