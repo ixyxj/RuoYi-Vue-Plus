@@ -45,10 +45,11 @@
         <result property="flowName" column="flow_name"/>
         <result property="flowCode" column="flow_code"/>
         <result property="delFlag" column="del_flag"/>
+        <result property="formPath" column="form_path"/>
     </resultMap>
     <select id="getTaskWaitByPage" resultMap="FlowTaskResult">
         select*from (
-         SELECT
+         select
          distinct t.id,
          t.node_code,
          t.node_name,
@@ -66,10 +67,10 @@
          d.form_path,
          uu.processed_by,
          uu.type
-         FROM flow_task AS t
-         LEFT JOIN flow_user uu ON uu.associated = t.id
-         LEFT JOIN flow_definition d on t.definition_id = d.id
-         LEFT JOIN flow_instance i on t.instance_id = i.id where t.node_type = 1 and t.del_flag = '0' and uu.del_flag = '0') t
+         from flow_task as t
+         left join flow_user uu on uu.associated = t.id
+         left join flow_definition d on t.definition_id = d.id
+         left join flow_instance i on t.instance_id = i.id where t.node_type = 1 and t.del_flag = '0' and uu.del_flag = '0') t
          ${ew.getCustomSqlSegment}
     </select>
 
@@ -94,19 +95,19 @@
                 a.update_time,
                 a.tenant_id,
                 b.business_id,
-                c.form_path fromPath,
+                c.form_path,
                 c.flow_name,
                 c.flow_code
             from flow_his_task a
-            LEFT JOIN flow_instance b on a.instance_id = b.id
-            LEFT JOIN flow_definition c on a.definition_id = c.id where
-            a.del_flag ='0' and b.del_flag = '0' and c.del_flag = '0' and a.node_type not in ('0')
+            left join flow_instance b on a.instance_id = b.id
+            left join flow_definition c on a.definition_id = c.id where
+            a.del_flag ='0' and b.del_flag = '0' and c.del_flag = '0' and a.node_type in ('1','3','4')
         ) t ${ew.getCustomSqlSegment}
     </select>
 
     <select id="getTaskCopyByPage" resultMap="FlowTaskResult">
        select * from (
-         SELECT
+         select
              b.id ,
              b.flow_status,
              b.business_id,
@@ -115,11 +116,11 @@
              b.node_code,
              d.flow_name,
              d.flow_code
-         FROM
-             `flow_user` a
-             LEFT JOIN flow_instance b ON a.associated = b.id
-             LEFT JOIN flow_definition d on b.definition_id=d.id
-         WHERE
+         from
+             flow_user a
+             left join flow_instance b on a.associated = b.id
+             left join flow_definition d on b.definition_id=d.id
+         where
              a.type = 4 and a.del_flag = '0' and b.del_flag = '0'
        ) t ${ew.getCustomSqlSegment}
     </select>

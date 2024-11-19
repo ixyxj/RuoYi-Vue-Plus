@@ -23,8 +23,7 @@
         <result property="ext" column="ext"/>
     </resultMap>
     <select id="page" resultMap="FlowInstanceResult">
-        select *
-        from (SELECT a.id,
+        select * from (select a.id,
                      a.create_time,
                      a.update_time,
                      a.tenant_id,
@@ -42,8 +41,8 @@
                      b.flow_name,
                      b.flow_code,
                      b.version
-              FROM flow_instance a
-                       LEFT JOIN flow_definition b ON a.definition_id = b.id) t
+              from flow_instance a
+                       left join flow_definition b on a.definition_id = b.id where a.del_flag = '0') t
             ${ew.getCustomSqlSegment}
     </select>
 
