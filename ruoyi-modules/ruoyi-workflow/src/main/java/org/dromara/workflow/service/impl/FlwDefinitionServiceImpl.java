@@ -1,7 +1,6 @@
 package org.dromara.workflow.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -11,10 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Document;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
-import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
-import org.dromara.warm.flow.core.entity.Definition;
 import org.dromara.warm.flow.core.service.DefService;
 import org.dromara.warm.flow.orm.entity.FlowDefinition;
 import org.dromara.warm.flow.orm.mapper.FlowDefinitionMapper;
@@ -78,13 +75,7 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
     @Override
     public boolean importXml(MultipartFile file) {
         try {
-            Definition definition = defService.importXml(file.getInputStream());
-            List<FlowDefinition> list = flowDefinitionMapper.selectList(
-                new LambdaQueryWrapper<FlowDefinition>().eq(FlowDefinition::getFlowCode, definition.getFlowCode()));
-            List<FlowDefinition> definitionList = StreamUtils.filter(list, item -> !item.getId().equals(definition.getId()));
-            if (CollUtil.isEmpty(definitionList)) {
-                defService.publish(definition.getId());
-            }
+            defService.importXml(file.getInputStream());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
