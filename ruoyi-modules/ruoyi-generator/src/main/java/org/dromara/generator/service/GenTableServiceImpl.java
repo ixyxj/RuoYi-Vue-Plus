@@ -310,7 +310,7 @@ public class GenTableServiceImpl implements IGenTableService {
             tableColumn.setIsPk(String.valueOf(column.isPrimaryKey()));
             tableColumn.setColumnName(column.getName());
             tableColumn.setColumnComment(column.getComment());
-            tableColumn.setColumnType(column.getTypeName().toLowerCase());
+            tableColumn.setColumnType(column.getOriginType().toLowerCase());
             tableColumn.setSort(column.getPosition());
             tableColumn.setIsRequired(column.isNullable() == 0 ? "1" : "0");
             tableColumn.setIsIncrement(column.isAutoIncrement() == -1 ? "0" : "1");
