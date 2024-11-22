@@ -49,4 +49,12 @@ public interface IFlwDefinitionService {
      * @return 结果
      */
     boolean importXml(MultipartFile file);
+
+    /**
+     * 删除流程定义
+     *
+     * @param ids 流程定义id
+     * @return 结果
+     */
+    boolean removeDef(List<Long> ids);
 }

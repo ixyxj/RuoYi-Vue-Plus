@@ -119,4 +119,16 @@ public class FlwInstanceController extends BaseController {
     public R<Map<String, Object>> getFlowImage(@PathVariable String businessId) {
         return R.ok(flwInstanceService.getFlowImage(businessId));
     }
+
+    /**
+     * 获取流程变量
+     *
+     * @param instanceId 流程实例id
+     */
+    @GetMapping("/getInstanceVariable/{instanceId}")
+    public R<Map<String, Object>> getInstanceVariable(@PathVariable String instanceId) {
+        return R.ok(flwInstanceService.getInstanceVariable(instanceId));
+    }
+
+
 }

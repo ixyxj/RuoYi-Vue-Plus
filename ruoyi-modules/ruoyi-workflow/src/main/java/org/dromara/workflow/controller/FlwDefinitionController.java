@@ -119,8 +119,8 @@ public class FlwDefinitionController extends BaseController {
     @Log(title = "流程定义", businessType = BusinessType.DELETE)
     @DeleteMapping("/{ids}")
     @Transactional(rollbackFor = Exception.class)
-    public R<Boolean> remove(@PathVariable List<Long> ids) {
-        return R.ok(defService.removeDef(ids));
+    public R<Void> remove(@PathVariable List<Long> ids) {
+        return toAjax(iFlwDefinitionService.removeDef(ids));
     }
 
     /**

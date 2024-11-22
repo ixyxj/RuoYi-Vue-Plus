@@ -31,12 +31,14 @@ import org.dromara.workflow.domain.bo.FlowInstanceBo;
 import org.dromara.workflow.domain.bo.InstanceBo;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
+import org.dromara.workflow.domain.vo.VariableVo;
 import org.dromara.workflow.mapper.FlwInstanceMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -249,5 +251,29 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         wrapper.set(FlowInstance::getFlowStatus, status);
         wrapper.eq(FlowInstance::getId, instanceId);
         flowInstanceMapper.update(wrapper);
+    }
+
+    /**
+     * 获取流程变量
+     *
+     * @param instanceId 实例id
+     */
+    @Override
+    public Map<String, Object> getInstanceVariable(String instanceId) {
+        Map<String, Object> map = new HashMap<>();
+        FlowInstance flowInstance = flowInstanceMapper.selectById(instanceId);
+        Map<String, Object> variableMap = flowInstance.getVariableMap();
+        List<VariableVo> list = new ArrayList<>();
+        if (CollUtil.isNotEmpty(variableMap)) {
+            for (Map.Entry<String, Object> entry : variableMap.entrySet()) {
+                VariableVo variableVo = new VariableVo();
+                variableVo.setKey(entry.getKey());
+                variableVo.setValue(entry.getValue().toString());
+                list.add(variableVo);
+            }
+        }
+        map.put("variableList", list);
+        map.put("variable", flowInstance.getVariable());
+        return map;
     }
 }

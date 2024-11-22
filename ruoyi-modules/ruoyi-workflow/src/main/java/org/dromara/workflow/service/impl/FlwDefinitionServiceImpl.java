@@ -1,8 +1,10 @@
 package org.dromara.workflow.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -10,11 +12,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.dom4j.Document;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
+import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.warm.flow.core.service.DefService;
 import org.dromara.warm.flow.orm.entity.FlowDefinition;
+import org.dromara.warm.flow.orm.entity.FlowHisTask;
 import org.dromara.warm.flow.orm.mapper.FlowDefinitionMapper;
+import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
 import org.dromara.workflow.domain.vo.FlowDefinitionVo;
 import org.dromara.workflow.mapper.FlwDefMapper;
 import org.dromara.workflow.service.IFlwDefinitionService;
@@ -36,6 +42,7 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
     private final DefService defService;
     private final FlowDefinitionMapper flowDefinitionMapper;
     private final FlwDefMapper flwDefMapper;
+    private final FlowHisTaskMapper flowHisTaskMapper;
 
     /**
      * 分页查询
@@ -110,5 +117,32 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
         response.setHeader("Content-Disposition", "attachment;");
         writer.write(document);
         writer.close();
+    }
+
+    /**
+     * 删除流程定义
+     *
+     * @param ids 流程定义id
+     */
+    @Override
+    public boolean removeDef(List<Long> ids) {
+        LambdaQueryWrapper<FlowHisTask> wrapper = Wrappers.lambdaQuery();
+        wrapper.in(FlowHisTask::getDefinitionId, ids);
+        List<FlowHisTask> flowHisTasks = flowHisTaskMapper.selectList(wrapper);
+        if (CollUtil.isNotEmpty(flowHisTasks)) {
+            List<FlowDefinition> flowDefinitions = flowDefinitionMapper.selectByIds(StreamUtils.toList(flowHisTasks, FlowHisTask::getDefinitionId));
+            if (CollUtil.isNotEmpty(flowDefinitions)) {
+                String join = StreamUtils.join(flowDefinitions, FlowDefinition::getFlowCode);
+                log.error("流程定义【{}】已被使用不可被删除！", join);
+                throw new ServiceException("流程定义【" + join + "】已被使用不可被删除！");
+            }
+        }
+        try {
+            defService.removeDef(ids);
+        } catch (Exception e) {
+            log.error("Error removing flow definitions: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to remove flow definitions", e);
+        }
+        return true;
     }
 }

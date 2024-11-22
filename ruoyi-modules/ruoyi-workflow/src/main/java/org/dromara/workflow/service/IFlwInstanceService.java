@@ -91,4 +91,12 @@ public interface IFlwInstanceService {
      * @param status     状态
      */
     void updateStatus(Long instanceId, String status);
+
+    /**
+     * 获取流程变量
+     *
+     * @param instanceId 实例id
+     * @return 结果
+     */
+    Map<String, Object> getInstanceVariable(String instanceId);
 }
