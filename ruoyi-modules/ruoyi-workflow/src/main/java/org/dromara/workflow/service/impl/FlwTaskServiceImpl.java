@@ -52,7 +52,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.dromara.workflow.common.constant.FlowConstant.*;
-import static org.dromara.common.core.enums.TaskAssigneeEnum.USER;
 
 /**
  * 任务 服务层实现
@@ -92,7 +91,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         // 启动流程实例（提交申请）
         Map<String, Object> variables = startProcessBo.getVariables();
         // 流程发起人
-        variables.put(INITIATOR, USER.getCode()+userId);
+        variables.put(INITIATOR, userId);
         // 业务id
         variables.put(BUSINESS_KEY, businessKey);
         WfDefinitionConfigVo wfDefinitionConfigVo = wfDefinitionConfigService.getByTableNameLastVersion(startProcessBo.getTableName());
