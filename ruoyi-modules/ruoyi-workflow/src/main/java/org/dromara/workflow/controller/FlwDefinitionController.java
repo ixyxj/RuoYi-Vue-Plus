@@ -129,7 +129,7 @@ public class FlwDefinitionController extends BaseController {
      * @param id 流程定义id
      */
     @Log(title = "流程定义", businessType = BusinessType.INSERT)
-    @GetMapping("/copyDef/{id}")
+    @PostMapping("/copyDef/{id}")
     @Transactional(rollbackFor = Exception.class)
     public R<Boolean> copyDef(@PathVariable Long id) {
         return R.ok(defService.copyDef(id));
