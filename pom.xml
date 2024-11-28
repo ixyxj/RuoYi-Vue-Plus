@@ -19,7 +19,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>17</java.version>
         <mybatis.version>3.5.16</mybatis.version>
-        <springdoc.version>2.6.0</springdoc.version>
+        <springdoc.version>2.7.0</springdoc.version>
         <therapi-javadoc.version>0.15.0</therapi-javadoc.version>
         <easyexcel.version>4.0.3</easyexcel.version>
         <velocity.version>2.3</velocity.version>
@@ -28,10 +28,10 @@
         <p6spy.version>3.9.1</p6spy.version>
         <hutool.version>5.8.31</hutool.version>
         <spring-boot-admin.version>3.3.4</spring-boot-admin.version>
-        <redisson.version>3.37.0</redisson.version>
+        <redisson.version>3.39.0</redisson.version>
         <lock4j.version>2.2.7</lock4j.version>
         <dynamic-ds.version>4.3.1</dynamic-ds.version>
-        <snailjob.version>1.1.2</snailjob.version>
+        <snailjob.version>1.2.0</snailjob.version>
         <mapstruct-plus.version>1.4.5</mapstruct-plus.version>
         <mapstruct-plus.lombok.version>0.2.0</mapstruct-plus.lombok.version>
         <lombok.version>1.18.34</lombok.version>
