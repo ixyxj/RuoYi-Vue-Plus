@@ -84,7 +84,7 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
         try {
             defService.importXml(file.getInputStream());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("导入流程定义错误: {}", e.getMessage(), e);
             throw new RuntimeException(e);
         }
         return true;
