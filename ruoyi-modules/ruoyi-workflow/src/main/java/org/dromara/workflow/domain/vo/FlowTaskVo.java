@@ -125,6 +125,11 @@ public class FlowTaskVo implements Serializable {
     private String transactorNames;
 
     /**
+     * 抄送人id
+     */
+    private String processedBy;
+
+    /**
      * 办理人类型
      */
     private String type;

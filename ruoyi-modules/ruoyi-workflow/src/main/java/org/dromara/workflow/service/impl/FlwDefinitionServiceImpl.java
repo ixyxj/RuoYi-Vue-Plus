@@ -24,7 +24,9 @@ import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
 import org.dromara.workflow.domain.vo.FlowDefinitionVo;
 import org.dromara.workflow.mapper.FlwDefMapper;
 import org.dromara.workflow.service.IFlwDefinitionService;
+import org.dromara.workflow.service.IWfDefinitionConfigService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -43,6 +45,7 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
     private final FlowDefinitionMapper flowDefinitionMapper;
     private final FlwDefMapper flwDefMapper;
     private final FlowHisTaskMapper flowHisTaskMapper;
+    private final IWfDefinitionConfigService wfDefinitionConfigService;
 
     /**
      * 分页查询
@@ -125,6 +128,7 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
      * @param ids 流程定义id
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean removeDef(List<Long> ids) {
         LambdaQueryWrapper<FlowHisTask> wrapper = Wrappers.lambdaQuery();
         wrapper.in(FlowHisTask::getDefinitionId, ids);
@@ -139,6 +143,7 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
         }
         try {
             defService.removeDef(ids);
+            wfDefinitionConfigService.deleteByDefIds(ids);
         } catch (Exception e) {
             log.error("Error removing flow definitions: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to remove flow definitions", e);

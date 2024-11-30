@@ -35,8 +35,8 @@ public class WfDefinitionConfigBo extends BaseEntity {
     /**
      * 流程定义ID
      */
-    @NotBlank(message = "流程定义ID不能为空", groups = {AddGroup.class})
-    private String definitionId;
+    @NotNull(message = "流程定义ID不能为空", groups = {AddGroup.class})
+    private Long definitionId;
 
     /**
      * 流程KEY

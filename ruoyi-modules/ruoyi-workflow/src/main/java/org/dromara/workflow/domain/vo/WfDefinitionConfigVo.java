@@ -40,7 +40,7 @@ public class WfDefinitionConfigVo implements Serializable {
      * 流程定义ID
      */
     @ExcelProperty(value = "流程定义ID")
-    private String definitionId;
+    private Long definitionId;
 
     /**
      * 流程KEY

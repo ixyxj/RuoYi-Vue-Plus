@@ -111,7 +111,7 @@ public class WfDefinitionConfigServiceImpl implements IWfDefinitionConfigService
     }
 
     @Override
-    public Boolean deleteByDefIds(Collection<String> ids) {
+    public Boolean deleteByDefIds(Collection<Long> ids) {
         return baseMapper.delete(new LambdaQueryWrapper<WfDefinitionConfig>().in(WfDefinitionConfig::getDefinitionId, ids)) > 0;
     }
 }

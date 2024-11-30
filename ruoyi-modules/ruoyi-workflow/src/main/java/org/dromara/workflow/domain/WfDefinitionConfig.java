@@ -35,7 +35,7 @@ public class WfDefinitionConfig extends BaseEntity {
     /**
      * 流程定义ID
      */
-    private String definitionId;
+    private Long definitionId;
 
     /**
      * 流程KEY

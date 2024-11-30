@@ -79,5 +79,5 @@ public interface IWfDefinitionConfigService {
      * @param ids 流程定义id
      * @return 结果
      */
-    Boolean deleteByDefIds(Collection<String> ids);
+    Boolean deleteByDefIds(Collection<Long> ids);
 }

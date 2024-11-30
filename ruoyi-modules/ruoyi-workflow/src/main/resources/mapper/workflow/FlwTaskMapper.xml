@@ -65,12 +65,17 @@
          d.flow_code,
          d.form_custom,
          d.form_path,
+         d.version,
          uu.processed_by,
          uu.type
          from flow_task as t
          left join flow_user uu on uu.associated = t.id
          left join flow_definition d on t.definition_id = d.id
-         left join flow_instance i on t.instance_id = i.id where t.node_type = 1 and t.del_flag = '0' and uu.del_flag = '0') t
+         left join flow_instance i on t.instance_id = i.id where
+         t.node_type = 1 and
+         t.del_flag = '0' and
+         uu.del_flag = '0' and
+         uu.type in ('1','2','3')) t
          ${ew.getCustomSqlSegment}
     </select>
 
@@ -97,7 +102,8 @@
                 b.business_id,
                 c.form_path,
                 c.flow_name,
-                c.flow_code
+                c.flow_code,
+                c.version
             from flow_his_task a
             left join flow_instance b on a.instance_id = b.id
             left join flow_definition c on a.definition_id = c.id where
@@ -109,19 +115,22 @@
        select * from (
          select
              b.id ,
-             b.flow_status,
-             b.business_id,
+             a.processed_by,
+             c.flow_status,
+             c.business_id,
              a.create_time,
              b.node_name,
              b.node_code,
              d.flow_name,
-             d.flow_code
+             d.flow_code,
+             d.version
          from
              flow_user a
-             left join flow_instance b on a.associated = b.id
-             left join flow_definition d on b.definition_id=d.id
+             left join flow_his_task b on a.associated = b.task_id
+             left join flow_instance c on b.instance_id = c.id
+             left join flow_definition d on c.definition_id=d.id
          where
-             a.type = 4 and a.del_flag = '0' and b.del_flag = '0'
+             a.type = '4' and a.del_flag = '0' and b.del_flag = '0' and d.del_flag = '0'
        ) t ${ew.getCustomSqlSegment}
     </select>
 </mapper>
