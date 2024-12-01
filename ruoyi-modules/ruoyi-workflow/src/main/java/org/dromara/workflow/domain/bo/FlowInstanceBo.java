@@ -4,10 +4,9 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.List;
 
 /**
- * 任务请求对象
+ * 流程实例请求对象
  *
  * @author may
  */
@@ -18,27 +17,27 @@ public class FlowInstanceBo implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 任务名称
-     */
-    private String nodeName;
-
-    /**
-     * 流程定义名称
+     * 流程名称
      */
     private String flowName;
 
     /**
-     * 流程定义编码
+     * 流程编码
      */
     private String flowCode;
 
     /**
-     * 流程实例id
+     * 任务发起人
      */
-    private Long instanceId;
+    private String startUserId;
 
     /**
-     * 权限列表
+     * 业务id
      */
-    private List<String> permissionList;
+    private String businessKey;
+
+    /**
+     * 模型分类
+     */
+    private String categoryCode;
 }

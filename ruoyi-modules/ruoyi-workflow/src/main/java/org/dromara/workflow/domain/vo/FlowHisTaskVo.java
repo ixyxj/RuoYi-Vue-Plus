@@ -129,9 +129,14 @@ public class FlowHisTaskVo implements Serializable {
     private String skipType;
 
     /**
-     * 流程状态（1审批中 2 审批通过 9已退回 10失效）
+     * 流程状态
      */
     private String flowStatus;
+
+    /**
+     * 任务状态
+     */
+    private String flowTaskStatus;
 
     /**
      * 流程状态

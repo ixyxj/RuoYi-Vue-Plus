@@ -8,24 +8,24 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * 流程实例作废请求对象
+ * 撤销任务请求对象
  *
  * @author may
  */
 @Data
-public class ProcessInvalidBo implements Serializable {
+public class FlowCancelBo implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     /**
-     * 业务id
+     * 任务ID
      */
-    @NotBlank(message = "业务id不能为空", groups = {AddGroup.class})
-    private String businessKey;
+    @NotBlank(message = "业务ID不能为空", groups = AddGroup.class)
+    private String businessId;
 
     /**
-     * 作废原因
+     * 办理意见
      */
-    private String deleteReason;
+    private String message;
 }

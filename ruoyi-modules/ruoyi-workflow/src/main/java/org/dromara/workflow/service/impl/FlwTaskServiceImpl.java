@@ -225,12 +225,15 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             long taskId = identifierGenerator.nextId(null).longValue();
             task.setId(taskId);
             task.setNodeName("【抄送】" + task.getNodeName());
+            Date updateTime = new Date(flowHisTask.getUpdateTime().getTime()-1000);
             FlowParams flowParams = FlowParams.build();
             flowParams.skipType(SkipType.NONE.getKey());
-            flowParams.hisStatus(TaskStatusEnum.PASS.getStatus());
+            flowParams.hisStatus(TaskStatusEnum.COPY.getStatus());
             flowParams.handler(LoginHelper.getUserIdStr());
             flowParams.message("【抄送给】" + StreamUtils.join(wfCopyList, WfCopy::getUserName));
             HisTask hisTask = hisTaskService.setSkipHisTask(task, flowNode, flowParams);
+            hisTask.setCreateTime(updateTime);
+            hisTask.setUpdateTime(updateTime);
             hisTaskService.save(hisTask);
             //保存抄送人员
             List<User> userList = new ArrayList<>();
@@ -399,7 +402,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public boolean terminationTask(TerminationBo bo) {
+    public boolean terminationTask(FlowTerminationBo bo) {
         try {
             FlowTask flowTask = flowTaskMapper.selectById(bo.getTaskId());
             Instance ins = insService.getById(flowTask.getInstanceId());

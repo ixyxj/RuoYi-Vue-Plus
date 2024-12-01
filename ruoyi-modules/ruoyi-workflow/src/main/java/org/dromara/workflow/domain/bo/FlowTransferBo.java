@@ -8,20 +8,20 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * 委派任务请求对象
+ * 终转办务请求对象
  *
  * @author may
  */
 @Data
-public class DelegateBo implements Serializable {
+public class FlowTransferBo implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     /**
-     * 委派人id
+     * 转办人id
      */
-    @NotNull(message = "委派人id不能为空", groups = {AddGroup.class})
+    @NotNull(message = "转办人id不能为空", groups = {AddGroup.class})
     private String userId;
 
     /**

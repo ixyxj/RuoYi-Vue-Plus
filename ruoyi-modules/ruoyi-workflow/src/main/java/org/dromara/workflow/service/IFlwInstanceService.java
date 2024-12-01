@@ -4,7 +4,8 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.warm.flow.core.entity.Instance;
 import org.dromara.warm.flow.orm.entity.FlowInstance;
-import org.dromara.workflow.domain.bo.InstanceBo;
+import org.dromara.workflow.domain.bo.FlowCancelBo;
+import org.dromara.workflow.domain.bo.FlowInstanceBo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
 
 import java.util.List;
@@ -62,10 +63,10 @@ public interface IFlwInstanceService {
     /**
      * 撤销流程
      *
-     * @param businessId 业务id
+     * @param bo 参数
      * @return 结果
      */
-    boolean cancelProcessApply(String businessId);
+    boolean cancelProcessApply(FlowCancelBo bo);
 
     /**
      * 获取当前登陆人发起的流程实例
@@ -74,7 +75,7 @@ public interface IFlwInstanceService {
      * @param pageQuery  分页
      * @return 结果
      */
-    TableDataInfo<FlowInstanceVo> getPageByCurrent(InstanceBo instanceBo, PageQuery pageQuery);
+    TableDataInfo<FlowInstanceVo> getPageByCurrent(FlowInstanceBo instanceBo, PageQuery pageQuery);
 
     /**
      * 获取流程图,流程记录

@@ -101,5 +101,5 @@ public interface IFlwTaskService {
      * @param bo 参数
      * @return 结果
      */
-    boolean terminationTask(TerminationBo bo);
+    boolean terminationTask(FlowTerminationBo bo);
 }

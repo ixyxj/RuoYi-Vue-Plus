@@ -7,7 +7,8 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.warm.flow.core.entity.Instance;
 import org.dromara.warm.flow.core.service.InsService;
-import org.dromara.workflow.domain.bo.InstanceBo;
+import org.dromara.workflow.domain.bo.FlowCancelBo;
+import org.dromara.workflow.domain.bo.FlowInstanceBo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.springframework.validation.annotation.Validated;
@@ -75,11 +76,11 @@ public class FlwInstanceController extends BaseController {
     /**
      * 撤销流程
      *
-     * @param businessId 业务id
+     * @param bo 参数
      */
-    @PutMapping("/cancelProcessApply/{businessId}")
-    public R<Void> cancelProcessApply(@PathVariable String businessId) {
-        return toAjax(flwInstanceService.cancelProcessApply(businessId));
+    @PutMapping("/cancelProcessApply")
+    public R<Void> cancelProcessApply(@RequestBody FlowCancelBo bo) {
+        return toAjax(flwInstanceService.cancelProcessApply(bo));
     }
 
     /**
@@ -101,12 +102,12 @@ public class FlwInstanceController extends BaseController {
     /**
      * 获取当前登陆人发起的流程实例
      *
-     * @param instanceBo 参数
-     * @param pageQuery  分页
+     * @param flowInstanceBo 参数
+     * @param pageQuery      分页
      */
     @GetMapping("/getPageByCurrent")
-    public TableDataInfo<FlowInstanceVo> getPageByCurrent(InstanceBo instanceBo, PageQuery pageQuery) {
-        return flwInstanceService.getPageByCurrent(instanceBo, pageQuery);
+    public TableDataInfo<FlowInstanceVo> getPageByCurrent(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+        return flwInstanceService.getPageByCurrent(flowInstanceBo, pageQuery);
     }
 
 

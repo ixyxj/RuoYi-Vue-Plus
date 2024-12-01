@@ -159,7 +159,7 @@ public class FlwTaskController extends BaseController {
     @Log(title = "任务管理", businessType = BusinessType.INSERT)
     @RepeatSubmit()
     @PostMapping("/terminationTask")
-    public R<Boolean> terminationTask(@RequestBody TerminationBo bo) {
+    public R<Boolean> terminationTask(@RequestBody FlowTerminationBo bo) {
         return R.ok(flwTaskService.terminationTask(bo));
     }
 
@@ -171,7 +171,7 @@ public class FlwTaskController extends BaseController {
     @Log(title = "任务管理", businessType = BusinessType.INSERT)
     @RepeatSubmit()
     @PostMapping("/delegateTask")
-    public R<Void> delegateTask(@Validated({AddGroup.class}) @RequestBody DelegateBo bo) {
+    public R<Void> delegateTask(@Validated({AddGroup.class}) @RequestBody FlowDelegateBo bo) {
         FlowParams flowParams = new FlowParams();
         flowParams.addHandlers(Collections.singletonList(USER.getCode()+bo.getUserId()));
         flowParams.handler(LoginHelper.getUserIdStr());
@@ -189,7 +189,7 @@ public class FlwTaskController extends BaseController {
     @Log(title = "任务管理", businessType = BusinessType.UPDATE)
     @RepeatSubmit()
     @PostMapping("/transferTask")
-    public R<Void> transferTask(@Validated({AddGroup.class}) @RequestBody TransferBo bo) {
+    public R<Void> transferTask(@Validated({AddGroup.class}) @RequestBody FlowTransferBo bo) {
         FlowParams flowParams = new FlowParams();
         flowParams.addHandlers(Collections.singletonList(USER.getCode()+bo.getUserId()));
         flowParams.handler(LoginHelper.getUserIdStr());

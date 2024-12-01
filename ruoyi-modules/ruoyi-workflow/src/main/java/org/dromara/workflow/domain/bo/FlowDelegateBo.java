@@ -8,24 +8,30 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * 终止任务请求对象
+ * 委派任务请求对象
  *
  * @author may
  */
 @Data
-public class TerminationBo implements Serializable {
+public class FlowDelegateBo implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     /**
+     * 委派人id
+     */
+    @NotNull(message = "委派人id不能为空", groups = {AddGroup.class})
+    private String userId;
+
+    /**
      * 任务id
      */
-    @NotNull(message = "任务id为空", groups = AddGroup.class)
+    @NotNull(message = "任务id不能为空", groups = {AddGroup.class})
     private Long taskId;
 
     /**
-     * 审批意见
+     * 意见
      */
-    private String comment;
+    private String message;
 }
