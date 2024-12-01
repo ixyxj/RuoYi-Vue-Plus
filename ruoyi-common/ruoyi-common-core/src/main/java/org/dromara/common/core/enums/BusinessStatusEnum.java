@@ -6,7 +6,10 @@ import lombok.Getter;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
 
+import java.sql.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * 业务状态枚举
@@ -85,6 +88,33 @@ public enum BusinessStatusEnum {
      */
     public static boolean isDraftOrCancelOrBack(String status) {
         return DRAFT.status.equals(status) || CANCEL.status.equals(status) || BACK.status.equals(status);
+    }
+
+    /**
+     * 运行中的实例状态
+     *
+     * @return 运行中的实例状态
+     */
+    public static List<String> runningStatus() {
+        List<String> list = new ArrayList<>();
+        list.add(BusinessStatusEnum.DRAFT.getStatus());
+        list.add(BusinessStatusEnum.WAITING.getStatus());
+        list.add(BusinessStatusEnum.BACK.getStatus());
+        list.add(BusinessStatusEnum.CANCEL.getStatus());
+        return list;
+    }
+
+    /**
+     * 结束实例状态
+     *
+     * @return 结束实例状态
+     */
+    public static List<String> finishStatus() {
+        List<String> list = new ArrayList<>();
+        list.add(BusinessStatusEnum.FINISH.getStatus());
+        list.add(BusinessStatusEnum.INVALID.getStatus());
+        list.add(BusinessStatusEnum.TERMINATION.getStatus());
+        return list;
     }
 
     /**
