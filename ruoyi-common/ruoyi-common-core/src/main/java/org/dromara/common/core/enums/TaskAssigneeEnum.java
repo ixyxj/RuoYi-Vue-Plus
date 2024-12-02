@@ -20,7 +20,7 @@ public enum TaskAssigneeEnum {
     /**
      * 用户
      */
-    USER("用户", "user:"),
+    USER("用户", ""),
 
     /**
      * 角色

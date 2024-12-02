@@ -8,6 +8,7 @@ import org.dromara.common.core.domain.dto.DeptDTO;
 import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
+import org.dromara.common.core.enums.TaskAssigneeEnum;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.DeptService;
 import org.dromara.common.core.service.PostService;
@@ -20,7 +21,6 @@ import org.dromara.warm.flow.ui.dto.HandlerQuery;
 import org.dromara.warm.flow.ui.dto.TreeFunDto;
 import org.dromara.warm.flow.ui.service.HandlerSelectService;
 import org.dromara.warm.flow.ui.vo.HandlerSelectVo;
-import org.dromara.common.core.enums.TaskAssigneeEnum;
 import org.dromara.workflow.service.IWfTaskAssigneeService;
 import org.springframework.stereotype.Service;
 
@@ -132,7 +132,7 @@ public class WfTaskAssigneeServiceImpl implements IWfTaskAssigneeService, Handle
     public List<UserDTO> fetchUsersByStorageId(String storageId) {
         String[] parts = storageId.split(StrUtil.COLON, 2);
         if (parts.length < 2) {
-            return Collections.emptyList();
+            return getUsersByType(TaskAssigneeEnum.USER, List.of(Long.valueOf(parts[0])));
         }
         return getUsersByType(TaskAssigneeEnum.fromCode(parts[0] + StrUtil.COLON), List.of(Long.valueOf(parts[1])));
     }
