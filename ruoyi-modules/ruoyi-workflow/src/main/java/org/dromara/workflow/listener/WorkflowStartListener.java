@@ -2,10 +2,15 @@ package org.dromara.workflow.listener;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.service.DeptService;
+import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.listener.Listener;
 import org.dromara.warm.flow.core.listener.ListenerVariable;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 流程启动监听器，用于处理流程开始时的用户信息和权限设置
@@ -22,6 +27,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class WorkflowStartListener implements Listener {
 
+    private final DeptService deptService;
+
     /**
      * 全局开始监听器，用于在流程开始时，设置当前办理人的信息和权限
      * <p>
@@ -34,8 +41,12 @@ public class WorkflowStartListener implements Listener {
     @Override
     public void notify(ListenerVariable listenerVariable) {
         log.info("流程启动监听器");
-        // 工作流内置参数
         FlowParams flowParams = listenerVariable.getFlowParams();
+        // 获取当前部门的负责人
+        Map<String, Object> variable = new HashMap<>();
+        Long leader = deptService.selectDeptLeaderById(LoginHelper.getDeptId());
+        variable.put("deptLeader", leader);
+        flowParams.variable(variable);
         log.info("流程启动监听器结束;{}", "开启流程完成");
     }
 

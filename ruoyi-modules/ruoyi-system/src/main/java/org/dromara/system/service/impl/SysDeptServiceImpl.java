@@ -11,10 +11,10 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.constant.CacheNames;
+import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.domain.dto.DeptDTO;
 import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
-import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.DeptService;
 import org.dromara.common.core.utils.*;
@@ -179,6 +179,18 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
             }
         }
         return String.join(StringUtils.SEPARATOR, list);
+    }
+
+    /**
+     * 根据部门ID查询部门负责人
+     *
+     * @param deptId 部门ID，用于指定需要查询的部门
+     * @return 返回该部门的负责人ID
+     */
+    @Override
+    public Long selectDeptLeaderById(Long deptId) {
+        SysDeptVo vo = SpringUtils.getAopProxy(this).selectDeptById(deptId);
+        return vo.getLeader();
     }
 
     /**
