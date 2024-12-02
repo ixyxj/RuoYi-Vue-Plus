@@ -91,10 +91,10 @@ public class LoginHelper {
     }
 
     /**
-     * 获取用户id(工作流使用)
+     * 获取用户id
      */
     public static String getUserIdStr() {
-        return USER.getCode()+Convert.toStr(getExtra(USER_KEY));
+        return Convert.toStr(getExtra(USER_KEY));
     }
 
     /**
