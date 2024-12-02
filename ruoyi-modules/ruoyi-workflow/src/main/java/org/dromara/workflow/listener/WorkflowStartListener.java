@@ -34,8 +34,8 @@ public class WorkflowStartListener implements Listener {
     @Override
     public void notify(ListenerVariable listenerVariable) {
         log.info("流程启动监听器");
+        // 工作流内置参数
         FlowParams flowParams = listenerVariable.getFlowParams();
-        // 设置办理人所拥有的权限，比如角色、部门、用户等
         log.info("流程启动监听器结束;{}", "开启流程完成");
     }
 
