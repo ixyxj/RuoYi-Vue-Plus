@@ -2,14 +2,16 @@ package org.dromara.workflow.listener;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.domain.event.ProcessTaskEvent;
 import org.dromara.common.core.service.DeptService;
+import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.dto.FlowParams;
+import org.dromara.warm.flow.core.entity.Task;
 import org.dromara.warm.flow.core.listener.Listener;
 import org.dromara.warm.flow.core.listener.ListenerVariable;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -43,10 +45,16 @@ public class WorkflowStartListener implements Listener {
         log.info("流程启动监听器");
         FlowParams flowParams = listenerVariable.getFlowParams();
         // 获取当前部门的负责人
-        Map<String, Object> variable = new HashMap<>();
         Long leader = deptService.selectDeptLeaderById(LoginHelper.getDeptId());
-        variable.put("deptLeader", leader);
-        flowParams.variable(variable);
+        flowParams.variable(Map.of("deptLeader", leader));
+        Task task = listenerVariable.getTask();
+        // 办理任务监听，记录任务执行信息
+        ProcessTaskEvent processTaskEvent = new ProcessTaskEvent();
+        processTaskEvent.setFlowCode(listenerVariable.getDefinition().getFlowCode());
+        processTaskEvent.setNodeCode(task.getNodeCode());
+        processTaskEvent.setTaskId(task.getId().toString());
+        processTaskEvent.setBusinessKey(listenerVariable.getInstance().getBusinessId());
+        SpringUtils.context().publishEvent(processTaskEvent);
         log.info("流程启动监听器结束;{}", "开启流程完成");
     }
 
