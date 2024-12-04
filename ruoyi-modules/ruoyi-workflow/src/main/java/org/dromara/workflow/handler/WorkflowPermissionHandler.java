@@ -1,5 +1,6 @@
 package org.dromara.workflow.handler;
 
+import cn.hutool.core.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.model.LoginUser;
@@ -10,6 +11,7 @@ import org.dromara.warm.flow.core.handler.PermissionHandler;
 import org.dromara.warm.flow.core.service.impl.TaskServiceImpl;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,6 +35,9 @@ public class WorkflowPermissionHandler implements PermissionHandler {
     @Override
     public List<String> permissions() {
         LoginUser loginUser = LoginHelper.getLoginUser();
+        if (ObjectUtil.isNull(loginUser)) {
+            return new ArrayList<>();
+        }
         // 使用一个流来构建权限列表
         return Stream.of(
                 // 角色权限前缀

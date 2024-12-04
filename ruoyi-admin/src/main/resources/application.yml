@@ -273,4 +273,7 @@ websocket:
 warm-flow:
   # 是否开启工作流，默认true
   enabled: true
+  # 是否开启设计器ui
+  ui: true
+  # 默认Authorization，如果有多个token，用逗号分隔
   token-name: ${sa-token.token-name},clientid
