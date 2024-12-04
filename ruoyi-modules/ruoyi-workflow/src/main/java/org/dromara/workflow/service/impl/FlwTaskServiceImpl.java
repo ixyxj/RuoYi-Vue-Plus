@@ -374,15 +374,19 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      */
     @Override
     public List<HisTask> getBackTaskNode(String instanceId) {
+        // 创建查询条件，查询历史任务记录
         LambdaQueryWrapper<FlowHisTask> lw = new LambdaQueryWrapper<>(FlowHisTask.class)
             .eq(FlowHisTask::getInstanceId, instanceId)
             .eq(FlowHisTask::getNodeType, NodeType.BETWEEN.getKey())
             .orderByDesc(FlowHisTask::getCreateTime);
         List<FlowHisTask> flowHisTasks = flowHisTaskMapper.selectList(lw);
-        if (CollUtil.isNotEmpty(flowHisTasks)) {
-            return flowHisTasks.stream().distinct().collect(Collectors.toList());
+        if (CollUtil.isEmpty(flowHisTasks)) {
+            return Collections.emptyList();
         }
-        return Collections.emptyList();
+        // 直接返回去重后的列表
+        return flowHisTasks.stream()
+            .distinct()
+            .collect(Collectors.toList());
     }
 
     /**
