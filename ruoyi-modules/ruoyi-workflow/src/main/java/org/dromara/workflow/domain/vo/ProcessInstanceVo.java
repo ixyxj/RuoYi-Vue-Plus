@@ -93,8 +93,4 @@ public class ProcessInstanceVo implements Serializable {
      */
     private List<TaskVo> taskVoList;
 
-    /**
-     * 节点配置
-     */
-    private WfNodeConfigVo wfNodeConfigVo;
 }

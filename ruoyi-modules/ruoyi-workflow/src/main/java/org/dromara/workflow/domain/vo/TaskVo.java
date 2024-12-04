@@ -166,8 +166,4 @@ public class TaskVo implements Serializable {
      */
     private WfDefinitionConfigVo wfDefinitionConfigVo;
 
-    /**
-     * 节点配置
-     */
-    private WfNodeConfigVo wfNodeConfigVo;
 }
