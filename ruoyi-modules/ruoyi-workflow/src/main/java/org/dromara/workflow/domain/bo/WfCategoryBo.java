@@ -50,5 +50,4 @@ public class WfCategoryBo extends BaseEntity {
      */
     private Long sortNum;
 
-
 }

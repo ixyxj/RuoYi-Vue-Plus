@@ -5,8 +5,9 @@ import cn.hutool.core.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.enums.BusinessStatusEnum;
-import org.dromara.common.core.utils.StreamUtils;
+import org.dromara.common.core.utils.ValidatorUtils;
 import org.dromara.common.core.validate.AddGroup;
+import org.dromara.common.core.validate.EditGroup;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
@@ -162,71 +163,75 @@ public class FlwTaskController extends BaseController {
     }
 
     /**
-     * 委派任务
+     * 任务操作
      *
-     * @param bo 参数
-     */
-    @Log(title = "任务管理", businessType = BusinessType.INSERT)
-    @RepeatSubmit()
-    @PostMapping("/delegateTask")
-    public R<Void> delegateTask(@Validated({AddGroup.class}) @RequestBody FlowDelegateBo bo) {
-        FlowParams flowParams = new FlowParams();
-        flowParams.addHandlers(bo.getUserIdentifierList());
-        flowParams.message(bo.getMessage());
-        flowParams.hisStatus(TaskStatusEnum.DEPUTE.getStatus());
-        return toAjax(taskService.depute(bo.getTaskId(), flowParams));
-    }
-
-    /**
-     * 转办任务
-     *
-     * @param bo 参数
+     * @param bo            参数
+     * @param taskOperation 操作类型，区分委派、转办、加签、减签、修改办理人
      */
     @Log(title = "任务管理", businessType = BusinessType.UPDATE)
-    @RepeatSubmit()
-    @PostMapping("/transferTask")
-    public R<Void> transferTask(@Validated({AddGroup.class}) @RequestBody FlowTransferBo bo) {
+    @RepeatSubmit
+    @PostMapping("/{taskOperation}")
+    public R<Void> taskOperation(@Validated @RequestBody TaskOperationBo bo, @PathVariable String taskOperation) {
         FlowParams flowParams = new FlowParams();
-        flowParams.addHandlers(bo.getUserIdentifierList());
         flowParams.message(bo.getMessage());
-        flowParams.hisStatus(TaskStatusEnum.TRANSFER.getStatus());
-        return toAjax(taskService.transfer(bo.getTaskId(), flowParams));
+
+        // 根据操作类型构建 FlowParams
+        switch (taskOperation) {
+            case "delegateTask", "transferTask", "addSignature" -> {
+                ValidatorUtils.validate(bo, AddGroup.class);
+                flowParams.addHandlers(bo.getUserIdentifiers());
+            }
+            case "reductionSignature" -> {
+                ValidatorUtils.validate(bo, EditGroup.class);
+                flowParams.reductionHandlers(bo.getAllUserIdentifiers());
+            }
+            case "updateAssignee" -> {
+                ValidatorUtils.validate(bo, AddGroup.class);
+                flowParams.addHandlers(bo.getUserIdentifiers());
+                flowParams.cooperateType(CooperateType.APPROVAL.getKey());
+                flowParams.ignore(false);
+                flowParams.message("修改任务办理人");
+            }
+            default -> {
+                return R.fail("Invalid operation type: " + taskOperation);
+            }
+        }
+
+        Long taskId = bo.getTaskId();
+        // 设置任务状态并执行对应的任务操作
+        switch (taskOperation) {
+            //委派任务
+            case "delegateTask" -> {
+                flowParams.hisStatus(TaskStatusEnum.DEPUTE.getStatus());
+                return toAjax(taskService.depute(taskId, flowParams));
+            }
+            //转办任务
+            case "transferTask" -> {
+                flowParams.hisStatus(TaskStatusEnum.TRANSFER.getStatus());
+                return toAjax(taskService.transfer(taskId, flowParams));
+            }
+            //加签，增加办理人
+            case "addSignature" -> {
+                flowParams.hisStatus(TaskStatusEnum.SIGN.getStatus());
+                return toAjax(taskService.addSignature(taskId, flowParams));
+            }
+            //减签，减少办理人
+            case "reductionSignature" -> {
+                flowParams.hisStatus(TaskStatusEnum.SIGN_OFF.getStatus());
+                return toAjax(taskService.reductionSignature(taskId, flowParams));
+            }
+            //修改办理人
+            case "updateAssignee" -> {
+                return toAjax(taskService.updateHandler(taskId, flowParams));
+            }
+            default -> {
+                return R.fail("Invalid operation type: " + taskOperation);
+            }
+        }
     }
 
     /**
-     * 加签
-     *
-     * @param bo 参数
-     */
-    @Log(title = "任务管理", businessType = BusinessType.INSERT)
-    @RepeatSubmit()
-    @PostMapping("/addSignature")
-    public R<Void> addSignature(@Validated({AddGroup.class}) @RequestBody AddSignatureBo bo) {
-        FlowParams flowParams = new FlowParams();
-        flowParams.addHandlers(bo.getUserIdentifierList());
-        flowParams.message(bo.getMessage());
-        flowParams.hisStatus(TaskStatusEnum.SIGN.getStatus());
-        return toAjax(taskService.addSignature(bo.getTaskId(), flowParams));
-    }
-
-    /**
-     * 减签
-     *
-     * @param bo 参数
-     */
-    @Log(title = "任务管理", businessType = BusinessType.INSERT)
-    @RepeatSubmit()
-    @PostMapping("/reductionSignature")
-    public R<Void> reductionSignature(@Validated({AddGroup.class}) @RequestBody ReductionSignatureBo bo) {
-        FlowParams flowParams = new FlowParams();
-        flowParams.reductionHandlers(StreamUtils.toList(bo.getUserIds(),u->USER.getCode()+u));
-        flowParams.message(bo.getMessage());
-        flowParams.hisStatus(TaskStatusEnum.SIGN_OFF.getStatus());
-        return toAjax(taskService.reductionSignature(bo.getTaskId(), flowParams));
-    }
-
-    /**
-     * 修改任务办理人
+     * TODO 待删除的方法（用上面那个），修改任务办理人
      *
      * @param taskId 任务id
      * @param userId 办理人id
