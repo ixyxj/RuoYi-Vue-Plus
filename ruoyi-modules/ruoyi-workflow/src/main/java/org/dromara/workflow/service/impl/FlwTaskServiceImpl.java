@@ -28,6 +28,7 @@ import org.dromara.warm.flow.orm.entity.*;
 import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
 import org.dromara.warm.flow.orm.mapper.FlowSkipMapper;
 import org.dromara.warm.flow.orm.mapper.FlowTaskMapper;
+import org.dromara.workflow.common.enums.TaskAssigneeType;
 import org.dromara.workflow.common.enums.TaskStatusEnum;
 import org.dromara.workflow.domain.bo.*;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
@@ -47,7 +48,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.dromara.common.core.enums.TaskAssigneeEnum.USER;
 import static org.dromara.workflow.common.constant.FlowConstant.*;
 
 /**
@@ -233,7 +233,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             List<User> userList = new ArrayList<>();
             for (WfCopy wfCopy : wfCopyList) {
                 FlowUser flowUser = new FlowUser();
-                flowUser.setType(String.valueOf(4));
+                flowUser.setType(TaskAssigneeType.COPY.getCode());
                 flowUser.setProcessedBy(wfCopy.getUserId());
                 flowUser.setAssociated(taskId);
                 userList.add(flowUser);

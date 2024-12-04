@@ -131,5 +131,4 @@ public class FlwInstanceController extends BaseController {
         return R.ok(flwInstanceService.getInstanceVariable(instanceId));
     }
 
-
 }
