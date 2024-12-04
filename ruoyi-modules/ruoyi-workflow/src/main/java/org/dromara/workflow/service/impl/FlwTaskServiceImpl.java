@@ -338,7 +338,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     @Override
     public boolean backProcess(BackProcessBo bo) {
         try {
-            String userId = LoginHelper.getUserIdStr();
             Long taskId = bo.getTaskId();
             List<FlowTask> flowTasks = flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class).eq(FlowTask::getId, taskId));
             if (CollUtil.isEmpty(flowTasks)) {
