@@ -8,6 +8,7 @@ import org.dromara.common.core.domain.dto.DeptDTO;
 import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
+import org.dromara.common.core.enums.FormatsType;
 import org.dromara.common.core.enums.TaskAssigneeEnum;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.DeptService;
@@ -119,7 +120,7 @@ public class WfTaskAssigneeServiceImpl implements IWfTaskAssigneeService, Handle
                 Optional.ofNullable(assignee.getGroupName())
                     .map(deptService::selectDeptNameByIds)
                     .orElse(DEFAULT_GROUP_NAME), DEFAULT_GROUP_NAME))
-            .setCreateTime(assignee -> DateUtils.parseDateToStr(DateUtils.YYYY_MM_DD_HH_MM_SS, assignee.getCreateTime()));
+            .setCreateTime(assignee -> DateUtils.parseDateToStr(FormatsType.YYYY_MM_DD_HH_MM_SS, assignee.getCreateTime()));
     }
 
     /**

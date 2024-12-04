@@ -1,19 +1,10 @@
 package org.dromara.workflow.utils;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ArrayUtil;
-import com.baomidou.lock.LockInfo;
-import com.baomidou.lock.LockTemplate;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.dromara.common.core.constant.GlobalConstants;
-import org.dromara.common.core.utils.SpringUtils;
-import org.dromara.common.redis.utils.RedisUtils;
 
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * 工作日工具类
@@ -23,11 +14,16 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class WorkDaysUtils {
 
-    private static final String DAYS_IN_YEARS_KEY = GlobalConstants.GLOBAL_REDIS_KEY + "DAYS_IN_YEARS:";
-    private static final LockTemplate LOCK_TEMPLATE = SpringUtils.getBean(LockTemplate.class);
-    //工作日
+    private static final Map<Integer, Integer[]> DAYS_IN_YEARS = new HashMap<>();
+
+    /**
+     * 工作日
+     */
     public static final int WORKDAY = 0;
-    //休息日
+
+    /**
+     * 休息日
+     */
     public static final int RESTDAY = 1;
 
     /**
@@ -131,13 +127,6 @@ public class WorkDaysUtils {
     }
 
     /**
-     * 删除指定年份的数据
-     */
-    public static void clearData(Integer year) {
-        RedisUtils.deleteObject(DAYS_IN_YEARS_KEY + year);
-    }
-
-    /**
      * 计算指定年份的工作日数组，标记个人的加班和调休日期
      *
      * @param year        指定年份
@@ -162,29 +151,18 @@ public class WorkDaysUtils {
      * @return 表示一年中每一天的状态数组，0 表示工作日，1 表示周末
      */
     private static Integer[] daysInYear(Integer year) {
-        String key = DAYS_IN_YEARS_KEY + year;
-        Integer[] daysInYears = RedisUtils.getCacheObject(key);
-        if (ArrayUtil.isNotEmpty(daysInYears)) {
-            return daysInYears;
-        }
-        LockInfo lock = LOCK_TEMPLATE.lock(key);
-        try {
-            // 再次检查缓存，防止缓存穿透
-            daysInYears = RedisUtils.getCacheObject(key);
-            if (ArrayUtil.isNotEmpty(daysInYears)) {
-                return daysInYears;
-            }
+        if (DAYS_IN_YEARS.containsKey(year)) {
+            return DAYS_IN_YEARS.get(year);
+        } else {
             // 如果年份数据不存在，则生成指定年份的数据
             Integer[] daysArray = generateDaysArray(year);
-            RedisUtils.setCacheObject(key, daysArray);
+            DAYS_IN_YEARS.put(year, daysArray);
             return daysArray;
-        } finally {
-            LOCK_TEMPLATE.releaseLock(lock);
         }
     }
 
     /**
-     * 根据指定年份生成天数数组，其中工作日用 0 表示，周末用 1 表示
+     * 根据指定年份生成天数数组
      *
      * @param year 指定年份
      * @return 表示一年中每一天的状态数组
@@ -216,7 +194,7 @@ public class WorkDaysUtils {
      * @param valueToSet 休息日用 1，工作日用 0
      */
     private static void updateDaysArray(Integer[] daysArray, List<Date> days, int valueToSet) {
-        if (CollUtil.isEmpty(days)) {
+        if (ArrayUtil.isEmpty(days)) {
             return;
         }
 
