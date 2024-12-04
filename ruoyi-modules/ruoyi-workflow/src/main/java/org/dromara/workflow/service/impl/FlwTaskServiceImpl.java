@@ -383,7 +383,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     public List<HisTask> getBackTaskNode(String instanceId) {
         LambdaQueryWrapper<FlowHisTask> lw = new LambdaQueryWrapper<>(FlowHisTask.class)
             .eq(FlowHisTask::getInstanceId, instanceId)
-            .eq(FlowHisTask::getNodeType, 1)
+            .eq(FlowHisTask::getNodeType, NodeType.BETWEEN.getKey())
             .orderByDesc(FlowHisTask::getCreateTime);
         List<FlowHisTask> flowHisTasks = flowHisTaskMapper.selectList(lw);
         if (CollUtil.isNotEmpty(flowHisTasks)) {
