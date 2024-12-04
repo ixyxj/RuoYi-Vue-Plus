@@ -20,28 +20,7 @@ create table wf_category
 INSERT INTO wf_category values (1, 'OA', 'OA', 0, 0, '000000', 103, 1, sysdate(), 1, sysdate());
 
 -- ----------------------------
--- 2、节点审批记录表
--- ----------------------------
-create table wf_task_back_node
-(
-    id          bigint(20)    not null comment '节点审批ID',
-    tenant_id   varchar(20) default '000000' comment '租户编号',
-    node_id     varchar(255)  not null comment '节点id',
-    node_name   varchar(255)  not null comment '节点名称',
-    order_no    int           not null comment '排序',
-    instance_id varchar(255)  null comment '流程实例id',
-    task_type   varchar(255)  not null comment '节点类型',
-    assignee    varchar(2000) not null comment '审批人',
-    create_dept bigint(20)    null comment '创建部门',
-    create_by   bigint(20)    null comment '创建者',
-    create_time datetime      null comment '创建时间',
-    update_by   bigint(20)    null comment '更新者',
-    update_time datetime      null comment '更新时间',
-    primary key (id)
-) engine = innodb comment '节点审批记录';
-
--- ----------------------------
--- 3、流程定义配置表
+-- 2、流程定义配置表
 -- ----------------------------
 create table wf_definition_config
 (
@@ -61,56 +40,8 @@ create table wf_definition_config
     constraint uni_definition_id unique (definition_id)
 ) engine = innodb comment '流程定义配置';
 
--- ----------------------------
--- 4、表单管理
--- ----------------------------
-create table wf_form_manage
-(
-    id          bigint(20)   not null comment '表单ID',
-    tenant_id   varchar(20) default '000000' comment '租户编号',
-    form_name   varchar(255) not null comment '表单名称',
-    form_type   varchar(255) not null comment '表单类型',
-    router      varchar(255) not null comment '路由地址/表单ID',
-    create_dept bigint(20)   null comment '创建部门',
-    create_by   bigint(20)   null comment '创建者',
-    create_time datetime     null comment '创建时间',
-    update_by   bigint(20)   null comment '更新者',
-    update_time datetime     null comment '更新时间',
-    remark      varchar(500) null comment '备注',
-    primary key (id)
-) engine = innodb comment '表单管理';
-
-insert into wf_form_manage(id, form_name, form_type, router, remark, tenant_id, create_dept, create_by, create_time,update_by, update_time) VALUES (1, '请假申请', 'static', '/workflow/leaveEdit/index', NULL, '000000', 103, 1, sysdate(), 1, sysdate());
-
--- ----------------------------
--- 5、节点配置
--- ----------------------------
-create table wf_node_config
-(
-    id              bigint(20)   not null comment 'id',
-    tenant_id       varchar(20) default '000000' comment '租户编号',
-    form_id         bigint       null comment '表单id',
-    form_type       varchar(255) null comment '表单类型',
-    node_name       varchar(255) not null comment '节点名称',
-    node_id         varchar(255) not null comment '节点id',
-    definition_id   varchar(255) not null comment '流程定义id',
-    apply_user_task char(1)     default '0' comment '是否为申请人节点 （0是 1否）',
-    create_dept     bigint(20)   null comment '创建部门',
-    create_by       bigint(20)   null comment '创建者',
-    create_time     datetime     null comment '创建时间',
-    update_by       bigint(20)   null comment '更新者',
-    update_time     datetime     null comment '更新时间',
-    primary key (id)
-) engine = innodb comment '节点配置';
-
-insert into sys_menu
-values ('11616', '工作流', '0', '6', 'workflow', '', '', '1', '0', 'M', '0', '0', '', 'workflow', 103, 1, sysdate(),
-        NULL, NULL, '');
-insert into sys_menu
-values ('11617', '模型管理', '11616', '2', 'model', 'workflow/model/index', '', '1', '1', 'C', '0', '0',
-        'workflow:model:list', 'model', 103, 1, sysdate(), NULL, NULL, '');
-insert into sys_menu
-values ('11618', '我的任务', '0', '7', 'task', '', '', '1', '0', 'M', '0', '0', '', 'my-task', 103, 1, sysdate(), NULL,
+insert into sys_menu values ('11616', '工作流', '0', '6', 'workflow', '', '', '1', '0', 'M', '0', '0', '', 'workflow', 103, 1, sysdate(),NULL, NULL, '');
+insert into sys_menu values ('11618', '我的任务', '0', '7', 'task', '', '', '1', '0', 'M', '0', '0', '', 'my-task', 103, 1, sysdate(), NULL,
         NULL, '');
 insert into sys_menu
 values ('11619', '我的待办', '11618', '2', 'taskWaiting', 'workflow/task/taskWaiting', '', '1', '1', 'C', '0', '0', '',
@@ -158,16 +89,6 @@ INSERT INTO sys_dict_data(dict_code, tenant_id, dict_sort, dict_label, dict_valu
 INSERT INTO sys_dict_data(dict_code, tenant_id, dict_sort, dict_label, dict_value, dict_type, css_class, list_class,is_default, create_dept, create_by, create_time, update_by, update_time, remark) VALUES (45, '000000', 7, '已终止', 'termination', 'wf_business_status', '', 'danger', 'N', 103, 1, sysdate(), NULL,NULL, '已终止');
 INSERT INTO sys_dict_data(dict_code, tenant_id, dict_sort, dict_label, dict_value, dict_type, css_class, list_class,is_default, create_dept, create_by, create_time, update_by, update_time, remark) VALUES (46, '000000', 1, '自定义表单', 'static', 'wf_form_type', '', 'success', 'N', 103, 1, sysdate(), NULL, NULL,'自定义表单');
 INSERT INTO sys_dict_data(dict_code, tenant_id, dict_sort, dict_label, dict_value, dict_type, css_class, list_class,is_default, create_dept, create_by, create_time, update_by, update_time, remark) VALUES (47, '000000', 2, '动态表单', 'dynamic', 'wf_form_type', '', 'primary', 'N', 103, 1, sysdate(), NULL, NULL,'动态表单');
-
--- 表单管理 SQL
-insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible,status, perms, icon, create_dept, create_by, create_time, update_by, update_time, remark) values (11628, '表单管理', '11616', '5', 'formManage', 'workflow/formManage/index', 1, 0, 'C', '0', '0','workflow:formManage:list', 'tree-table', 103, 1, sysdate(), null, null, '表单管理菜单');
-
--- 表单管理按钮 SQL
-insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible,status, perms, icon, create_dept, create_by, create_time, update_by, update_time, remark) values (11644, '表单管理查询', 11628, '1', '#', '', 1, 0, 'F', '0', '0', 'workflow:formManage:query', '', 103, 1,sysdate(), null, null, '');
-insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible, status, perms, icon, create_dept, create_by, create_time, update_by, update_time, remark) values (11645, '表单管理新增', 11628, '2', '#', '', 1, 0, 'F', '0', '0', 'workflow:formManage:add', '', 103, 1,sysdate(), null, null, '');
-insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible,status, perms, icon, create_dept, create_by, create_time, update_by, update_time, remark) values (11646, '表单管理修改', 11628, '3', '#', '', 1, 0, 'F', '0', '0', 'workflow:formManage:edit', '', 103, 1,sysdate(), null, null, '');
-insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible,status, perms, icon, create_dept, create_by, create_time, update_by, update_time, remark) values (11647, '表单管理删除', 11628, '4', '#', '', 1, 0, 'F', '0', '0', 'workflow:formManage:remove', '', 103, 1,sysdate(), null, null, '');
-insert into sys_menu (menu_id, menu_name, parent_id, order_num, path, component, is_frame, is_cache, menu_type, visible,status, perms, icon, create_dept, create_by, create_time, update_by, update_time, remark) values (11648, '表单管理导出', 11628, '5', '#', '', 1, 0, 'F', '0', '0', 'workflow:formManage:export', 'tree-table',103, 1, sysdate(), null, null, '');
 
 -- ----------------------------
 -- 6、请假单信息
