@@ -12,6 +12,7 @@ import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.AssigneeService;
+import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -34,6 +35,7 @@ import org.dromara.workflow.domain.vo.FlowTaskVo;
 import org.dromara.workflow.domain.vo.WfCopy;
 import org.dromara.workflow.domain.vo.WfDefinitionConfigVo;
 import org.dromara.workflow.handler.FlowProcessEventHandler;
+import org.dromara.workflow.handler.WorkflowPermissionHandler;
 import org.dromara.workflow.mapper.FlwTaskMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.dromara.workflow.service.IFlwTaskService;
@@ -109,7 +111,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         FlowParams flowParams = new FlowParams();
         flowParams.flowCode(wfDefinitionConfigVo.getProcessKey());
         flowParams.variable(startProcessBo.getVariables());
-        flowParams.handler(userId);
         flowParams.flowStatus(BusinessStatusEnum.DRAFT.getStatus());
         Instance instance;
         try {
@@ -160,8 +161,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             flowParams.variable(completeTaskBo.getVariables());
             flowParams.skipType(SkipType.PASS.getKey());
             flowParams.message(completeTaskBo.getMessage());
-            flowParams.handler(userId);
-            flowParams.permissionFlag(WorkflowUtils.permissionList());
             flowParams.flowStatus(BusinessStatusEnum.WAITING.getStatus()).hisStatus(TaskStatusEnum.PASS.getStatus());
             // 执行任务跳转，并根据返回的处理人设置下一步处理人
             setHandler(taskService.skip(taskId, flowParams), flowTask, wfCopyList);
@@ -260,7 +259,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     public TableDataInfo<FlowTaskVo> getPageByTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
-        queryWrapper.in("t.processed_by", WorkflowUtils.permissionList());
+        queryWrapper.in("t.processed_by", SpringUtils.getBean(WorkflowPermissionHandler.class).permissions());
         queryWrapper.in("t.flow_status", BusinessStatusEnum.WAITING.getStatus());
         Page<FlowTaskVo> page = flwTaskMapper.getTaskWaitByPage(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
@@ -363,9 +362,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             }
             flowParams.hisStatus(TaskStatusEnum.BACK.getStatus());
             flowParams.message(bo.getMessage());
-            flowParams.handler(userId);
             flowParams.nodeCode(bo.getNodeCode());
-            flowParams.permissionFlag(WorkflowUtils.permissionList());
             Instance instance = taskService.skip(taskId, flowParams);
             setHandler(instance, flowTasks.get(0), null);
             flowProcessEventHandler.processHandler(definition.getFlowCode(),
@@ -409,9 +406,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             //流程定义
             Definition definition = defService.getById(flowTask.getDefinitionId());
             FlowParams flowParams = new FlowParams();
-            flowParams.handler(LoginHelper.getUserIdStr());
             flowParams.message(bo.getComment());
-            flowParams.permissionFlag(WorkflowUtils.permissionList());
             flowParams.flowStatus(BusinessStatusEnum.TERMINATION.getStatus())
                 .hisStatus(TaskStatusEnum.TERMINATION.getStatus());
             taskService.termination(bo.getTaskId(), flowParams);

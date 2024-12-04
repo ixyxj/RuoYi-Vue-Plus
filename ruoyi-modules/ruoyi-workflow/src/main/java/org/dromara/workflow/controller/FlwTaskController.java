@@ -12,7 +12,6 @@ import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
-import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.entity.HisTask;
@@ -26,7 +25,6 @@ import org.dromara.workflow.domain.bo.*;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowTaskVo;
 import org.dromara.workflow.service.IFlwTaskService;
-import org.dromara.workflow.utils.WorkflowUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -173,9 +171,7 @@ public class FlwTaskController extends BaseController {
     @PostMapping("/delegateTask")
     public R<Void> delegateTask(@Validated({AddGroup.class}) @RequestBody FlowDelegateBo bo) {
         FlowParams flowParams = new FlowParams();
-        flowParams.addHandlers(Collections.singletonList(USER.getCode()+bo.getUserId()));
-        flowParams.handler(LoginHelper.getUserIdStr());
-        flowParams.permissionFlag(WorkflowUtils.permissionList());
+        flowParams.addHandlers(bo.getUserIdentifierList());
         flowParams.message(bo.getMessage());
         flowParams.hisStatus(TaskStatusEnum.DEPUTE.getStatus());
         return toAjax(taskService.depute(bo.getTaskId(), flowParams));
@@ -191,9 +187,7 @@ public class FlwTaskController extends BaseController {
     @PostMapping("/transferTask")
     public R<Void> transferTask(@Validated({AddGroup.class}) @RequestBody FlowTransferBo bo) {
         FlowParams flowParams = new FlowParams();
-        flowParams.addHandlers(Collections.singletonList(USER.getCode()+bo.getUserId()));
-        flowParams.handler(LoginHelper.getUserIdStr());
-        flowParams.permissionFlag(WorkflowUtils.permissionList());
+        flowParams.addHandlers(bo.getUserIdentifierList());
         flowParams.message(bo.getMessage());
         flowParams.hisStatus(TaskStatusEnum.TRANSFER.getStatus());
         return toAjax(taskService.transfer(bo.getTaskId(), flowParams));
@@ -209,9 +203,7 @@ public class FlwTaskController extends BaseController {
     @PostMapping("/addSignature")
     public R<Void> addSignature(@Validated({AddGroup.class}) @RequestBody AddSignatureBo bo) {
         FlowParams flowParams = new FlowParams();
-        flowParams.addHandlers(StreamUtils.toList(bo.getUserIds(),u->USER.getCode()+u));
-        flowParams.handler(LoginHelper.getUserIdStr());
-        flowParams.permissionFlag(WorkflowUtils.permissionList());
+        flowParams.addHandlers(bo.getUserIdentifierList());
         flowParams.message(bo.getMessage());
         flowParams.hisStatus(TaskStatusEnum.SIGN.getStatus());
         return toAjax(taskService.addSignature(bo.getTaskId(), flowParams));
@@ -228,8 +220,6 @@ public class FlwTaskController extends BaseController {
     public R<Void> reductionSignature(@Validated({AddGroup.class}) @RequestBody ReductionSignatureBo bo) {
         FlowParams flowParams = new FlowParams();
         flowParams.reductionHandlers(StreamUtils.toList(bo.getUserIds(),u->USER.getCode()+u));
-        flowParams.handler(LoginHelper.getUserIdStr());
-        flowParams.permissionFlag(WorkflowUtils.permissionList());
         flowParams.message(bo.getMessage());
         flowParams.hisStatus(TaskStatusEnum.SIGN_OFF.getStatus());
         return toAjax(taskService.reductionSignature(bo.getTaskId(), flowParams));
@@ -274,6 +264,5 @@ public class FlwTaskController extends BaseController {
     public R<List<HisTask>> getBackTaskNode(@PathVariable String instanceId) {
         return R.ok(flwTaskService.getBackTaskNode(instanceId));
     }
-
 
 }
