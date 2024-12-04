@@ -168,7 +168,6 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             AssertUtil.isNull(startNode, ExceptionCons.LOST_START_NODE);
             Node nextNode = nodeService.getNextNode(definition.getId(), startNode.getNodeCode(), null, SkipType.NONE.getKey());
             FlowParams flowParams = FlowParams.build();
-            flowParams.handler(LoginHelper.getUserIdStr());
             flowParams.nodeCode(nextNode.getNodeCode());
             flowParams.message(bo.getMessage());
             flowParams.flowStatus(BusinessStatusEnum.CANCEL.getStatus()).hisStatus(TaskStatusEnum.CANCEL.getStatus());

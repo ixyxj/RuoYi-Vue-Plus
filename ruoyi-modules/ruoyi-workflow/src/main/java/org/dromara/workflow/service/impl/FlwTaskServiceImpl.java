@@ -83,14 +83,13 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> startWorkFlow(StartProcessBo startProcessBo) {
         String businessKey = startProcessBo.getBusinessKey();
-        String userId = LoginHelper.getUserIdStr();
         if (StringUtils.isBlank(businessKey)) {
             throw new ServiceException("启动工作流时必须包含业务ID");
         }
         // 启动流程实例（提交申请）
         Map<String, Object> variables = startProcessBo.getVariables();
         // 流程发起人
-        variables.put(INITIATOR, userId);
+        variables.put(INITIATOR, LoginHelper.getUserIdStr());
         // 业务id
         variables.put(BUSINESS_KEY, businessKey);
         WfDefinitionConfigVo wfDefinitionConfigVo = wfDefinitionConfigService.getByTableNameLastVersion(startProcessBo.getTableName());
@@ -135,9 +134,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     @Transactional(rollbackFor = Exception.class)
     public boolean completeTask(CompleteTaskBo completeTaskBo) {
         try {
-            // 获取当前用户ID作为任务处理人
-            String userId = LoginHelper.getUserIdStr();
-
             // 获取任务ID并查询对应的流程任务和实例信息
             Long taskId = completeTaskBo.getTaskId();
             // 获取抄送人
@@ -228,7 +224,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             FlowParams flowParams = FlowParams.build();
             flowParams.skipType(SkipType.NONE.getKey());
             flowParams.hisStatus(TaskStatusEnum.COPY.getStatus());
-            flowParams.handler(LoginHelper.getUserIdStr());
             flowParams.message("【抄送给】" + StreamUtils.join(wfCopyList, WfCopy::getUserName));
             HisTask hisTask = hisTaskService.setSkipHisTask(task, flowNode, flowParams);
             hisTask.setCreateTime(updateTime);
@@ -239,7 +234,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             for (WfCopy wfCopy : wfCopyList) {
                 FlowUser flowUser = new FlowUser();
                 flowUser.setType(String.valueOf(4));
-                flowUser.setProcessedBy(USER.getCode() + wfCopy.getUserId());
+                flowUser.setProcessedBy(wfCopy.getUserId());
                 flowUser.setAssociated(taskId);
                 userList.add(flowUser);
             }
