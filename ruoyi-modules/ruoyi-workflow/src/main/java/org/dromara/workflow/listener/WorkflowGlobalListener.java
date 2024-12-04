@@ -15,6 +15,7 @@ import org.dromara.warm.flow.core.listener.ListenerVariable;
 import org.dromara.warm.flow.orm.entity.FlowTask;
 import org.dromara.warm.flow.orm.mapper.FlowTaskMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
+import org.dromara.workflow.service.IFlwTaskService;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -29,7 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WorkflowGlobalListener implements GlobalListener {
 
-    private final FlowTaskMapper flowTaskMapper;
+    private final IFlwTaskService iFlwTaskService;
     private final IFlwInstanceService flwInstanceService;
 
     @Override
@@ -42,8 +43,7 @@ public class WorkflowGlobalListener implements GlobalListener {
             publishProcessEvent(flowParams.getFlowStatus(), definition.getFlowCode(), instance.getBusinessId());
             log.info("流程监听器流程状态:{}", flowParams.getFlowStatus());
         }
-        List<FlowTask> flowTasks = flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class)
-            .eq(FlowTask::getInstanceId, instance.getId()));
+        List<FlowTask> flowTasks = iFlwTaskService.selectByInstId(instance.getId());
         if (CollUtil.isEmpty(flowTasks)) {
             // 若流程已结束，更新状态为已完成并发送完成事件
             flwInstanceService.updateStatus(instance.getId(), BusinessStatusEnum.FINISH.getStatus());

@@ -23,7 +23,6 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.entity.*;
-import org.dromara.warm.flow.core.enums.CooperateType;
 import org.dromara.warm.flow.core.enums.NodeType;
 import org.dromara.warm.flow.core.enums.SkipType;
 import org.dromara.warm.flow.core.enums.UserType;
@@ -187,8 +186,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         //添加抄送人
         setCopy(task, wfCopyList);
         // 根据流程实例ID查询所有关联的任务
-        List<FlowTask> flowTasks = flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class)
-            .eq(FlowTask::getInstanceId, instance.getId()));
+        List<FlowTask> flowTasks = selectByInstId(instance.getId());
         List<User> userList = new ArrayList<>();
         // 遍历任务列表，处理每个任务的办理人
         for (FlowTask flowTask : flowTasks) {
@@ -568,18 +566,18 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             // 批量删除现有任务的办理人记录
             if (CollUtil.isNotEmpty(flowTasks)) {
                 userService.deleteByTaskIds(StreamUtils.toList(flowTasks, FlowTask::getId));
-            }
-            List<User> userList = flowTasks.stream()
-                .map(flowTask -> {
-                    FlowUser flowUser = new FlowUser();
-                    flowUser.setType(UserType.APPROVAL.getKey());
-                    flowUser.setProcessedBy(userId);
-                    flowUser.setAssociated(flowTask.getId());
-                    return flowUser;
-                })
-                .collect(Collectors.toList());
-            if (CollUtil.isNotEmpty(userList)) {
-                userService.saveBatch(userList);
+                List<User> userList = flowTasks.stream()
+                    .map(flowTask -> {
+                        FlowUser flowUser = new FlowUser();
+                        flowUser.setType(UserType.APPROVAL.getKey());
+                        flowUser.setProcessedBy(userId);
+                        flowUser.setAssociated(flowTask.getId());
+                        return flowUser;
+                    })
+                    .collect(Collectors.toList());
+                if (CollUtil.isNotEmpty(userList)) {
+                    userService.saveBatch(userList);
+                }
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
