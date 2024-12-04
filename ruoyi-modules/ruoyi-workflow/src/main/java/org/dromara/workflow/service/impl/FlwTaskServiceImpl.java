@@ -15,11 +15,15 @@ import org.dromara.common.core.service.AssigneeService;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
+import org.dromara.common.core.utils.ValidatorUtils;
+import org.dromara.common.core.validate.AddGroup;
+import org.dromara.common.core.validate.EditGroup;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.entity.*;
+import org.dromara.warm.flow.core.enums.CooperateType;
 import org.dromara.warm.flow.core.enums.NodeType;
 import org.dromara.warm.flow.core.enums.SkipType;
 import org.dromara.warm.flow.core.enums.UserType;
@@ -160,7 +164,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             flowParams.flowStatus(BusinessStatusEnum.WAITING.getStatus()).hisStatus(TaskStatusEnum.PASS.getStatus());
             // 执行任务跳转，并根据返回的处理人设置下一步处理人
             setHandler(taskService.skip(taskId, flowParams), flowTask, wfCopyList);
-
             // 更新实例状态为待审核状态
             iFlwInstanceService.updateStatus(ins.getId(), BusinessStatusEnum.WAITING.getStatus());
             return true;
@@ -196,7 +199,9 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             }
         }
         // 批量删除现有任务的办理人记录
-        userService.deleteByTaskIds(StreamUtils.toList(flowTasks, FlowTask::getId));
+        if (CollUtil.isNotEmpty(flowTasks)) {
+            userService.deleteByTaskIds(StreamUtils.toList(flowTasks, FlowTask::getId));
+        }
         // 确保要保存的 userList 不为空
         if (CollUtil.isNotEmpty(userList)) {
             userService.saveBatch(userList);
@@ -358,8 +363,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             flowParams.nodeCode(bo.getNodeCode());
             Instance instance = taskService.skip(taskId, flowParams);
             setHandler(instance, flowTasks.get(0), null);
-            flowProcessEventHandler.processHandler(definition.getFlowCode(),
-                instance.getBusinessId(), BusinessStatusEnum.BACK.getStatus(), false);
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -398,18 +401,12 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     @Transactional(rollbackFor = Exception.class)
     public boolean terminationTask(FlowTerminationBo bo) {
         try {
-            FlowTask flowTask = flowTaskMapper.selectById(bo.getTaskId());
-            Instance ins = insService.getById(flowTask.getInstanceId());
             //流程定义
-            Definition definition = defService.getById(flowTask.getDefinitionId());
             FlowParams flowParams = new FlowParams();
             flowParams.message(bo.getComment());
             flowParams.flowStatus(BusinessStatusEnum.TERMINATION.getStatus())
                 .hisStatus(TaskStatusEnum.TERMINATION.getStatus());
             taskService.termination(bo.getTaskId(), flowParams);
-            //流程终止监听
-            flowProcessEventHandler.processHandler(definition.getFlowCode(),
-                ins.getBusinessId(), BusinessStatusEnum.TERMINATION.getStatus(), false);
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -452,4 +449,142 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         return WorkflowUtils.getHandlerUser(userList);
     }
 
+    /**
+     * 按照任务id查询任务
+     *
+     * @param taskIdList 任务id
+     */
+    @Override
+    public List<FlowTask> selectByIdList(List<Long> taskIdList) {
+        return flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class)
+            .in(FlowTask::getId, taskIdList));
+    }
+
+    /**
+     * 按照任务id查询任务
+     *
+     * @param taskId 任务id
+     */
+    @Override
+    public FlowTask selectByIdList(Long taskId) {
+        return flowTaskMapper.selectOne(new LambdaQueryWrapper<>(FlowTask.class)
+            .eq(FlowTask::getId, taskId));
+    }
+
+    /**
+     * 按照实例id查询任务
+     *
+     * @param instanceIdList 流程实例id
+     */
+    @Override
+    public List<FlowTask> selectByInstIdList(List<Long> instanceIdList) {
+        return flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class)
+            .in(FlowTask::getInstanceId, instanceIdList));
+    }
+
+    /**
+     * 按照实例id查询任务
+     *
+     * @param instanceId 流程实例id
+     */
+    @Override
+    public List<FlowTask> selectByInstId(Long instanceId) {
+        return flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class)
+            .eq(FlowTask::getInstanceId, instanceId));
+    }
+
+    /**
+     * 任务操作
+     *
+     * @param bo            参数
+     * @param taskOperation 操作类型，区分委派、转办、加签、减签、修改办理人
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean taskOperation(TaskOperationBo bo, String taskOperation) {
+        FlowParams flowParams = new FlowParams();
+        flowParams.message(bo.getMessage());
+
+        // 根据操作类型构建 FlowParams
+        switch (taskOperation) {
+            case "delegateTask", "transferTask", "addSignature" -> {
+                ValidatorUtils.validate(bo, AddGroup.class);
+                flowParams.addHandlers(bo.getUserIdentifiers());
+            }
+            case "reductionSignature" -> {
+                ValidatorUtils.validate(bo, EditGroup.class);
+                flowParams.reductionHandlers(bo.getAllUserIdentifiers());
+            }
+            default -> {
+                log.error("Invalid operation type:{} ", taskOperation);
+                throw new ServiceException("Invalid operation type " + taskOperation);
+            }
+        }
+
+        Long taskId = bo.getTaskId();
+        // 设置任务状态并执行对应的任务操作
+        switch (taskOperation) {
+            //委派任务
+            case "delegateTask" -> {
+                flowParams.hisStatus(TaskStatusEnum.DEPUTE.getStatus());
+                return taskService.depute(taskId, flowParams);
+            }
+            //转办任务
+            case "transferTask" -> {
+                flowParams.hisStatus(TaskStatusEnum.TRANSFER.getStatus());
+                return taskService.transfer(taskId, flowParams);
+            }
+            //加签，增加办理人
+            case "addSignature" -> {
+                flowParams.hisStatus(TaskStatusEnum.SIGN.getStatus());
+                return taskService.addSignature(taskId, flowParams);
+            }
+            //减签，减少办理人
+            case "reductionSignature" -> {
+                flowParams.hisStatus(TaskStatusEnum.SIGN_OFF.getStatus());
+                return taskService.reductionSignature(taskId, flowParams);
+            }
+            default -> {
+                log.error("Invalid operation type:{} ", taskOperation);
+                throw new ServiceException("Invalid operation type " + taskOperation);
+            }
+        }
+    }
+
+    /**
+     * 修改任务办理人（此方法将会批量修改所有任务的办理人）
+     *
+     * @param taskIdList 任务id
+     * @param userId     用户id
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean updateAssignee(List<Long> taskIdList, String userId) {
+        if (CollUtil.isEmpty(taskIdList)) {
+            return false;
+        }
+        try {
+            List<FlowTask> flowTasks = selectByIdList(taskIdList);
+            // 批量删除现有任务的办理人记录
+            if (CollUtil.isNotEmpty(flowTasks)) {
+                userService.deleteByTaskIds(StreamUtils.toList(flowTasks, FlowTask::getId));
+            }
+            List<User> userList = flowTasks.stream()
+                .map(flowTask -> {
+                    FlowUser flowUser = new FlowUser();
+                    flowUser.setType(UserType.APPROVAL.getKey());
+                    flowUser.setProcessedBy(userId);
+                    flowUser.setAssociated(flowTask.getId());
+                    return flowUser;
+                })
+                .collect(Collectors.toList());
+            if (CollUtil.isNotEmpty(userList)) {
+                userService.saveBatch(userList);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException(e.getMessage());
+        }
+        return true;
+    }
 }

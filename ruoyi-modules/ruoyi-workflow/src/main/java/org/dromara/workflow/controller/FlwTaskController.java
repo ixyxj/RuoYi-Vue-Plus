@@ -172,80 +172,20 @@ public class FlwTaskController extends BaseController {
     @RepeatSubmit
     @PostMapping("/{taskOperation}")
     public R<Void> taskOperation(@Validated @RequestBody TaskOperationBo bo, @PathVariable String taskOperation) {
-        FlowParams flowParams = new FlowParams();
-        flowParams.message(bo.getMessage());
-
-        // 根据操作类型构建 FlowParams
-        switch (taskOperation) {
-            case "delegateTask", "transferTask", "addSignature" -> {
-                ValidatorUtils.validate(bo, AddGroup.class);
-                flowParams.addHandlers(bo.getUserIdentifiers());
-            }
-            case "reductionSignature" -> {
-                ValidatorUtils.validate(bo, EditGroup.class);
-                flowParams.reductionHandlers(bo.getAllUserIdentifiers());
-            }
-            case "updateAssignee" -> {
-                ValidatorUtils.validate(bo, AddGroup.class);
-                flowParams.addHandlers(bo.getUserIdentifiers());
-                flowParams.cooperateType(CooperateType.APPROVAL.getKey());
-                flowParams.ignore(false);
-                flowParams.message("修改任务办理人");
-            }
-            default -> {
-                return R.fail("Invalid operation type: " + taskOperation);
-            }
-        }
-
-        Long taskId = bo.getTaskId();
-        // 设置任务状态并执行对应的任务操作
-        switch (taskOperation) {
-            //委派任务
-            case "delegateTask" -> {
-                flowParams.hisStatus(TaskStatusEnum.DEPUTE.getStatus());
-                return toAjax(taskService.depute(taskId, flowParams));
-            }
-            //转办任务
-            case "transferTask" -> {
-                flowParams.hisStatus(TaskStatusEnum.TRANSFER.getStatus());
-                return toAjax(taskService.transfer(taskId, flowParams));
-            }
-            //加签，增加办理人
-            case "addSignature" -> {
-                flowParams.hisStatus(TaskStatusEnum.SIGN.getStatus());
-                return toAjax(taskService.addSignature(taskId, flowParams));
-            }
-            //减签，减少办理人
-            case "reductionSignature" -> {
-                flowParams.hisStatus(TaskStatusEnum.SIGN_OFF.getStatus());
-                return toAjax(taskService.reductionSignature(taskId, flowParams));
-            }
-            //修改办理人
-            case "updateAssignee" -> {
-                return toAjax(taskService.updateHandler(taskId, flowParams));
-            }
-            default -> {
-                return R.fail("Invalid operation type: " + taskOperation);
-            }
-        }
+        return toAjax(flwTaskService.taskOperation(bo, taskOperation));
     }
 
     /**
      * TODO 待删除的方法（用上面那个），修改任务办理人
      *
-     * @param taskId 任务id
-     * @param userId 办理人id
+     * @param taskIdList 任务id
+     * @param userId     办理人id
      */
     @Log(title = "任务管理", businessType = BusinessType.UPDATE)
     @RepeatSubmit()
-    @PutMapping("/updateAssignee/{taskId}/{userId}")
-    public R<Void> updateAssignee(@PathVariable Long taskId, @PathVariable String userId) {
-        FlowParams flowParams = new FlowParams();
-        flowParams.addHandlers(Collections.singletonList(USER.getCode()+userId));
-        flowParams.cooperateType(CooperateType.APPROVAL.getKey());
-        flowParams.ignore(false);
-        flowParams.message("修改任务办理人");
-        return toAjax(taskService.updateHandler(taskId, flowParams));
+    @PutMapping("/updateAssignee/{userId}")
+    public R<Void> updateAssignee(@RequestBody List<Long> taskIdList, @PathVariable String userId) {
+        return toAjax(flwTaskService.updateAssignee(taskIdList, userId));
     }
 
     /**

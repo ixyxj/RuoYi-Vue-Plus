@@ -28,7 +28,7 @@
         <skip coordinate="750,280;870,280" skipType="PASS">5</skip>
         <skip coordinate="700,240;700,210;280,210;280,240" skipType="REJECT">2</skip>
     </node>
-    <node nodeType="between" nodeCode="5" nodeName="hr审批" permissionFlag="warmFlowInitiator"
+    <node nodeType="between" nodeCode="5" nodeName="hr审批" permissionFlag="1"
           coordinate="920,280|920,280" skipAnyNode="Y" nodeRatio="0"
           listenerType="start,assignment,finish,create"
           listenerPath="com.ruoyi.system.Listener.StartListener@@com.ruoyi.system.Listener.AssignmentListener@@com.ruoyi.system.Listener.FinishListener@@com.ruoyi.system.Listener.CreateListener">

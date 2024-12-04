@@ -17,11 +17,13 @@ import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.warm.flow.core.FlowFactory;
 import org.dromara.warm.flow.core.constant.ExceptionCons;
 import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.entity.Definition;
 import org.dromara.warm.flow.core.entity.Instance;
 import org.dromara.warm.flow.core.entity.Node;
+import org.dromara.warm.flow.core.entity.Task;
 import org.dromara.warm.flow.core.enums.CooperateType;
 import org.dromara.warm.flow.core.enums.FlowStatus;
 import org.dromara.warm.flow.core.enums.NodeType;
@@ -45,7 +47,6 @@ import org.dromara.workflow.domain.bo.FlowInstanceBo;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
 import org.dromara.workflow.domain.vo.VariableVo;
-import org.dromara.workflow.handler.FlowProcessEventHandler;
 import org.dromara.workflow.mapper.FlwInstanceMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.springframework.stereotype.Service;
@@ -76,7 +77,6 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     private final TaskService taskService;
     private final FlowNodeMapper flowNodeMapper;
     private final NodeService nodeService;
-    private final FlowProcessEventHandler flowProcessEventHandler;
 
     /**
      * 分页查询正在运行的流程实例
@@ -165,6 +165,8 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             if (definition == null) {
                 throw new ServiceException(ExceptionCons.NOT_FOUNT_DEF);
             }
+            List<Task> list = taskService.list(FlowFactory.newTask().setInstanceId(instance.getId()));
+
             //获取已发布的流程节点
             List<FlowNode> flowNodes = flowNodeMapper.selectList(new LambdaQueryWrapper<FlowNode>().eq(FlowNode::getDefinitionId, definition.getId()));
             AssertUtil.isTrue(CollUtil.isEmpty(flowNodes), ExceptionCons.NOT_PUBLISH_NODE);
@@ -174,13 +176,10 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             FlowParams flowParams = FlowParams.build();
             flowParams.nodeCode(nextNode.getNodeCode());
             flowParams.message(bo.getMessage());
+            flowParams.skipType(SkipType.PASS.getKey());
             flowParams.flowStatus(BusinessStatusEnum.CANCEL.getStatus()).hisStatus(TaskStatusEnum.CANCEL.getStatus());
-            taskService.retrieve(instance.getId(), flowParams);
-            // 更新状态
-            updateStatus(instance.getId(), BusinessStatusEnum.CANCEL.getStatus());
-            //流程撤销监听
-            flowProcessEventHandler.processHandler(definition.getFlowCode(),
-                bo.getBusinessId(), BusinessStatusEnum.CANCEL.getStatus(), false);
+            flowParams.ignore(true);
+            taskService.skip(list.get(0).getId(), flowParams);
         } catch (Exception e) {
             log.error("撤销失败: {}", e.getMessage(), e);
             throw new ServiceException(e.getMessage());
