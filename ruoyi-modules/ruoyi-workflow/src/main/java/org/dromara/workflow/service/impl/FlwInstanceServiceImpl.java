@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -51,7 +52,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 流程实例 服务层实现
@@ -241,7 +245,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         for (FlowHisTaskVo vo : list) {
             vo.setCooperateTypeName(CooperateType.getValueByKey(vo.getCooperateType()));
             if (vo.getUpdateTime() != null && vo.getCreateTime() != null) {
-                vo.setRunDuration(getDuration(vo.getUpdateTime().getTime() - vo.getCreateTime().getTime()));
+                vo.setRunDuration(DateUtils.getDatePoor(vo.getUpdateTime(), vo.getCreateTime()));
             }
         }
         map.put("list", list);
@@ -252,34 +256,6 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             throw new RuntimeException(e);
         }
         return map;
-    }
-
-    /**
-     * 任务完成时间处理
-     *
-     * @param time 时间
-     */
-    private String getDuration(long time) {
-
-        long day = time / (24 * 60 * 60 * 1000);
-        long hour = (time / (60 * 60 * 1000) - day * 24);
-        long minute = ((time / (60 * 1000)) - day * 24 * 60 - hour * 60);
-        long second = (time / 1000 - day * 24 * 60 * 60 - hour * 60 * 60 - minute * 60);
-
-        if (day > 0) {
-            return day + "天" + hour + "小时" + minute + "分钟";
-        }
-        if (hour > 0) {
-            return hour + "小时" + minute + "分钟";
-        }
-        if (minute > 0) {
-            return minute + "分钟";
-        }
-        if (second > 0) {
-            return second + "秒";
-        } else {
-            return 0 + "秒";
-        }
     }
 
     /**
