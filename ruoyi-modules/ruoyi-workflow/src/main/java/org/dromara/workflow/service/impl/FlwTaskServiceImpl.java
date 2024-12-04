@@ -210,38 +210,37 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      * @param wfCopyList 抄送人
      */
     private void setCopy(FlowTask task, List<WfCopy> wfCopyList) {
+        if (CollUtil.isEmpty(wfCopyList)) {
+            return;
+        }
         // 添加抄送人记录
-        if (CollUtil.isNotEmpty(wfCopyList)) {
-            FlowHisTask flowHisTask = flowHisTaskMapper.selectOne(new LambdaQueryWrapper<>(FlowHisTask.class).eq(FlowHisTask::getTaskId, task.getId()));
-            FlowNode flowNode = new FlowNode();
-            flowNode.setNodeCode(flowHisTask.getTargetNodeCode());
-            flowNode.setNodeName(flowHisTask.getTargetNodeName());
-            //生成新的任务id
-            long taskId = identifierGenerator.nextId(null).longValue();
-            task.setId(taskId);
-            task.setNodeName("【抄送】" + task.getNodeName());
-            Date updateTime = new Date(flowHisTask.getUpdateTime().getTime()-1000);
-            FlowParams flowParams = FlowParams.build();
-            flowParams.skipType(SkipType.NONE.getKey());
-            flowParams.hisStatus(TaskStatusEnum.COPY.getStatus());
-            flowParams.message("【抄送给】" + StreamUtils.join(wfCopyList, WfCopy::getUserName));
-            HisTask hisTask = hisTaskService.setSkipHisTask(task, flowNode, flowParams);
-            hisTask.setCreateTime(updateTime);
-            hisTask.setUpdateTime(updateTime);
-            hisTaskService.save(hisTask);
-            //保存抄送人员
-            List<User> userList = new ArrayList<>();
-            for (WfCopy wfCopy : wfCopyList) {
+        FlowHisTask flowHisTask = flowHisTaskMapper.selectOne(new LambdaQueryWrapper<>(FlowHisTask.class).eq(FlowHisTask::getTaskId, task.getId()));
+        FlowNode flowNode = new FlowNode();
+        flowNode.setNodeCode(flowHisTask.getTargetNodeCode());
+        flowNode.setNodeName(flowHisTask.getTargetNodeName());
+        //生成新的任务id
+        long taskId = identifierGenerator.nextId(null).longValue();
+        task.setId(taskId);
+        task.setNodeName("【抄送】" + task.getNodeName());
+        Date updateTime = new Date(flowHisTask.getUpdateTime().getTime() - 1000);
+        FlowParams flowParams = FlowParams.build();
+        flowParams.skipType(SkipType.NONE.getKey());
+        flowParams.hisStatus(TaskStatusEnum.COPY.getStatus());
+        flowParams.message("【抄送给】" + StreamUtils.join(wfCopyList, WfCopy::getUserName));
+        HisTask hisTask = hisTaskService.setSkipHisTask(task, flowNode, flowParams);
+        hisTask.setCreateTime(updateTime);
+        hisTask.setUpdateTime(updateTime);
+        hisTaskService.save(hisTask);
+        List<User> userList = wfCopyList.stream()
+            .map(wfCopy -> {
                 FlowUser flowUser = new FlowUser();
                 flowUser.setType(TaskAssigneeType.COPY.getCode());
                 flowUser.setProcessedBy(wfCopy.getUserId());
                 flowUser.setAssociated(taskId);
-                userList.add(flowUser);
-            }
-            if (CollUtil.isNotEmpty(userList)) {
-                userService.saveBatch(userList);
-            }
-        }
+                return flowUser;
+            }).collect(Collectors.toList());
+        // 批量保存抄送人员
+        userService.saveBatch(userList);
     }
 
     /**
