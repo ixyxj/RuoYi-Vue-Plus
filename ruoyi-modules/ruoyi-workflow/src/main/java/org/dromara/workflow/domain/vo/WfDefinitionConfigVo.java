@@ -1,10 +1,10 @@
 package org.dromara.workflow.domain.vo;
 
-import org.dromara.workflow.domain.WfDefinitionConfig;
 import com.alibaba.excel.annotation.ExcelIgnoreUnannotated;
 import com.alibaba.excel.annotation.ExcelProperty;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
+import org.dromara.workflow.domain.WfDefinitionConfig;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -60,11 +60,5 @@ public class WfDefinitionConfigVo implements Serializable {
      */
     @ExcelProperty(value = "备注")
     private String remark;
-
-    /**
-     * 表单管理
-     */
-    private WfFormManageVo wfFormManageVo;
-
 
 }
