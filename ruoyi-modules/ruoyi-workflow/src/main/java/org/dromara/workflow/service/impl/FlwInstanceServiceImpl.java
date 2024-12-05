@@ -241,12 +241,6 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         wrapper.orderByDesc(FlowHisTask::getCreateTime).orderByDesc(FlowHisTask::getUpdateTime);
         List<FlowHisTask> flowHisTasks = flowHisTaskMapper.selectList(wrapper);
         List<FlowHisTaskVo> list = BeanUtil.copyToList(flowHisTasks, FlowHisTaskVo.class);
-        for (FlowHisTaskVo vo : list) {
-            vo.setCooperateTypeName(CooperateType.getValueByKey(vo.getCooperateType()));
-            if (vo.getUpdateTime() != null && vo.getCreateTime() != null) {
-                vo.setRunDuration(DateUtils.getDatePoor(vo.getUpdateTime(), vo.getCreateTime()));
-            }
-        }
         map.put("list", list);
         try {
             String flowChart = defService.flowChart(flowInstance.getId());

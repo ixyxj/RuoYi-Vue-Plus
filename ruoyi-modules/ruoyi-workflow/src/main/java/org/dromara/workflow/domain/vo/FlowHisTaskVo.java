@@ -1,8 +1,10 @@
 package org.dromara.workflow.domain.vo;
 
 import lombok.Data;
+import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.translation.annotation.Translation;
 import org.dromara.common.translation.constant.TransConstant;
+import org.dromara.warm.flow.core.enums.CooperateType;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -183,4 +185,43 @@ public class FlowHisTaskVo implements Serializable {
      * 运行时长
      */
     private String runDuration;
+
+    /**
+     * 设置创建时间并计算任务运行时长
+     *
+     * @param createTime 创建时间
+     */
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+        updateRunDuration();
+    }
+
+    /**
+     * 设置更新时间并计算任务运行时长
+     *
+     * @param updateTime 更新时间
+     */
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime;
+        updateRunDuration();
+    }
+
+    /**
+     * 更新运行时长
+     */
+    private void updateRunDuration() {
+        // 如果创建时间和更新时间均不为空，计算它们之间的时长
+        if (this.updateTime != null && this.createTime != null) {
+            this.runDuration = DateUtils.getTimeDifference(this.updateTime, this.createTime);
+        }
+    }
+
+    /**
+     * 设置协作方式，并通过协作方式获取名称
+     */
+    public void setCooperateType(Integer cooperateType) {
+        this.cooperateType = cooperateType;
+        this.cooperateTypeName = CooperateType.getValueByKey(cooperateType);
+    }
+
 }
