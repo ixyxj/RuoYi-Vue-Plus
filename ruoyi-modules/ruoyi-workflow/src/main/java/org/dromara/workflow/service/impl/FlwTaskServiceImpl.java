@@ -108,7 +108,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         FlowInstance flowInstance = iFlwInstanceService.instanceByBusinessId(businessKey);
         if (flowInstance != null) {
             List<Task> taskList = taskService.list(new FlowTask().setInstanceId(flowInstance.getId()));
-            return Map.of(PROCESS_INSTANCE_ID, taskList.get(0).getInstanceId(), "taskId", taskList.get(0).getId());
+            return Map.of(PROCESS_INSTANCE_ID, taskList.get(0).getInstanceId(), TASK_ID, taskList.get(0).getId());
         }
         FlowParams flowParams = new FlowParams();
         flowParams.flowCode(wfDefinitionConfigVo.getProcessKey());
@@ -125,7 +125,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         if (taskList.size() > 1) {
             throw new ServiceException("请检查流程第一个环节是否为申请人！");
         }
-        return Map.of("processInstanceId", instance.getId(), "taskId", taskList.get(0).getId());
+        return Map.of(PROCESS_INSTANCE_ID, instance.getId(), TASK_ID, taskList.get(0).getId());
     }
 
     /**
