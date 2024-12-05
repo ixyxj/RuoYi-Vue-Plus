@@ -104,6 +104,16 @@ public enum BusinessStatusEnum {
     }
 
     /**
+     * 判断是否为撤销，退回，作废，终止
+     *
+     * @param status status
+     * @return 结果
+     */
+    public static boolean initialState(String status) {
+        return CANCEL.status.equals(status) || BACK.status.equals(status) || INVALID.status.equals(status) || TERMINATION.status.equals(status);
+    }
+
+    /**
      * 运行中的实例状态
      *
      * @return 运行中的实例状态
