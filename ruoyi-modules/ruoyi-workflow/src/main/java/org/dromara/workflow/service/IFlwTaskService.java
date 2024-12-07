@@ -1,5 +1,6 @@
 package org.dromara.workflow.service;
 
+import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.warm.flow.core.entity.HisTask;
@@ -170,4 +171,12 @@ public interface IFlwTaskService {
      * @return 结果
      */
     boolean taskOperation(TaskOperationBo bo, String taskOperation);
+
+    /**
+     * 获取当前任务的所有办理人
+     *
+     * @param taskId 任务id
+     * @return 结果
+     */
+    List<UserDTO> getUserListTaskId(Long taskId);
 }

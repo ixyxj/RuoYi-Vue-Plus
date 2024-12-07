@@ -1,10 +1,8 @@
 package org.dromara.workflow.controller;
 
-import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.domain.R;
-import org.dromara.common.core.enums.BusinessStatusEnum;
+import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
@@ -13,8 +11,6 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.warm.flow.core.entity.HisTask;
-import org.dromara.warm.flow.core.entity.Instance;
-import org.dromara.warm.flow.core.entity.Task;
 import org.dromara.warm.flow.core.service.InsService;
 import org.dromara.warm.flow.core.service.TaskService;
 import org.dromara.workflow.domain.bo.*;
@@ -192,6 +188,16 @@ public class FlwTaskController extends BaseController {
     @GetMapping("/getBackTaskNode/{instanceId}")
     public R<List<HisTask>> getBackTaskNode(@PathVariable String instanceId) {
         return R.ok(flwTaskService.getBackTaskNode(instanceId));
+    }
+
+    /**
+     * 获取当前任务的所有办理人
+     *
+     * @param taskId 任务id
+     */
+    @GetMapping("/getUserListTaskId/{taskId}")
+    public R<List<UserDTO>> getUserListTaskId(@PathVariable Long taskId) {
+        return R.ok(flwTaskService.getUserListTaskId(taskId));
     }
 
 }

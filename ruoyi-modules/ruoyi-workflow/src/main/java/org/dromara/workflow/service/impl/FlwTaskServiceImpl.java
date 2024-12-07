@@ -544,7 +544,11 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
                 ValidatorUtils.validate(bo, AddGroup.class);
                 flowParams.addHandlers(Collections.singletonList(bo.getUserId()));
             }
-            case "reductionSignature", "addSignature" -> {
+            case "addSignature" -> {
+                ValidatorUtils.validate(bo, EditGroup.class);
+                flowParams.addHandlers(bo.getUserIds());
+            }
+            case "reductionSignature" -> {
                 ValidatorUtils.validate(bo, EditGroup.class);
                 flowParams.reductionHandlers(bo.getUserIds());
             }
