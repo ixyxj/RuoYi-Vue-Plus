@@ -167,7 +167,7 @@ public interface IFlwTaskService {
      * 任务操作
      *
      * @param bo            参数
-     * @param taskOperation 操作类型，区分委派、转办、加签、减签、修改办理人
+     * @param taskOperation 操作类型，委派 delegateTask、转办 transferTask、加签 addSignature、减签 reductionSignature
      * @return 结果
      */
     boolean taskOperation(TaskOperationBo bo, String taskOperation);

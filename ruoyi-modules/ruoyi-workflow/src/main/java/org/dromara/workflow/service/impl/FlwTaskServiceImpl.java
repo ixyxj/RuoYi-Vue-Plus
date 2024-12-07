@@ -238,7 +238,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             .map(wfCopy -> {
                 FlowUser flowUser = new FlowUser();
                 flowUser.setType(TaskAssigneeType.COPY.getCode());
-                flowUser.setProcessedBy(wfCopy.getUserId());
+                flowUser.setProcessedBy(String.valueOf(wfCopy.getUserId()));
                 flowUser.setAssociated(taskId);
                 return flowUser;
             }).collect(Collectors.toList());
@@ -519,7 +519,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      * 任务操作
      *
      * @param bo            参数
-     * @param taskOperation 操作类型，区分委派、转办、加签、减签、修改办理人
+     * @param taskOperation 操作类型，委派 delegateTask、转办 transferTask、加签 addSignature、减签 reductionSignature
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -529,13 +529,13 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
 
         // 根据操作类型构建 FlowParams
         switch (taskOperation) {
-            case "delegateTask", "transferTask", "addSignature" -> {
+            case "delegateTask", "transferTask" -> {
                 ValidatorUtils.validate(bo, AddGroup.class);
-                flowParams.addHandlers(bo.getUserIdentifiers());
+                flowParams.addHandlers(Collections.singletonList(bo.getUserId()));
             }
-            case "reductionSignature" -> {
+            case "reductionSignature", "addSignature" -> {
                 ValidatorUtils.validate(bo, EditGroup.class);
-                flowParams.reductionHandlers(bo.getAllUserIdentifiers());
+                flowParams.reductionHandlers(bo.getUserIds());
             }
             default -> {
                 log.error("Invalid operation type:{} ", taskOperation);

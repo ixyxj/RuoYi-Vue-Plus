@@ -12,7 +12,6 @@ import org.dromara.workflow.service.IWfTaskAssigneeService;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.dromara.common.core.enums.TaskAssigneeEnum.USER;
 
 /**
  * 工作流工具
@@ -62,7 +61,7 @@ public class WorkflowUtils {
                 users.forEach(dto -> {
                     FlowUser flowUser = new FlowUser();
                     flowUser.setType(user.getType());
-                    flowUser.setProcessedBy(USER.getCode()+dto.getUserId());
+                    flowUser.setProcessedBy(String.valueOf(dto.getUserId()));
                     flowUser.setAssociated(taskId);
                     list.add(flowUser);
                 });

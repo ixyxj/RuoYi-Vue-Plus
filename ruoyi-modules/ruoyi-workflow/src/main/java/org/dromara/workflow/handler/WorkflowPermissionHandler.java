@@ -50,8 +50,7 @@ public class WorkflowPermissionHandler implements PermissionHandler {
                     .map(post -> TaskAssigneeEnum.POST.getCode() + post.getPostId()),
 
                 // 用户和部门权限
-                Stream.of(
-                    TaskAssigneeEnum.USER.getCode() + loginUser.getUserId(),
+                Stream.of(String.valueOf(loginUser.getUserId()),
                     TaskAssigneeEnum.DEPT.getCode() + loginUser.getDeptId()
                 )
             )

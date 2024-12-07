@@ -5,7 +5,6 @@ import lombok.Data;
 import java.io.Serial;
 import java.io.Serializable;
 
-import static org.dromara.common.core.enums.TaskAssigneeEnum.USER;
 
 /**
  * 抄送
@@ -27,9 +26,5 @@ public class WfCopy implements Serializable {
      * 用户名称
      */
     private String userName;
-
-    public String getUserId() {
-        return USER.getCode() + userId;
-    }
 
 }

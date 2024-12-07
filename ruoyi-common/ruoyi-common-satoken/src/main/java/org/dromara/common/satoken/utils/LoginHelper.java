@@ -15,7 +15,6 @@ import org.dromara.common.core.enums.UserType;
 
 import java.util.Set;
 
-import static org.dromara.common.core.enums.TaskAssigneeEnum.USER;
 
 /**
  * 登录鉴权助手

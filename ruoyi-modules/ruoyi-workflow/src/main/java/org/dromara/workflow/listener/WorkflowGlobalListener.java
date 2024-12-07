@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.event.ProcessEvent;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.utils.SpringUtils;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.entity.Definition;
 import org.dromara.warm.flow.core.entity.Instance;
@@ -39,7 +40,7 @@ public class WorkflowGlobalListener implements GlobalListener {
         Definition definition = listenerVariable.getDefinition();
         FlowParams flowParams = listenerVariable.getFlowParams();
         //撤销，退回，作废，终止发送事件
-        if (BusinessStatusEnum.initialState(flowParams.getFlowStatus())) {
+        if (flowParams != null && StringUtils.isNotBlank(flowParams.getFlowStatus()) && BusinessStatusEnum.initialState(flowParams.getFlowStatus())) {
             publishProcessEvent(flowParams.getFlowStatus(), definition.getFlowCode(), instance.getBusinessId());
             log.info("流程监听器流程状态:{}", flowParams.getFlowStatus());
         }

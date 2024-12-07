@@ -39,7 +39,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 public class WfTaskAssigneeServiceImpl implements IWfTaskAssigneeService, HandlerSelectService {
-    final static String DEFAULT_GROUP_NAME = "默认分组";
+    static final String DEFAULT_GROUP_NAME = "默认分组";
     private final UserService userService;
     private final DeptService deptService;
     private final RoleService roleService;
