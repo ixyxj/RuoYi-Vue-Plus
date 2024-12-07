@@ -620,4 +620,23 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         }
         return true;
     }
+
+    /**
+     * 获取当前任务的所有办理人
+     *
+     * @param taskId 任务id
+     */
+    @Override
+    public List<UserDTO> getUserListTaskId(Long taskId) {
+        // 获取与当前任务关联的用户列表
+        List<User> associatedUsers = userService.getByAssociateds(Collections.singletonList(taskId));
+        if (CollUtil.isEmpty(associatedUsers)) {
+            return Collections.emptyList();
+        }
+        Set<User> users = WorkflowUtils.getUser(associatedUsers, taskId);
+        if (CollUtil.isEmpty(users)) {
+            return Collections.emptyList();
+        }
+        return WorkflowUtils.getHandlerUser(new ArrayList<>(users));
+    }
 }
