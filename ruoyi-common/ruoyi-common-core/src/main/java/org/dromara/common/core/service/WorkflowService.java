@@ -23,7 +23,7 @@ public interface WorkflowService {
      *
      * @param taskId 任务id
      */
-    String getBusinessStatusByTaskId(String taskId);
+    String getBusinessStatusByTaskId(Long taskId);
 
     /**
      * 获取当前流程状态
@@ -33,38 +33,12 @@ public interface WorkflowService {
     String getBusinessStatus(String businessKey);
 
     /**
-     * 设置流程变量(全局变量)
+     * 设置流程变量
      *
-     * @param taskId       任务id
-     * @param variableName 变量名称
-     * @param value        变量值
+     * @param instanceId 流程实例id
+     * @param variable   流程变量
      */
-    void setVariable(String taskId, String variableName, Object value);
-
-    /**
-     * 设置流程变量(全局变量)
-     *
-     * @param taskId    任务id
-     * @param variables 流程变量
-     */
-    void setVariables(String taskId, Map<String, Object> variables);
-
-    /**
-     * 设置流程变量(本地变量,非全局变量)
-     *
-     * @param taskId       任务id
-     * @param variableName 变量名称
-     * @param value        变量值
-     */
-    void setVariableLocal(String taskId, String variableName, Object value);
-
-    /**
-     * 设置流程变量(本地变量,非全局变量)
-     *
-     * @param taskId    任务id
-     * @param variables 流程变量
-     */
-    void setVariablesLocal(String taskId, Map<String, Object> variables);
+    void setVariable(Long instanceId, Map<String, Object> variable);
 
     /**
      * 按照业务id查询流程实例id
@@ -72,5 +46,5 @@ public interface WorkflowService {
      * @param businessKey 业务id
      * @return 结果
      */
-    String getInstanceIdByBusinessKey(String businessKey);
+    Long getInstanceIdByBusinessKey(String businessKey);
 }

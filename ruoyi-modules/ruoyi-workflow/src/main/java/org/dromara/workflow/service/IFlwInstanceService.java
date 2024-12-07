@@ -45,6 +45,22 @@ public interface IFlwInstanceService {
     FlowInstance instanceByBusinessId(String businessId);
 
     /**
+     * 按照实例id查询流程实例
+     *
+     * @param instanceId 实例id
+     * @return 结果
+     */
+    FlowInstance instanceById(Long instanceId);
+
+    /**
+     * 按照实例id查询流程实例
+     *
+     * @param instanceIds 实例id
+     * @return 结果
+     */
+    List<FlowInstance> instanceByIdList(List<Long> instanceIds);
+
+    /**
      * 按照业务id删除流程实例
      *
      * @param businessIds 业务id
@@ -100,4 +116,12 @@ public interface IFlwInstanceService {
      * @return 结果
      */
     Map<String, Object> getInstanceVariable(String instanceId);
+
+    /**
+     * 设置流程变量
+     *
+     * @param instanceId 实例id
+     * @param variable   流程变量
+     */
+    void setVariable(Long instanceId, Map<String, Object> variable);
 }

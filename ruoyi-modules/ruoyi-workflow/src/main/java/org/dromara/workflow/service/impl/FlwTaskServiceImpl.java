@@ -470,6 +470,30 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     }
 
     /**
+     * 按照任务id查询任务
+     *
+     * @param taskIdList 任务id
+     * @return 结果
+     */
+    @Override
+    public List<FlowHisTask> selectHisTaskByIdList(List<Long> taskIdList) {
+        return flowHisTaskMapper.selectList(new LambdaQueryWrapper<>(FlowHisTask.class)
+            .in(FlowHisTask::getId, taskIdList));
+    }
+
+    /**
+     * 按照任务id查询任务
+     *
+     * @param taskId 任务id
+     * @return 结果
+     */
+    @Override
+    public FlowHisTask selectHisTaskById(Long taskId) {
+        return flowHisTaskMapper.selectOne(new LambdaQueryWrapper<>(FlowHisTask.class)
+            .eq(FlowHisTask::getId, taskId));
+    }
+
+    /**
      * 按照实例id查询任务
      *
      * @param instanceIdList 流程实例id
@@ -584,5 +608,47 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             throw new ServiceException(e.getMessage());
         }
         return true;
+    }
+
+    /**
+     * 按任务id查询实例
+     *
+     * @param taskId 任务id
+     */
+    @Override
+    public FlowInstance selectByTaskId(Long taskId) {
+        FlowTask flowTask = selectByIdList(taskId);
+        if (flowTask == null) {
+            FlowHisTask flowHisTask = selectHisTaskById(taskId);
+            if (flowHisTask != null) {
+                return iFlwInstanceService.instanceById(flowHisTask.getInstanceId());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 按任务id查询实例
+     *
+     * @param taskIdList 任务id
+     */
+    @Override
+    public List<FlowInstance> selectByTaskIdList(List<Long> taskIdList) {
+        if (CollUtil.isEmpty(taskIdList)) {
+            return Collections.emptyList();
+        }
+        Set<Long> instanceIds = new HashSet<>();
+        List<FlowTask> flowTaskList = selectByIdList(taskIdList);
+        for (FlowTask flowTask : flowTaskList) {
+            instanceIds.add(flowTask.getInstanceId());
+        }
+        List<FlowHisTask> flowHisTaskList = selectHisTaskByIdList(taskIdList);
+        for (FlowHisTask flowHisTask : flowHisTaskList) {
+            instanceIds.add(flowHisTask.getInstanceId());
+        }
+        if (!instanceIds.isEmpty()) {
+            return iFlwInstanceService.instanceByIdList(new ArrayList<>(instanceIds));
+        }
+        return Collections.emptyList();
     }
 }

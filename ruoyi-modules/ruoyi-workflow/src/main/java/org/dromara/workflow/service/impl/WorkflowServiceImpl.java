@@ -1,8 +1,11 @@
 package org.dromara.workflow.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.service.WorkflowService;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.workflow.service.IFlwInstanceService;
+import org.dromara.workflow.service.IFlwTaskService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,7 +20,8 @@ import java.util.Map;
 @Service
 public class WorkflowServiceImpl implements WorkflowService {
 
-    private final IFlwInstanceService iFlwInstanceService;
+    private final IFlwInstanceService flwInstanceService;
+    private final IFlwTaskService flwTaskService;
 
     /**
      * 删除流程实例
@@ -27,7 +31,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @Override
     public boolean deleteInstance(List<Long> businessKeys) {
-        return iFlwInstanceService.deleteByBusinessIds(businessKeys);
+        return flwInstanceService.deleteByBusinessIds(businessKeys);
     }
 
     /**
@@ -36,8 +40,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @param taskId 任务id
      */
     @Override
-    public String getBusinessStatusByTaskId(String taskId) {
-        return "";
+    public String getBusinessStatusByTaskId(Long taskId) {
+        return ObjectUtil.isNotNull(flwTaskService.selectByTaskId(taskId)) ? flwTaskService.selectByTaskId(taskId).getFlowStatus() : StringUtils.EMPTY;
     }
 
     /**
@@ -47,49 +51,18 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @Override
     public String getBusinessStatus(String businessKey) {
-        return "";
+        return ObjectUtil.isNotNull(flwInstanceService.instanceByBusinessId(businessKey)) ? flwInstanceService.instanceByBusinessId(businessKey).getFlowStatus() : StringUtils.EMPTY;
     }
 
     /**
-     * 设置流程变量(全局变量)
+     * 设置流程变量
      *
-     * @param taskId       任务id
-     * @param variableName 变量名称
-     * @param value        变量值
+     * @param instanceId 流程实例id
+     * @param variables  流程变量
      */
     @Override
-    public void setVariable(String taskId, String variableName, Object value) {
-    }
-
-    /**
-     * 设置流程变量(全局变量)
-     *
-     * @param taskId    任务id
-     * @param variables 流程变量
-     */
-    @Override
-    public void setVariables(String taskId, Map<String, Object> variables) {
-    }
-
-    /**
-     * 设置流程变量(本地变量,非全局变量)
-     *
-     * @param taskId       任务id
-     * @param variableName 变量名称
-     * @param value        变量值
-     */
-    @Override
-    public void setVariableLocal(String taskId, String variableName, Object value) {
-    }
-
-    /**
-     * 设置流程变量(本地变量,非全局变量)
-     *
-     * @param taskId    任务id
-     * @param variables 流程变量
-     */
-    @Override
-    public void setVariablesLocal(String taskId, Map<String, Object> variables) {
+    public void setVariable(Long instanceId, Map<String, Object> variables) {
+        flwInstanceService.setVariable(instanceId, variables);
     }
 
     /**
@@ -99,7 +72,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @return 结果
      */
     @Override
-    public String getInstanceIdByBusinessKey(String businessKey) {
-        return null;
+    public Long getInstanceIdByBusinessKey(String businessKey) {
+        return ObjectUtil.isNotNull(flwInstanceService.instanceByBusinessId(businessKey)) ? flwInstanceService.instanceByBusinessId(businessKey).getId() : null;
     }
 }

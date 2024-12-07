@@ -3,6 +3,8 @@ package org.dromara.workflow.service;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.warm.flow.core.entity.HisTask;
+import org.dromara.warm.flow.orm.entity.FlowHisTask;
+import org.dromara.warm.flow.orm.entity.FlowInstance;
 import org.dromara.warm.flow.orm.entity.FlowTask;
 import org.dromara.workflow.domain.bo.*;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
@@ -130,6 +132,22 @@ public interface IFlwTaskService {
     FlowTask selectByIdList(Long taskId);
 
     /**
+     * 按照任务id查询任务
+     *
+     * @param taskIdList 任务id
+     * @return 结果
+     */
+    List<FlowHisTask> selectHisTaskByIdList(List<Long> taskIdList);
+
+    /**
+     * 按照任务id查询任务
+     *
+     * @param taskId 任务id
+     * @return 结果
+     */
+    FlowHisTask selectHisTaskById(Long taskId);
+
+    /**
      * 按照实例id查询任务
      *
      * @param instanceIdList 流程实例id
@@ -153,4 +171,20 @@ public interface IFlwTaskService {
      * @return 结果
      */
     boolean taskOperation(TaskOperationBo bo, String taskOperation);
+
+    /**
+     * 按任务id查询实例
+     *
+     * @param taskId 任务id
+     * @return 结果
+     */
+    FlowInstance selectByTaskId(Long taskId);
+
+    /**
+     * 按任务id查询实例
+     *
+     * @param taskIdList 任务id
+     * @return 结果
+     */
+    List<FlowInstance> selectByTaskIdList(List<Long> taskIdList);
 }

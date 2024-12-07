@@ -123,6 +123,26 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     }
 
     /**
+     * 按照实例id查询流程实例
+     *
+     * @param instanceId 实例id
+     */
+    @Override
+    public FlowInstance instanceById(Long instanceId) {
+        return flowInstanceMapper.selectById(instanceId);
+    }
+
+    /**
+     * 按照实例id查询流程实例
+     *
+     * @param instanceIds 实例id
+     */
+    @Override
+    public List<FlowInstance> instanceByIdList(List<Long> instanceIds) {
+        return flowInstanceMapper.selectByIds(instanceIds);
+    }
+
+    /**
      * 按照业务id删除流程实例
      *
      * @param businessIds 业务id
@@ -287,5 +307,19 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         map.put("variableList", list);
         map.put("variable", flowInstance.getVariable());
         return map;
+    }
+
+    /**
+     * 设置流程变量
+     *
+     * @param instanceId 实例id
+     * @param variable   流程变量
+     */
+    @Override
+    public void setVariable(Long instanceId, Map<String, Object> variable) {
+        Instance instance = insService.getById(instanceId);
+        if (instance != null) {
+            taskService.mergeVariable(instance, variable);
+        }
     }
 }
