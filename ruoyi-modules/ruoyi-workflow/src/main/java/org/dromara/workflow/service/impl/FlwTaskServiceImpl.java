@@ -1,5 +1,6 @@
 package org.dromara.workflow.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -29,6 +30,7 @@ import org.dromara.warm.flow.core.enums.UserType;
 import org.dromara.warm.flow.core.service.*;
 import org.dromara.warm.flow.orm.entity.*;
 import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
+import org.dromara.warm.flow.orm.mapper.FlowInstanceMapper;
 import org.dromara.warm.flow.orm.mapper.FlowSkipMapper;
 import org.dromara.warm.flow.orm.mapper.FlowTaskMapper;
 import org.dromara.workflow.common.enums.TaskAssigneeType;
@@ -41,7 +43,6 @@ import org.dromara.workflow.domain.vo.WfDefinitionConfigVo;
 import org.dromara.workflow.handler.FlowProcessEventHandler;
 import org.dromara.workflow.handler.WorkflowPermissionHandler;
 import org.dromara.workflow.mapper.FlwTaskMapper;
-import org.dromara.workflow.service.IFlwInstanceService;
 import org.dromara.workflow.service.IFlwTaskService;
 import org.dromara.workflow.service.IWfDefinitionConfigService;
 import org.dromara.workflow.utils.WorkflowUtils;
@@ -65,10 +66,10 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
 
     private final TaskService taskService;
     private final InsService insService;
+    private final FlowInstanceMapper flowInstanceMapper;
     private final FlwTaskMapper flwTaskMapper;
     private final UserService userService;
     private final IWfDefinitionConfigService wfDefinitionConfigService;
-    private final IFlwInstanceService iFlwInstanceService;
     private final FlowTaskMapper flowTaskMapper;
     private final FlowHisTaskMapper flowHisTaskMapper;
     private final FlowSkipMapper flowSkipMapper;
@@ -105,7 +106,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             log.error("流程定义ID【{}】不存在！", definitionId);
             throw new ServiceException("请到流程定义ID【" + definitionId + "】不存在！");
         }
-        FlowInstance flowInstance = iFlwInstanceService.instanceByBusinessId(businessKey);
+        FlowInstance flowInstance = flowInstanceMapper.selectOne(new LambdaQueryWrapper<>(FlowInstance.class)
+            .eq(FlowInstance::getBusinessId, businessKey));
         if (flowInstance != null) {
             List<Task> taskList = taskService.list(new FlowTask().setInstanceId(flowInstance.getId()));
             return Map.of(PROCESS_INSTANCE_ID, taskList.get(0).getInstanceId(), TASK_ID, taskList.get(0).getId());
@@ -163,8 +165,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             flowParams.flowStatus(BusinessStatusEnum.WAITING.getStatus()).hisStatus(TaskStatusEnum.PASS.getStatus());
             // 执行任务跳转，并根据返回的处理人设置下一步处理人
             setHandler(taskService.skip(taskId, flowParams), flowTask, wfCopyList);
-            // 更新实例状态为待审核状态
-            iFlwInstanceService.updateStatus(ins.getId(), BusinessStatusEnum.WAITING.getStatus());
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -464,9 +464,15 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      * @param taskId 任务id
      */
     @Override
-    public FlowTask selectByIdList(Long taskId) {
-        return flowTaskMapper.selectOne(new LambdaQueryWrapper<>(FlowTask.class)
-            .eq(FlowTask::getId, taskId));
+    public FlowTaskVo selectById(Long taskId) {
+        Task task = taskService.getById(taskId);
+        if (task == null) {
+            return null;
+        }
+        FlowTaskVo flowTaskVo = BeanUtil.toBean(task, FlowTaskVo.class);
+        Instance instance = insService.getById(task.getInstanceId());
+        flowTaskVo.setFlowStatus(instance.getFlowStatus());
+        return flowTaskVo;
     }
 
     /**
@@ -608,47 +614,5 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             throw new ServiceException(e.getMessage());
         }
         return true;
-    }
-
-    /**
-     * 按任务id查询实例
-     *
-     * @param taskId 任务id
-     */
-    @Override
-    public FlowInstance selectByTaskId(Long taskId) {
-        FlowTask flowTask = selectByIdList(taskId);
-        if (flowTask == null) {
-            FlowHisTask flowHisTask = selectHisTaskById(taskId);
-            if (flowHisTask != null) {
-                return iFlwInstanceService.instanceById(flowHisTask.getInstanceId());
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 按任务id查询实例
-     *
-     * @param taskIdList 任务id
-     */
-    @Override
-    public List<FlowInstance> selectByTaskIdList(List<Long> taskIdList) {
-        if (CollUtil.isEmpty(taskIdList)) {
-            return Collections.emptyList();
-        }
-        Set<Long> instanceIds = new HashSet<>();
-        List<FlowTask> flowTaskList = selectByIdList(taskIdList);
-        for (FlowTask flowTask : flowTaskList) {
-            instanceIds.add(flowTask.getInstanceId());
-        }
-        List<FlowHisTask> flowHisTaskList = selectHisTaskByIdList(taskIdList);
-        for (FlowHisTask flowHisTask : flowHisTaskList) {
-            instanceIds.add(flowHisTask.getInstanceId());
-        }
-        if (!instanceIds.isEmpty()) {
-            return iFlwInstanceService.instanceByIdList(new ArrayList<>(instanceIds));
-        }
-        return Collections.emptyList();
     }
 }

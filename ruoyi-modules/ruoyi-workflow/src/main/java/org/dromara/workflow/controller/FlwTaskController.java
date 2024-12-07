@@ -131,15 +131,7 @@ public class FlwTaskController extends BaseController {
      */
     @GetMapping("/getTaskById/{taskId}")
     public R<FlowTaskVo> getTaskById(@PathVariable Long taskId) {
-        Task task = taskService.getById(taskId);
-        if (ObjectUtil.isNotNull(task)) {
-            FlowTaskVo flowTaskVo = BeanUtil.toBean(task, FlowTaskVo.class);
-            Instance instance = insService.getById(task.getInstanceId());
-            flowTaskVo.setFlowStatus(instance.getFlowStatus());
-            flowTaskVo.setFlowStatusName(BusinessStatusEnum.findByStatus(instance.getFlowStatus()));
-            return R.ok(flowTaskVo);
-        }
-        return R.fail();
+        return R.ok(flwTaskService.selectById(taskId));
     }
 
     /**

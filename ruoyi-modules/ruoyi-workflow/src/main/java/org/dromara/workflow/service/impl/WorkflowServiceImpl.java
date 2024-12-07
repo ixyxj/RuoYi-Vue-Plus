@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.service.WorkflowService;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.workflow.service.IFlwInstanceService;
-import org.dromara.workflow.service.IFlwTaskService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,7 +20,6 @@ import java.util.Map;
 public class WorkflowServiceImpl implements WorkflowService {
 
     private final IFlwInstanceService flwInstanceService;
-    private final IFlwTaskService flwTaskService;
 
     /**
      * 删除流程实例
@@ -41,7 +39,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @Override
     public String getBusinessStatusByTaskId(Long taskId) {
-        return ObjectUtil.isNotNull(flwTaskService.selectByTaskId(taskId)) ? flwTaskService.selectByTaskId(taskId).getFlowStatus() : StringUtils.EMPTY;
+        return ObjectUtil.isNotNull(flwInstanceService.selectByTaskId(taskId)) ? flwInstanceService.selectByTaskId(taskId).getFlowStatus() : StringUtils.EMPTY;
     }
 
     /**
@@ -51,7 +49,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @Override
     public String getBusinessStatus(String businessKey) {
-        return ObjectUtil.isNotNull(flwInstanceService.instanceByBusinessId(businessKey)) ? flwInstanceService.instanceByBusinessId(businessKey).getFlowStatus() : StringUtils.EMPTY;
+        return ObjectUtil.isNotNull(flwInstanceService.selectInstByBusinessId(businessKey)) ? flwInstanceService.selectInstByBusinessId(businessKey).getFlowStatus() : StringUtils.EMPTY;
     }
 
     /**
@@ -73,6 +71,6 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @Override
     public Long getInstanceIdByBusinessKey(String businessKey) {
-        return ObjectUtil.isNotNull(flwInstanceService.instanceByBusinessId(businessKey)) ? flwInstanceService.instanceByBusinessId(businessKey).getId() : null;
+        return ObjectUtil.isNotNull(flwInstanceService.selectInstByBusinessId(businessKey)) ? flwInstanceService.selectInstByBusinessId(businessKey).getId() : null;
     }
 }

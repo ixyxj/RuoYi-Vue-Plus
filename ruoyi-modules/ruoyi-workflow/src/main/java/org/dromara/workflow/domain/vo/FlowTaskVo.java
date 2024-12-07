@@ -116,6 +116,7 @@ public class FlowTaskVo implements Serializable {
     /**
      * 流程状态
      */
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "flowStatus",other = "wf_business_status")
     private String flowStatusName;
 
     /**

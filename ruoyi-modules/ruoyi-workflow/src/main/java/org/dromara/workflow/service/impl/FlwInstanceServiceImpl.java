@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.exception.ServiceException;
-import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -24,7 +23,6 @@ import org.dromara.warm.flow.core.entity.Definition;
 import org.dromara.warm.flow.core.entity.Instance;
 import org.dromara.warm.flow.core.entity.Node;
 import org.dromara.warm.flow.core.entity.Task;
-import org.dromara.warm.flow.core.enums.CooperateType;
 import org.dromara.warm.flow.core.enums.FlowStatus;
 import org.dromara.warm.flow.core.enums.NodeType;
 import org.dromara.warm.flow.core.enums.SkipType;
@@ -33,10 +31,7 @@ import org.dromara.warm.flow.core.service.InsService;
 import org.dromara.warm.flow.core.service.NodeService;
 import org.dromara.warm.flow.core.service.TaskService;
 import org.dromara.warm.flow.core.utils.AssertUtil;
-import org.dromara.warm.flow.orm.entity.FlowDefinition;
-import org.dromara.warm.flow.orm.entity.FlowHisTask;
-import org.dromara.warm.flow.orm.entity.FlowInstance;
-import org.dromara.warm.flow.orm.entity.FlowNode;
+import org.dromara.warm.flow.orm.entity.*;
 import org.dromara.warm.flow.orm.mapper.FlowDefinitionMapper;
 import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
 import org.dromara.warm.flow.orm.mapper.FlowInstanceMapper;
@@ -49,14 +44,12 @@ import org.dromara.workflow.domain.vo.FlowInstanceVo;
 import org.dromara.workflow.domain.vo.VariableVo;
 import org.dromara.workflow.mapper.FlwInstanceMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
+import org.dromara.workflow.service.IFlwTaskService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 流程实例 服务层实现
@@ -77,6 +70,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     private final TaskService taskService;
     private final FlowNodeMapper flowNodeMapper;
     private final NodeService nodeService;
+    private final IFlwTaskService flwTaskService;
 
     /**
      * 分页查询正在运行的流程实例
@@ -118,7 +112,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param businessId 业务id
      */
     @Override
-    public FlowInstance instanceByBusinessId(String businessId) {
+    public FlowInstance selectInstByBusinessId(String businessId) {
         return flowInstanceMapper.selectOne(new LambdaQueryWrapper<FlowInstance>().eq(FlowInstance::getBusinessId, businessId));
     }
 
@@ -128,7 +122,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param instanceId 实例id
      */
     @Override
-    public FlowInstance instanceById(Long instanceId) {
+    public FlowInstance selectInstById(Long instanceId) {
         return flowInstanceMapper.selectById(instanceId);
     }
 
@@ -138,7 +132,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param instanceIds 实例id
      */
     @Override
-    public List<FlowInstance> instanceByIdList(List<Long> instanceIds) {
+    public List<FlowInstance> selectInstListByIdList(List<Long> instanceIds) {
         return flowInstanceMapper.selectByIds(instanceIds);
     }
 
@@ -177,7 +171,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Transactional(rollbackFor = Exception.class)
     public boolean cancelProcessApply(FlowCancelBo bo) {
         try {
-            Instance instance = instanceByBusinessId(bo.getBusinessId());
+            Instance instance = selectInstByBusinessId(bo.getBusinessId());
             if (instance == null) {
                 throw new ServiceException(ExceptionCons.NOT_FOUNT_INSTANCE);
             }
@@ -254,7 +248,10 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     public Map<String, Object> getFlowImage(String businessId) {
         Map<String, Object> map = new HashMap<>(16);
-        FlowInstance flowInstance = instanceByBusinessId(businessId);
+        FlowInstance flowInstance = selectInstByBusinessId(businessId);
+        if (flowInstance == null) {
+            throw new ServiceException(ExceptionCons.NOT_FOUNT_INSTANCE);
+        }
         LambdaQueryWrapper<FlowHisTask> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(FlowHisTask::getInstanceId, flowInstance.getId());
         wrapper.eq(FlowHisTask::getNodeType, NodeType.BETWEEN.getKey());
@@ -321,5 +318,49 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         if (instance != null) {
             taskService.mergeVariable(instance, variable);
         }
+    }
+
+    /**
+     * 按任务id查询实例
+     *
+     * @param taskId 任务id
+     */
+    @Override
+    public FlowInstance selectByTaskId(Long taskId) {
+        Task task = taskService.getById(taskId);
+        if (task == null) {
+            FlowHisTask flowHisTask = flwTaskService.selectHisTaskById(taskId);
+            if (flowHisTask != null) {
+                return selectInstById(flowHisTask.getInstanceId());
+            }
+        } else {
+            return selectInstById(task.getInstanceId());
+        }
+        return null;
+    }
+
+    /**
+     * 按任务id查询实例
+     *
+     * @param taskIdList 任务id
+     */
+    @Override
+    public List<FlowInstance> selectByTaskIdList(List<Long> taskIdList) {
+        if (CollUtil.isEmpty(taskIdList)) {
+            return Collections.emptyList();
+        }
+        Set<Long> instanceIds = new HashSet<>();
+        List<FlowTask> flowTaskList = flwTaskService.selectByIdList(taskIdList);
+        for (FlowTask flowTask : flowTaskList) {
+            instanceIds.add(flowTask.getInstanceId());
+        }
+        List<FlowHisTask> flowHisTaskList = flwTaskService.selectHisTaskByIdList(taskIdList);
+        for (FlowHisTask flowHisTask : flowHisTaskList) {
+            instanceIds.add(flowHisTask.getInstanceId());
+        }
+        if (!instanceIds.isEmpty()) {
+            return selectInstListByIdList(new ArrayList<>(instanceIds));
+        }
+        return Collections.emptyList();
     }
 }
