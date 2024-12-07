@@ -7,6 +7,7 @@ import org.dromara.warm.flow.core.entity.User;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -116,7 +117,7 @@ public class FlowTaskVo implements Serializable {
     /**
      * 流程状态
      */
-    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "flowStatus",other = "wf_business_status")
+    @Translation(type = TransConstant.DICT_TYPE_TO_LABEL, mapper = "flowStatus", other = "wf_business_status")
     private String flowStatusName;
 
     /**
@@ -134,4 +135,9 @@ public class FlowTaskVo implements Serializable {
      * 办理人类型
      */
     private String type;
+
+    /**
+     * 流程签署比例值 大于0为票签，会签
+     */
+    private BigDecimal nodeRatio;
 }

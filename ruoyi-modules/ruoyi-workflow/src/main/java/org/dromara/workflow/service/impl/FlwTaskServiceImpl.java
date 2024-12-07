@@ -77,6 +77,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     private final DefService defService;
     private final HisTaskService hisTaskService;
     private final IdentifierGenerator identifierGenerator;
+    private final NodeService nodeService;
 
     /**
      * 启动任务
@@ -341,7 +342,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
                 throw new ServiceException("任务不存在！");
             }
             Long definitionId = flowTasks.get(0).getDefinitionId();
-            Definition definition = defService.getById(definitionId);
             List<FlowSkip> flowSkips = flowSkipMapper.selectList(new LambdaQueryWrapper<>(FlowSkip.class).eq(FlowSkip::getDefinitionId, definitionId));
             FlowSkip flowSkip = StreamUtils.findFirst(flowSkips, e -> NodeType.START.getKey().equals(e.getNowNodeType()));
             //开始节点的下一节点
@@ -472,6 +472,11 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         FlowTaskVo flowTaskVo = BeanUtil.toBean(task, FlowTaskVo.class);
         Instance instance = insService.getById(task.getInstanceId());
         flowTaskVo.setFlowStatus(instance.getFlowStatus());
+        List<Node> nodeList = nodeService.getByNodeCodes(Collections.singletonList(flowTaskVo.getNodeCode()), instance.getDefinitionId());
+        if (CollUtil.isNotEmpty(nodeList)) {
+            Node node = nodeList.get(0);
+            flowTaskVo.setNodeRatio(node.getNodeRatio());
+        }
         return flowTaskVo;
     }
 
