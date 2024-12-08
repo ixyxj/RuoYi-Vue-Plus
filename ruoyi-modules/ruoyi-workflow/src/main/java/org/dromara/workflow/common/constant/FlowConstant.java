@@ -28,4 +28,24 @@ public interface FlowConstant {
      */
     String TASK_ID = "taskId";
 
+    /**
+     * 委托
+     */
+    String DELEGATE_TASK = "delegateTask";
+
+    /**
+     * 转办
+     */
+    String TRANSFER_TASK = "transferTask";
+
+    /**
+     * 加签
+     */
+    String ADD_SIGNATURE = "addSignature";
+
+    /**
+     * 减签
+     */
+    String REDUCTION_SIGNATURE = "reductionSignature";
+
 }

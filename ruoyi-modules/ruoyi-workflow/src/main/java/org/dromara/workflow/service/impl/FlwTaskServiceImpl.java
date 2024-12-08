@@ -49,6 +49,7 @@ import org.dromara.workflow.utils.WorkflowUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -540,15 +541,15 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
 
         // 根据操作类型构建 FlowParams
         switch (taskOperation) {
-            case "delegateTask", "transferTask" -> {
+            case DELEGATE_TASK, TRANSFER_TASK -> {
                 ValidatorUtils.validate(bo, AddGroup.class);
                 flowParams.addHandlers(Collections.singletonList(bo.getUserId()));
             }
-            case "addSignature" -> {
+            case ADD_SIGNATURE -> {
                 ValidatorUtils.validate(bo, EditGroup.class);
                 flowParams.addHandlers(bo.getUserIds());
             }
-            case "reductionSignature" -> {
+            case REDUCTION_SIGNATURE -> {
                 ValidatorUtils.validate(bo, EditGroup.class);
                 flowParams.reductionHandlers(bo.getUserIds());
             }
@@ -559,25 +560,31 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         }
 
         Long taskId = bo.getTaskId();
+        FlowTaskVo flowTaskVo = selectById(taskId);
+        if ("addSignature".equals(taskOperation) || "reductionSignature".equals(taskOperation)) {
+            if (flowTaskVo.getNodeRatio().compareTo(BigDecimal.ZERO) == 0) {
+                throw new ServiceException(flowTaskVo.getNodeName() + "不是会签节点！");
+            }
+        }
         // 设置任务状态并执行对应的任务操作
         switch (taskOperation) {
             //委派任务
-            case "delegateTask" -> {
+            case DELEGATE_TASK -> {
                 flowParams.hisStatus(TaskStatusEnum.DEPUTE.getStatus());
                 return taskService.depute(taskId, flowParams);
             }
             //转办任务
-            case "transferTask" -> {
+            case TRANSFER_TASK -> {
                 flowParams.hisStatus(TaskStatusEnum.TRANSFER.getStatus());
                 return taskService.transfer(taskId, flowParams);
             }
             //加签，增加办理人
-            case "addSignature" -> {
+            case ADD_SIGNATURE -> {
                 flowParams.hisStatus(TaskStatusEnum.SIGN.getStatus());
                 return taskService.addSignature(taskId, flowParams);
             }
             //减签，减少办理人
-            case "reductionSignature" -> {
+            case REDUCTION_SIGNATURE -> {
                 flowParams.hisStatus(TaskStatusEnum.SIGN_OFF.getStatus());
                 return taskService.reductionSignature(taskId, flowParams);
             }
