@@ -220,6 +220,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             }
         }
         wrapper.eq(FlowInstance::getCreateBy, LoginHelper.getUserIdStr());
+        wrapper.orderByDesc(FlowInstance::getCreateTime);
         Page<FlowInstance> page = flowInstanceMapper.selectPage(pageQuery.build(), wrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
         List<FlowInstanceVo> flowInstanceVos = BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class);

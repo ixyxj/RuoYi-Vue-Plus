@@ -275,6 +275,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
         queryWrapper.in("t.approver", LoginHelper.getUserIdStr());
+        queryWrapper.orderByDesc("t.create_time").orderByDesc("t.update_time");
         Page<FlowHisTaskVo> page = flwTaskMapper.getTaskFinishByPage(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
     }
