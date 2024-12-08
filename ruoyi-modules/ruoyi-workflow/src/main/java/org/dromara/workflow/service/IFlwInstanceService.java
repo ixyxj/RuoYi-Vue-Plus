@@ -6,6 +6,7 @@ import org.dromara.warm.flow.core.entity.Instance;
 import org.dromara.warm.flow.orm.entity.FlowInstance;
 import org.dromara.workflow.domain.bo.FlowCancelBo;
 import org.dromara.workflow.domain.bo.FlowInstanceBo;
+import org.dromara.workflow.domain.bo.FlowInvalidBo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
 
 import java.util.List;
@@ -140,4 +141,12 @@ public interface IFlwInstanceService {
      * @return 结果
      */
     List<FlowInstance> selectByTaskIdList(List<Long> taskIdList);
+
+    /**
+     * 作废流程
+     *
+     * @param bo 参数
+     * @return 结果
+     */
+    boolean processInvalid(FlowInvalidBo bo);
 }

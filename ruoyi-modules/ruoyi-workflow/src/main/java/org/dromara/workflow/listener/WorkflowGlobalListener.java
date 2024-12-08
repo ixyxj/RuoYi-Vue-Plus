@@ -1,20 +1,17 @@
 package org.dromara.workflow.listener;
 
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.event.ProcessEvent;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StringUtils;
-import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.entity.Definition;
 import org.dromara.warm.flow.core.entity.Instance;
 import org.dromara.warm.flow.core.listener.GlobalListener;
 import org.dromara.warm.flow.core.listener.ListenerVariable;
 import org.dromara.warm.flow.orm.entity.FlowTask;
-import org.dromara.warm.flow.orm.mapper.FlowTaskMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.dromara.workflow.service.IFlwTaskService;
 import org.springframework.stereotype.Component;
@@ -38,18 +35,18 @@ public class WorkflowGlobalListener implements GlobalListener {
     public void finish(ListenerVariable listenerVariable) {
         Instance instance = listenerVariable.getInstance();
         Definition definition = listenerVariable.getDefinition();
-        FlowParams flowParams = listenerVariable.getFlowParams();
         //撤销，退回，作废，终止发送事件
-        if (flowParams != null && StringUtils.isNotBlank(flowParams.getFlowStatus()) && BusinessStatusEnum.initialState(flowParams.getFlowStatus())) {
-            publishProcessEvent(flowParams.getFlowStatus(), definition.getFlowCode(), instance.getBusinessId());
-            log.info("流程监听器流程状态:{}", flowParams.getFlowStatus());
-        }
-        List<FlowTask> flowTasks = iFlwTaskService.selectByInstId(instance.getId());
-        if (CollUtil.isEmpty(flowTasks)) {
-            // 若流程已结束，更新状态为已完成并发送完成事件
-            flwInstanceService.updateStatus(instance.getId(), BusinessStatusEnum.FINISH.getStatus());
-            publishProcessEvent(BusinessStatusEnum.FINISH.getStatus(), definition.getFlowCode(), instance.getBusinessId());
-            log.info("流程结束，流程状态:{}", BusinessStatusEnum.FINISH.getStatus());
+        if (StringUtils.isNotBlank(instance.getFlowStatus()) && BusinessStatusEnum.initialState(instance.getFlowStatus())) {
+            publishProcessEvent(instance.getFlowStatus(), definition.getFlowCode(), instance.getBusinessId());
+            log.info("流程监听器流程状态:{}", instance.getFlowStatus());
+        } else {
+            List<FlowTask> flowTasks = iFlwTaskService.selectByInstId(instance.getId());
+            if (CollUtil.isEmpty(flowTasks)) {
+                // 若流程已结束，更新状态为已完成并发送完成事件
+                flwInstanceService.updateStatus(instance.getId(), BusinessStatusEnum.FINISH.getStatus());
+                publishProcessEvent(BusinessStatusEnum.FINISH.getStatus(), definition.getFlowCode(), instance.getBusinessId());
+                log.info("流程结束，流程状态:{}", BusinessStatusEnum.FINISH.getStatus());
+            }
         }
 
     }

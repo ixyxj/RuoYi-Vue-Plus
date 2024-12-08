@@ -39,6 +39,7 @@ import org.dromara.warm.flow.orm.mapper.FlowNodeMapper;
 import org.dromara.workflow.common.enums.TaskStatusEnum;
 import org.dromara.workflow.domain.bo.FlowCancelBo;
 import org.dromara.workflow.domain.bo.FlowInstanceBo;
+import org.dromara.workflow.domain.bo.FlowInvalidBo;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
 import org.dromara.workflow.domain.vo.VariableVo;
@@ -362,5 +363,29 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             return selectInstListByIdList(new ArrayList<>(instanceIds));
         }
         return Collections.emptyList();
+    }
+
+    /**
+     * 作废流程
+     *
+     * @param bo 参数
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean processInvalid(FlowInvalidBo bo) {
+        try {
+            List<FlowTask> flowTaskList = flwTaskService.selectByInstId(bo.getId());
+            for (FlowTask flowTask : flowTaskList) {
+                FlowParams flowParams = new FlowParams();
+                flowParams.message(bo.getComment());
+                flowParams.flowStatus(BusinessStatusEnum.INVALID.getStatus())
+                    .hisStatus(TaskStatusEnum.INVALID.getStatus());
+                taskService.termination(flowTask.getId(), flowParams);
+            }
+            return true;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new ServiceException(e.getMessage());
+        }
     }
 }

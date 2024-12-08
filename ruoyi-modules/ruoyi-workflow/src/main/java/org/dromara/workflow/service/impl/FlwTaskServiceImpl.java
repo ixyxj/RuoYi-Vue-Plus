@@ -400,7 +400,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     @Transactional(rollbackFor = Exception.class)
     public boolean terminationTask(FlowTerminationBo bo) {
         try {
-            //流程定义
             FlowParams flowParams = new FlowParams();
             flowParams.message(bo.getComment());
             flowParams.flowStatus(BusinessStatusEnum.TERMINATION.getStatus())

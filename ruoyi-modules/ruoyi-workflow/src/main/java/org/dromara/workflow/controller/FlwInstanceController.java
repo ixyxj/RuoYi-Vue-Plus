@@ -2,6 +2,9 @@ package org.dromara.workflow.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
+import org.dromara.common.log.annotation.Log;
+import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
@@ -9,6 +12,7 @@ import org.dromara.warm.flow.core.entity.Instance;
 import org.dromara.warm.flow.core.service.InsService;
 import org.dromara.workflow.domain.bo.FlowCancelBo;
 import org.dromara.workflow.domain.bo.FlowInstanceBo;
+import org.dromara.workflow.domain.bo.FlowInvalidBo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.springframework.validation.annotation.Validated;
@@ -129,6 +133,18 @@ public class FlwInstanceController extends BaseController {
     @GetMapping("/getInstanceVariable/{instanceId}")
     public R<Map<String, Object>> getInstanceVariable(@PathVariable String instanceId) {
         return R.ok(flwInstanceService.getInstanceVariable(instanceId));
+    }
+
+    /**
+     * 作废流程
+     *
+     * @param bo 参数
+     */
+    @Log(title = "流程实例管理", businessType = BusinessType.INSERT)
+    @RepeatSubmit()
+    @PostMapping("/processInvalid")
+    public R<Boolean> processInvalid(@Validated @RequestBody FlowInvalidBo bo) {
+        return R.ok(flwInstanceService.processInvalid(bo));
     }
 
 }
