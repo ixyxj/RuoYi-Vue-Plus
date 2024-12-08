@@ -472,7 +472,12 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         }
         FlowTaskVo flowTaskVo = BeanUtil.toBean(task, FlowTaskVo.class);
         Instance instance = insService.getById(task.getInstanceId());
+        Definition definition = defService.getById(task.getDefinitionId());
         flowTaskVo.setFlowStatus(instance.getFlowStatus());
+        flowTaskVo.setVersion(definition.getVersion());
+        flowTaskVo.setFlowCode(definition.getFlowCode());
+        flowTaskVo.setFlowName(definition.getFlowName());
+        flowTaskVo.setBusinessId(instance.getBusinessId());
         List<Node> nodeList = nodeService.getByNodeCodes(Collections.singletonList(flowTaskVo.getNodeCode()), instance.getDefinitionId());
         if (CollUtil.isNotEmpty(nodeList)) {
             Node node = nodeList.get(0);
@@ -538,6 +543,9 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     public boolean taskOperation(TaskOperationBo bo, String taskOperation) {
         FlowParams flowParams = new FlowParams();
         flowParams.message(bo.getMessage());
+        if (LoginHelper.isSuperAdmin() || LoginHelper.isTenantAdmin()) {
+            flowParams.ignore(true);
+        }
 
         // 根据操作类型构建 FlowParams
         switch (taskOperation) {
