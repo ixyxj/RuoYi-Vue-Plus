@@ -106,7 +106,7 @@ public class GenTableServiceImpl implements IGenTableService {
             .like(StringUtils.isNotBlank(genTable.getTableComment()), "lower(table_comment)", StringUtils.lowerCase(genTable.getTableComment()))
             .between(params.get("beginTime") != null && params.get("endTime") != null,
                 "create_time", params.get("beginTime"), params.get("endTime"))
-            .orderByDesc("update_time", "create_time");
+            .orderByDesc("update_time");
         return wrapper;
     }
 
@@ -275,7 +275,6 @@ public class GenTableServiceImpl implements IGenTableService {
                 String tableName = table.getTableName();
                 GenUtils.initTable(table);
                 table.setDataName(dataName);
-                table.setCreateTime(new Date());
                 int row = baseMapper.insert(table);
                 if (row > 0) {
                     // 保存列信息
