@@ -29,7 +29,7 @@ import java.util.Map;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/workflow/processInstance")
+@RequestMapping("/workflow/instance")
 public class FlwInstanceController extends BaseController {
 
     private final IFlwInstanceService flwInstanceService;
@@ -41,9 +41,9 @@ public class FlwInstanceController extends BaseController {
      * @param instance  参数
      * @param pageQuery 分页
      */
-    @GetMapping("/getPageByRunning")
-    public TableDataInfo<FlowInstanceVo> getPageByRunning(Instance instance, PageQuery pageQuery) {
-        return flwInstanceService.getPageByRunning(instance, pageQuery);
+    @GetMapping("/pageByRunning")
+    public TableDataInfo<FlowInstanceVo> pageByRunning(Instance instance, PageQuery pageQuery) {
+        return flwInstanceService.pageByRunning(instance, pageQuery);
     }
 
     /**
@@ -52,9 +52,9 @@ public class FlwInstanceController extends BaseController {
      * @param instance  参数
      * @param pageQuery 分页
      */
-    @GetMapping("/getPageByFinish")
-    public TableDataInfo<FlowInstanceVo> getPageByFinish(Instance instance, PageQuery pageQuery) {
-        return flwInstanceService.getPageByFinish(instance, pageQuery);
+    @GetMapping("/pageByFinish")
+    public TableDataInfo<FlowInstanceVo> pageByFinish(Instance instance, PageQuery pageQuery) {
+        return flwInstanceService.pageByFinish(instance, pageQuery);
     }
 
     /**
@@ -93,8 +93,8 @@ public class FlwInstanceController extends BaseController {
      * @param id     流程定义id
      * @param active 激活/挂起
      */
-    @PutMapping("/active/{id}/{active}")
-    public R<Boolean> active(@PathVariable Long id, @PathVariable boolean active) {
+    @PutMapping("/active/{id}")
+    public R<Boolean> active(@PathVariable Long id, @RequestParam boolean active) {
         if (active) {
             return R.ok(insService.unActive(id));
         } else {
@@ -109,9 +109,9 @@ public class FlwInstanceController extends BaseController {
      * @param flowInstanceBo 参数
      * @param pageQuery      分页
      */
-    @GetMapping("/getPageByCurrent")
-    public TableDataInfo<FlowInstanceVo> getPageByCurrent(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
-        return flwInstanceService.getPageByCurrent(flowInstanceBo, pageQuery);
+    @GetMapping("/pageByCurrent")
+    public TableDataInfo<FlowInstanceVo> pageByCurrent(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+        return flwInstanceService.pageByCurrent(flowInstanceBo, pageQuery);
     }
 
 
@@ -120,9 +120,9 @@ public class FlwInstanceController extends BaseController {
      *
      * @param businessId 业务id
      */
-    @GetMapping("/getFlowImage/{businessId}")
-    public R<Map<String, Object>> getFlowImage(@PathVariable String businessId) {
-        return R.ok(flwInstanceService.getFlowImage(businessId));
+    @GetMapping("/flowImage/{businessId}")
+    public R<Map<String, Object>> flowImage(@PathVariable String businessId) {
+        return R.ok(flwInstanceService.flowImage(businessId));
     }
 
     /**
@@ -130,9 +130,9 @@ public class FlwInstanceController extends BaseController {
      *
      * @param instanceId 流程实例id
      */
-    @GetMapping("/getInstanceVariable/{instanceId}")
-    public R<Map<String, Object>> getInstanceVariable(@PathVariable String instanceId) {
-        return R.ok(flwInstanceService.getInstanceVariable(instanceId));
+    @GetMapping("/instanceVariable/{instanceId}")
+    public R<Map<String, Object>> instanceVariable(@PathVariable String instanceId) {
+        return R.ok(flwInstanceService.instanceVariable(instanceId));
     }
 
     /**
@@ -142,8 +142,8 @@ public class FlwInstanceController extends BaseController {
      */
     @Log(title = "流程实例管理", businessType = BusinessType.INSERT)
     @RepeatSubmit()
-    @PostMapping("/processInvalid")
-    public R<Boolean> processInvalid(@Validated @RequestBody FlowInvalidBo bo) {
+    @PostMapping("/invalid")
+    public R<Boolean> invalid(@Validated @RequestBody FlowInvalidBo bo) {
         return R.ok(flwInstanceService.processInvalid(bo));
     }
 

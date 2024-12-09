@@ -26,7 +26,7 @@ public interface IFlwInstanceService {
      * @param pageQuery 分页
      * @return 结果
      */
-    TableDataInfo<FlowInstanceVo> getPageByRunning(Instance instance, PageQuery pageQuery);
+    TableDataInfo<FlowInstanceVo> pageByRunning(Instance instance, PageQuery pageQuery);
 
     /**
      * 分页查询已结束的流程实例
@@ -35,7 +35,7 @@ public interface IFlwInstanceService {
      * @param pageQuery 分页
      * @return 结果
      */
-    TableDataInfo<FlowInstanceVo> getPageByFinish(Instance instance, PageQuery pageQuery);
+    TableDataInfo<FlowInstanceVo> pageByFinish(Instance instance, PageQuery pageQuery);
 
     /**
      * 按照业务id查询流程实例
@@ -92,7 +92,7 @@ public interface IFlwInstanceService {
      * @param pageQuery  分页
      * @return 结果
      */
-    TableDataInfo<FlowInstanceVo> getPageByCurrent(FlowInstanceBo instanceBo, PageQuery pageQuery);
+    TableDataInfo<FlowInstanceVo> pageByCurrent(FlowInstanceBo instanceBo, PageQuery pageQuery);
 
     /**
      * 获取流程图,流程记录
@@ -100,7 +100,7 @@ public interface IFlwInstanceService {
      * @param businessId 业务id
      * @return 结果
      */
-    Map<String, Object> getFlowImage(String businessId);
+    Map<String, Object> flowImage(String businessId);
 
     /**
      * 按照实例id更新状态
@@ -116,7 +116,7 @@ public interface IFlwInstanceService {
      * @param instanceId 实例id
      * @return 结果
      */
-    Map<String, Object> getInstanceVariable(String instanceId);
+    Map<String, Object> instanceVariable(String instanceId);
 
     /**
      * 设置流程变量

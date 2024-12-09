@@ -40,7 +40,7 @@ public interface IFlwDefinitionService {
      * @param response 响应
      * @throws IOException 异常
      */
-    void exportDefinition(Long id, HttpServletResponse response) throws IOException;
+    void exportDef(Long id, HttpServletResponse response) throws IOException;
 
     /**
      * 导入流程定义

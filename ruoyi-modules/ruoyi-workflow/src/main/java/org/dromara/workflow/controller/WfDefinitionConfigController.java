@@ -1,20 +1,21 @@
 package org.dromara.workflow.controller;
 
-import java.util.List;
-
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.RequiredArgsConstructor;
-import jakarta.validation.constraints.*;
-import org.dromara.workflow.domain.bo.WfDefinitionConfigBo;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.validation.annotation.Validated;
-import org.dromara.common.idempotent.annotation.RepeatSubmit;
-import org.dromara.common.log.annotation.Log;
-import org.dromara.common.web.core.BaseController;
 import org.dromara.common.core.domain.R;
 import org.dromara.common.core.validate.AddGroup;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
+import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
+import org.dromara.common.web.core.BaseController;
+import org.dromara.workflow.domain.bo.WfDefinitionConfigBo;
 import org.dromara.workflow.domain.vo.WfDefinitionConfigVo;
 import org.dromara.workflow.service.IWfDefinitionConfigService;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 流程定义配置
@@ -25,7 +26,7 @@ import org.dromara.workflow.service.IWfDefinitionConfigService;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/workflow/definitionConfig")
+@RequestMapping("/workflow/defConfig")
 public class WfDefinitionConfigController extends BaseController {
 
     private final IWfDefinitionConfigService wfDefinitionConfigService;
@@ -70,9 +71,9 @@ public class WfDefinitionConfigController extends BaseController {
      * @param tableName    表名
      * @param definitionId 流程定义id
      */
-    @GetMapping("/getByTableNameNotDefId/{tableName}/{definitionId}")
-    public R<List<WfDefinitionConfigVo>> getByTableNameNotDefId(@NotBlank(message = "表名不能为空") @PathVariable String tableName,
-                                                                @NotBlank(message = "流程定义ID不能为空") @PathVariable String definitionId) {
+    @GetMapping("/getByTableNameNotDefId")
+    public R<List<WfDefinitionConfigVo>> getByTableNameNotDefId(@NotBlank(message = "表名不能为空") @RequestParam String tableName,
+                                                                @NotBlank(message = "流程定义ID不能为空") @RequestParam String definitionId) {
         return R.ok(wfDefinitionConfigService.getByTableNameNotDefId(tableName, definitionId));
     }
 

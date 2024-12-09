@@ -255,7 +255,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      * @param pageQuery  分页
      */
     @Override
-    public TableDataInfo<FlowTaskVo> getPageByTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+    public TableDataInfo<FlowTaskVo> pageByTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
         queryWrapper.in("t.processed_by", SpringUtils.getBean(WorkflowPermissionHandler.class).permissions());
@@ -271,7 +271,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      * @param pageQuery  分页
      */
     @Override
-    public TableDataInfo<FlowHisTaskVo> getPageByTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+    public TableDataInfo<FlowHisTaskVo> pageByTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
         queryWrapper.in("t.approver", LoginHelper.getUserIdStr());
@@ -287,7 +287,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      * @param pageQuery  分页
      */
     @Override
-    public TableDataInfo<FlowTaskVo> getPageByAllTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+    public TableDataInfo<FlowTaskVo> pageByAllTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
         Page<FlowTaskVo> page = flwTaskMapper.getTaskWaitByPage(pageQuery.build(), queryWrapper);
@@ -301,7 +301,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      * @param pageQuery  分页
      */
     @Override
-    public TableDataInfo<FlowHisTaskVo> getPageByAllTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+    public TableDataInfo<FlowHisTaskVo> pageByAllTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         Page<FlowHisTaskVo> page = flwTaskMapper.getTaskFinishByPage(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
@@ -314,7 +314,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      * @param pageQuery  分页
      */
     @Override
-    public TableDataInfo<FlowTaskVo> getPageByTaskCopy(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+    public TableDataInfo<FlowTaskVo> pageByTaskCopy(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         queryWrapper.in("t.processed_by", LoginHelper.getUserIdStr());
         Page<FlowTaskVo> page = flwTaskMapper.getTaskCopyByPage(pageQuery.build(), queryWrapper);
@@ -646,7 +646,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      * @param taskId 任务id
      */
     @Override
-    public List<UserDTO> getUserListTaskId(Long taskId) {
+    public List<UserDTO> currentTaskAllUser(Long taskId) {
         // 获取与当前任务关联的用户列表
         List<User> associatedUsers = userService.getByAssociateds(Collections.singletonList(taskId));
         if (CollUtil.isEmpty(associatedUsers)) {

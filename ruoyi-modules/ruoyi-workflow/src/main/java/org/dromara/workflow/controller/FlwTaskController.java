@@ -69,9 +69,9 @@ public class FlwTaskController extends BaseController {
      * @param flowTaskBo 参数
      * @param pageQuery  分页
      */
-    @GetMapping("/getPageByTaskWait")
-    public TableDataInfo<FlowTaskVo> getPageByTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        return flwTaskService.getPageByTaskWait(flowTaskBo, pageQuery);
+    @GetMapping("/pageByTaskWait")
+    public TableDataInfo<FlowTaskVo> pageByTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+        return flwTaskService.pageByTaskWait(flowTaskBo, pageQuery);
     }
 
     /**
@@ -81,9 +81,9 @@ public class FlwTaskController extends BaseController {
      * @param pageQuery  分页
      */
 
-    @GetMapping("/getPageByTaskFinish")
-    public TableDataInfo<FlowHisTaskVo> getPageByTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        return flwTaskService.getPageByTaskFinish(flowTaskBo, pageQuery);
+    @GetMapping("/pageByTaskFinish")
+    public TableDataInfo<FlowHisTaskVo> pageByTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+        return flwTaskService.pageByTaskFinish(flowTaskBo, pageQuery);
     }
 
     /**
@@ -92,9 +92,9 @@ public class FlwTaskController extends BaseController {
      * @param flowTaskBo 参数
      * @param pageQuery  分页
      */
-    @GetMapping("/getPageByAllTaskWait")
-    public TableDataInfo<FlowTaskVo> getPageByAllTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        return flwTaskService.getPageByAllTaskWait(flowTaskBo, pageQuery);
+    @GetMapping("/pageByAllTaskWait")
+    public TableDataInfo<FlowTaskVo> pageByAllTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+        return flwTaskService.pageByAllTaskWait(flowTaskBo, pageQuery);
     }
 
     /**
@@ -104,9 +104,9 @@ public class FlwTaskController extends BaseController {
      * @param pageQuery  分页
      */
 
-    @GetMapping("/getPageByAllTaskFinish")
-    public TableDataInfo<FlowHisTaskVo> getPageByAllTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        return flwTaskService.getPageByAllTaskFinish(flowTaskBo, pageQuery);
+    @GetMapping("/pageByAllTaskFinish")
+    public TableDataInfo<FlowHisTaskVo> pageByAllTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+        return flwTaskService.pageByAllTaskFinish(flowTaskBo, pageQuery);
     }
 
     /**
@@ -115,9 +115,9 @@ public class FlwTaskController extends BaseController {
      * @param flowTaskBo 参数
      * @param pageQuery  分页
      */
-    @GetMapping("/getPageByTaskCopy")
-    public TableDataInfo<FlowTaskVo> getPageByTaskCopy(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
-        return flwTaskService.getPageByTaskCopy(flowTaskBo, pageQuery);
+    @GetMapping("/pageByTaskCopy")
+    public TableDataInfo<FlowTaskVo> pageByTaskCopy(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
+        return flwTaskService.pageByTaskCopy(flowTaskBo, pageQuery);
     }
 
     /**
@@ -125,8 +125,8 @@ public class FlwTaskController extends BaseController {
      *
      * @param taskId 任务id
      */
-    @GetMapping("/getTaskById/{taskId}")
-    public R<FlowTaskVo> getTaskById(@PathVariable Long taskId) {
+    @GetMapping("/getTask/{taskId}")
+    public R<FlowTaskVo> getTask(@PathVariable Long taskId) {
         return R.ok(flwTaskService.selectById(taskId));
     }
 
@@ -195,9 +195,9 @@ public class FlwTaskController extends BaseController {
      *
      * @param taskId 任务id
      */
-    @GetMapping("/getUserListTaskId/{taskId}")
-    public R<List<UserDTO>> getUserListTaskId(@PathVariable Long taskId) {
-        return R.ok(flwTaskService.getUserListTaskId(taskId));
+    @GetMapping("/currentTaskAllUser/{taskId}")
+    public R<List<UserDTO>> currentTaskAllUser(@PathVariable Long taskId) {
+        return R.ok(flwTaskService.currentTaskAllUser(taskId));
     }
 
 }

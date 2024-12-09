@@ -43,7 +43,7 @@ public interface IFlwTaskService {
      * @param pageQuery  分页
      * @return 结果
      */
-    TableDataInfo<FlowTaskVo> getPageByTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery);
+    TableDataInfo<FlowTaskVo> pageByTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery);
 
     /**
      * 查询当前租户所有待办任务
@@ -52,7 +52,7 @@ public interface IFlwTaskService {
      * @param pageQuery  分页
      * @return 结果
      */
-    TableDataInfo<FlowHisTaskVo> getPageByTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery);
+    TableDataInfo<FlowHisTaskVo> pageByTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery);
 
 
     /**
@@ -62,7 +62,7 @@ public interface IFlwTaskService {
      * @param pageQuery  分页
      * @return 结果
      */
-    TableDataInfo<FlowTaskVo> getPageByAllTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery);
+    TableDataInfo<FlowTaskVo> pageByAllTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery);
 
     /**
      * 查询已办任务
@@ -71,7 +71,7 @@ public interface IFlwTaskService {
      * @param pageQuery  分页
      * @return 结果
      */
-    TableDataInfo<FlowHisTaskVo> getPageByAllTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery);
+    TableDataInfo<FlowHisTaskVo> pageByAllTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery);
 
     /**
      * 查询当前用户的抄送
@@ -80,7 +80,7 @@ public interface IFlwTaskService {
      * @param pageQuery  分页
      * @return 结果
      */
-    TableDataInfo<FlowTaskVo> getPageByTaskCopy(FlowTaskBo flowTaskBo, PageQuery pageQuery);
+    TableDataInfo<FlowTaskVo> pageByTaskCopy(FlowTaskBo flowTaskBo, PageQuery pageQuery);
 
     /**
      * 修改任务办理人
@@ -178,5 +178,5 @@ public interface IFlwTaskService {
      * @param taskId 任务id
      * @return 结果
      */
-    List<UserDTO> getUserListTaskId(Long taskId);
+    List<UserDTO> currentTaskAllUser(Long taskId);
 }

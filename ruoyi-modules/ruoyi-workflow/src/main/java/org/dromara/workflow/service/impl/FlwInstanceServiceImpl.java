@@ -80,7 +80,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param pageQuery 分页
      */
     @Override
-    public TableDataInfo<FlowInstanceVo> getPageByRunning(Instance instance, PageQuery pageQuery) {
+    public TableDataInfo<FlowInstanceVo> pageByRunning(Instance instance, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("t.flow_status", BusinessStatusEnum.runningStatus());
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
@@ -97,7 +97,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param pageQuery 分页
      */
     @Override
-    public TableDataInfo<FlowInstanceVo> getPageByFinish(Instance instance, PageQuery pageQuery) {
+    public TableDataInfo<FlowInstanceVo> pageByFinish(Instance instance, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("t.flow_status", BusinessStatusEnum.finishStatus());
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
@@ -209,7 +209,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param pageQuery  分页
      */
     @Override
-    public TableDataInfo<FlowInstanceVo> getPageByCurrent(FlowInstanceBo instanceBo, PageQuery pageQuery) {
+    public TableDataInfo<FlowInstanceVo> pageByCurrent(FlowInstanceBo instanceBo, PageQuery pageQuery) {
         LambdaQueryWrapper<FlowInstance> wrapper = Wrappers.lambdaQuery();
         if (StringUtils.isNotBlank(instanceBo.getFlowCode())) {
             List<FlowDefinition> flowDefinitions = flowDefinitionMapper.selectList(
@@ -248,7 +248,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param businessId 业务id
      */
     @Override
-    public Map<String, Object> getFlowImage(String businessId) {
+    public Map<String, Object> flowImage(String businessId) {
         Map<String, Object> map = new HashMap<>(16);
         FlowInstance flowInstance = selectInstByBusinessId(businessId);
         if (flowInstance == null) {
@@ -290,7 +290,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param instanceId 实例id
      */
     @Override
-    public Map<String, Object> getInstanceVariable(String instanceId) {
+    public Map<String, Object> instanceVariable(String instanceId) {
         Map<String, Object> map = new HashMap<>();
         FlowInstance flowInstance = flowInstanceMapper.selectById(instanceId);
         Map<String, Object> variableMap = flowInstance.getVariableMap();

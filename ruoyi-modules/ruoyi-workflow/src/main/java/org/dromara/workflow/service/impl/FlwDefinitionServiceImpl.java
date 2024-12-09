@@ -101,7 +101,7 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
      * @throws IOException 异常
      */
     @Override
-    public void exportDefinition(Long id, HttpServletResponse response) throws IOException {
+    public void exportDef(Long id, HttpServletResponse response) throws IOException {
         Document document = defService.exportXml(id);
         // 设置生成xml的格式
         OutputFormat of = OutputFormat.createPrettyPrint();

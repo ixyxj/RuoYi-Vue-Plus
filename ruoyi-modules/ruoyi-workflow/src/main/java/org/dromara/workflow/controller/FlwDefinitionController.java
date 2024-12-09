@@ -129,9 +129,9 @@ public class FlwDefinitionController extends BaseController {
      * @param id 流程定义id
      */
     @Log(title = "流程定义", businessType = BusinessType.INSERT)
-    @PostMapping("/copyDef/{id}")
+    @PostMapping("/copy/{id}")
     @Transactional(rollbackFor = Exception.class)
-    public R<Boolean> copyDef(@PathVariable Long id) {
+    public R<Boolean> copy(@PathVariable Long id) {
         return R.ok(defService.copyDef(id));
     }
 
@@ -141,9 +141,9 @@ public class FlwDefinitionController extends BaseController {
      * @param file 文件
      */
     @Log(title = "流程定义", businessType = BusinessType.IMPORT)
-    @PostMapping("/importDefinition")
+    @PostMapping("/importDef")
     @Transactional(rollbackFor = Exception.class)
-    public R<Boolean> importDefinition(MultipartFile file) {
+    public R<Boolean> importDef(MultipartFile file) {
         return R.ok(iFlwDefinitionService.importXml(file));
     }
 
@@ -155,9 +155,9 @@ public class FlwDefinitionController extends BaseController {
      * @throws IOException 异常
      */
     @Log(title = "流程定义", businessType = BusinessType.EXPORT)
-    @PostMapping("/exportDefinition/{id}")
-    public void exportDefinition(@PathVariable Long id, HttpServletResponse response) throws IOException {
-        iFlwDefinitionService.exportDefinition(id, response);
+    @PostMapping("/exportDef/{id}")
+    public void exportDef(@PathVariable Long id, HttpServletResponse response) throws IOException {
+        iFlwDefinitionService.exportDef(id, response);
     }
 
     /**
@@ -176,8 +176,8 @@ public class FlwDefinitionController extends BaseController {
      * @param id     流程定义id
      * @param active 激活/挂起
      */
-    @PutMapping("/updateDefinitionState/{id}/{active}")
-    public R<Boolean> active(@PathVariable Long id, @PathVariable boolean active) {
+    @PutMapping("/active/{id}")
+    public R<Boolean> active(@PathVariable Long id, @RequestParam boolean active) {
         return R.ok(active ? defService.unActive(id) : defService.active(id));
     }
 
