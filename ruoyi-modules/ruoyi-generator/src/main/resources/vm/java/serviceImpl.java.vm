@@ -95,6 +95,9 @@ public class ${ClassName}ServiceImpl implements I${ClassName}Service {
             ${ClassName}::get$AttrName ,params.get("begin$AttrName"), params.get("end$AttrName"));
 #end
 #end
+#if($column.isPk==1)
+        lqw.orderByAsc(${ClassName}::get$AttrName);
+#end
 #end
         return lqw;
     }
