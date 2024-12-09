@@ -21,7 +21,15 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Constraint(validatedBy = {EnumPatternValidator.class})
 public @interface EnumPattern {
 
-    Class<? extends ValidateEnum> type() default ValidateEnum.class;
+    /**
+     * 需要校验的枚举类型
+     */
+    Class<? extends Enum> type() default Enum.class;
+
+    /**
+     * 枚举类型校验值判断方法
+     */
+    String method() default "getCode";
 
     String message() default "输入值不在枚举范围内";
 

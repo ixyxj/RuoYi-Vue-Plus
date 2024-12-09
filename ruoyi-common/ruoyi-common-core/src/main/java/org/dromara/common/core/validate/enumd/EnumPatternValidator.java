@@ -1,6 +1,7 @@
 package org.dromara.common.core.validate.enumd;
 
 import org.dromara.common.core.utils.StringUtils;
+import org.dromara.common.core.utils.reflect.ReflectUtils;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import jakarta.validation.ValidationException;
@@ -26,10 +27,11 @@ public class EnumPatternValidator implements ConstraintValidator<EnumPattern, St
     public boolean isValid(String value, ConstraintValidatorContext constraintValidatorContext) {
         try {
             if (StringUtils.isNotBlank(value)) {
-                Class<? extends ValidateEnum> type = annotation.type();
-                ValidateEnum[] constants = type.getEnumConstants();
-                for (ValidateEnum e : constants) {
-                    if (e.validate(value)) {
+                Class<?> type = annotation.type();
+                Object[] enumConstants = type.getEnumConstants();
+                Method method = ReflectUtils.getMethod(type, annotation.method());
+                for (Object e : enumConstants) {
+                    if (value.equals(method.invoke(e))) {
                         return true;
                     }
                 }
