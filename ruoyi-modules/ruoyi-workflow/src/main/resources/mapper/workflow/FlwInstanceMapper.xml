@@ -23,27 +23,27 @@
         <result property="ext" column="ext"/>
     </resultMap>
     <select id="page" resultMap="FlowInstanceResult">
-        select * from (select a.id,
-                     a.create_time,
-                     a.update_time,
-                     a.tenant_id,
-                     a.del_flag,
-                     a.definition_id,
-                     a.business_id,
-                     a.node_type,
-                     a.node_code,
-                     a.node_name,
-                     a.variable,
-                     a.flow_status,
-                     a.activity_status,
-                     a.create_by,
-                     a.ext,
-                     b.flow_name,
-                     b.flow_code,
-                     b.version
-              from flow_instance a
-                       left join flow_definition b on a.definition_id = b.id where a.del_flag = '0') t
-            ${ew.getCustomSqlSegment}
+        select fi.id,
+               fi.create_time,
+               fi.update_time,
+               fi.tenant_id,
+               fi.del_flag,
+               fi.definition_id,
+               fi.business_id,
+               fi.node_type,
+               fi.node_code,
+               fi.node_name,
+               fi.variable,
+               fi.flow_status,
+               fi.activity_status,
+               fi.create_by,
+               fi.ext,
+               fd.flow_name,
+               fd.flow_code,
+               fd.version
+        from flow_instance fi
+            left join flow_definition fd on fi.definition_id = fd.id where fi.del_flag = '0'
+        ${ew.getCustomSqlSegment}
     </select>
 
 </mapper>

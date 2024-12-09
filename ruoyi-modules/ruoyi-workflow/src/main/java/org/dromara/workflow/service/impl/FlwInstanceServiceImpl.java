@@ -82,7 +82,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     public TableDataInfo<FlowInstanceVo> pageByRunning(Instance instance, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("t.flow_status", BusinessStatusEnum.runningStatus());
+        queryWrapper.in("fi.flow_status", BusinessStatusEnum.runningStatus());
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
         build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));
@@ -99,7 +99,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     public TableDataInfo<FlowInstanceVo> pageByFinish(Instance instance, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in("t.flow_status", BusinessStatusEnum.finishStatus());
+        queryWrapper.in("fi.flow_status", BusinessStatusEnum.finishStatus());
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
         build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));

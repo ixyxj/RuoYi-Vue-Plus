@@ -1,5 +1,6 @@
 package org.dromara.workflow.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -21,7 +22,6 @@ import org.dromara.workflow.domain.bo.TestLeaveBo;
 import org.dromara.workflow.domain.vo.TestLeaveVo;
 import org.dromara.workflow.mapper.TestLeaveMapper;
 import org.dromara.workflow.service.ITestLeaveService;
-import org.dromara.workflow.utils.WorkDaysUtils;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,7 +84,8 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
      */
     @Override
     public TestLeaveVo insertByBo(TestLeaveBo bo) {
-        bo.setLeaveDays(WorkDaysUtils.calculateWorkDays(bo.getStartDate(), bo.getEndDate()));
+        long day = DateUtil.betweenDay(bo.getStartDate(), bo.getEndDate(), true);
+        bo.setLeaveDays((int) day);
         TestLeave add = MapstructUtils.convert(bo, TestLeave.class);
         if (StringUtils.isBlank(add.getStatus())) {
             add.setStatus(FlowStatus.TOBESUBMIT.getKey());

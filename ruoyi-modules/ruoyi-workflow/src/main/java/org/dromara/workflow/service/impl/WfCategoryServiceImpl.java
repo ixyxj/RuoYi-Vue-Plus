@@ -75,7 +75,6 @@ public class WfCategoryServiceImpl implements IWfCategoryService {
     public Boolean updateByBo(WfCategoryBo bo) {
         WfCategory update = MapstructUtils.convert(bo, WfCategory.class);
         validEntityBeforeSave(update);
-        WfCategoryVo wfCategoryVo = baseMapper.selectVoById(bo.getId());
         return baseMapper.updateById(update) > 0;
     }
 
@@ -83,7 +82,7 @@ public class WfCategoryServiceImpl implements IWfCategoryService {
      * 保存前的数据校验
      */
     private void validEntityBeforeSave(WfCategory entity) {
-        //TODO 做一些数据校验,如唯一约束
+        // 做一些数据校验,如唯一约束
     }
 
     /**
@@ -92,7 +91,7 @@ public class WfCategoryServiceImpl implements IWfCategoryService {
     @Override
     public Boolean deleteWithValidByIds(Collection<Long> ids, Boolean isValid) {
         if (isValid) {
-            //TODO 做一些业务上的校验,判断是否需要校验
+            // 做一些业务上的校验,判断是否需要校验
         }
         return baseMapper.deleteByIds(ids) > 0;
     }
