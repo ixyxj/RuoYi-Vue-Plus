@@ -9,7 +9,7 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * 自定义枚举校验注解
+ * 自定义枚举校验
  *
  * @author 秋辞未寒
  * @date 2024-12-09
@@ -27,9 +27,10 @@ public @interface EnumPattern {
     Class<? extends Enum> type() default Enum.class;
 
     /**
-     * 枚举类型校验值判断方法
+     * 枚举类型校验值字段名称
+     * TODO 需确保该字段实现了 getter 方法
      */
-    String method() default "getCode";
+    String fieldName() default "code";
 
     String message() default "输入值不在枚举范围内";
 

@@ -28,10 +28,10 @@ public class EnumPatternValidator implements ConstraintValidator<EnumPattern, St
         try {
             if (StringUtils.isNotBlank(value)) {
                 Class<?> type = annotation.type();
+                String fieldName = annotation.fieldName();
                 Object[] enumConstants = type.getEnumConstants();
-                Method method = ReflectUtils.getMethod(type, annotation.method());
                 for (Object e : enumConstants) {
-                    if (value.equals(method.invoke(e))) {
+                    if (value.equals(ReflectUtils.invokeGetter(e, fieldName))) {
                         return true;
                     }
                 }
