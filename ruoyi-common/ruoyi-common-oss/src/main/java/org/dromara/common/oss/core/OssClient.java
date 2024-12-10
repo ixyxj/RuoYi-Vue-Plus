@@ -297,7 +297,7 @@ public class OssClient {
                             .build())
                     .build())
             .url();
-        return url.toString().replace(url.getProtocol() + "://" + url.getHost(), getDomain());
+        return url.toString();
     }
 
     /**
