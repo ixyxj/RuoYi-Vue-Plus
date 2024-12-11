@@ -5,16 +5,20 @@
 <mapper namespace="org.dromara.workflow.mapper.FlwDefMapper">
     <select id="page" resultType="org.dromara.warm.flow.orm.entity.FlowDefinition">
         select *
-        from (select a.* from flow_definition a
-        join (
-            select flow_code,
-                   coalesce(
-                       max(case when is_publish = 1 then version end),
-                       max(version)
-                   ) as version
-            from flow_definition group by flow_code
-        ) b
-        on (a.flow_code = b.flow_code and a.version = b.version) where a.del_flag = '0') t
+        from (
+            select a.*
+            from flow_definition a
+                    join (
+                        select flow_code,
+                               coalesce(
+                                   max(case when is_publish = 1 then version end),
+                                   max(version)
+                               ) as version
+                        from flow_definition
+                        group by flow_code
+                    ) b on (a.flow_code = b.flow_code and a.version = b.version)
+            where a.del_flag = '0'
+        ) t
         ${ew.getCustomSqlSegment}
     </select>
 
