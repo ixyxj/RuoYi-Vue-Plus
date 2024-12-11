@@ -42,7 +42,7 @@
                fd.flow_code,
                fd.version
         from flow_instance fi
-            left join flow_definition fd on fi.definition_id = fd.id where fi.del_flag = '0'
+            left join flow_definition fd on fi.definition_id = fd.id and fi.del_flag = '0'
         ${ew.getCustomSqlSegment}
     </select>
 
