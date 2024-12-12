@@ -177,6 +177,31 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
     }
 
     /**
+     * 根据部门ID查询部门负责人
+     *
+     * @param deptId 部门ID，用于指定需要查询的部门
+     * @return 返回该部门的负责人ID
+     */
+    @Override
+    public Long selectDeptLeaderById(Long deptId) {
+        SysDeptVo vo = SpringUtils.getAopProxy(this).selectDeptById(deptId);
+        return vo.getLeader();
+    }
+
+    /**
+     * 查询部门
+     *
+     * @return 部门列表
+     */
+    @Override
+    public List<DeptDTO> selectDeptsByList() {
+        List<SysDeptVo> list = baseMapper.selectDeptList(new LambdaQueryWrapper<SysDept>()
+            .select(SysDept::getDeptId, SysDept::getDeptName, SysDept::getParentId)
+            .eq(SysDept::getStatus, SystemConstants.NORMAL));
+        return BeanUtil.copyToList(list, DeptDTO.class);
+    }
+
+    /**
      * 根据ID查询所有子部门数（正常状态）
      *
      * @param deptId 部门ID
@@ -354,31 +379,6 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
     @Override
     public int deleteDeptById(Long deptId) {
         return baseMapper.deleteById(deptId);
-    }
-
-    /**
-     * 根据部门ID查询部门负责人
-     *
-     * @param deptId 部门ID，用于指定需要查询的部门
-     * @return 返回该部门的负责人ID
-     */
-    @Override
-    public Long selectDeptLeaderById(Long deptId) {
-        SysDeptVo vo = SpringUtils.getAopProxy(this).selectDeptById(deptId);
-        return vo.getLeader();
-    }
-
-    /**
-     * 查询部门
-     *
-     * @return 部门列表
-     */
-    @Override
-    public List<DeptDTO> selectDeptsByList() {
-        List<SysDeptVo> list = baseMapper.selectDeptList(new LambdaQueryWrapper<SysDept>()
-            .select(SysDept::getDeptId, SysDept::getDeptName, SysDept::getParentId)
-            .eq(SysDept::getStatus, SystemConstants.NORMAL));
-        return BeanUtil.copyToList(list, DeptDTO.class);
     }
 
 }
