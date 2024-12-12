@@ -113,4 +113,8 @@ public class FlowInstanceVo {
      * 流程定义版本
      */
     private String version;
+    /**
+     * 创建者昵称
+     */
+    private String nickName;
 }

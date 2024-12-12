@@ -8,7 +8,6 @@ import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
-import org.dromara.warm.flow.core.entity.Instance;
 import org.dromara.warm.flow.core.service.InsService;
 import org.dromara.workflow.domain.bo.FlowCancelBo;
 import org.dromara.workflow.domain.bo.FlowInstanceBo;
@@ -37,23 +36,23 @@ public class FlwInstanceController extends BaseController {
     /**
      * 分页查询正在运行的流程实例
      *
-     * @param instance  参数
+     * @param flowInstanceBo  参数
      * @param pageQuery 分页
      */
     @GetMapping("/pageByRunning")
-    public TableDataInfo<FlowInstanceVo> pageByRunning(Instance instance, PageQuery pageQuery) {
-        return flwInstanceService.pageByRunning(instance, pageQuery);
+    public TableDataInfo<FlowInstanceVo> pageByRunning(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+        return flwInstanceService.pageByRunning(flowInstanceBo, pageQuery);
     }
 
     /**
      * 分页查询已结束的流程实例
      *
-     * @param instance  参数
+     * @param flowInstanceBo  参数
      * @param pageQuery 分页
      */
     @GetMapping("/pageByFinish")
-    public TableDataInfo<FlowInstanceVo> pageByFinish(Instance instance, PageQuery pageQuery) {
-        return flwInstanceService.pageByFinish(instance, pageQuery);
+    public TableDataInfo<FlowInstanceVo> pageByFinish(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+        return flwInstanceService.pageByFinish(flowInstanceBo, pageQuery);
     }
 
     /**

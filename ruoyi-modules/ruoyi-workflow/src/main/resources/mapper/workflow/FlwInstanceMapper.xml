@@ -21,6 +21,8 @@
         <result property="formPath" column="form_path"/>
         <result property="delFlag" column="del_flag"/>
         <result property="ext" column="ext"/>
+        <result property="createBy" column="create_by"/>
+        <result property="nickName" column="nick_name"/>
     </resultMap>
     <select id="page" resultMap="FlowInstanceResult">
         select fi.id,
@@ -40,10 +42,15 @@
                fi.ext,
                fd.flow_name,
                fd.flow_code,
-               fd.version
+               fd.version,
+               fi.create_by,
+               su.nick_name
         from flow_instance fi
-            left join flow_definition fd on fi.definition_id = fd.id and fi.del_flag = '0'
-        ${ew.getCustomSqlSegment}
+                 left join flow_definition fd on fi.definition_id = fd.id
+                 left join sys_user su on fi.create_by = su.user_id
+            and fi.del_flag = '0'
+            and su.del_flag = '0'
+                ${ew.getCustomSqlSegment}
     </select>
 
 </mapper>

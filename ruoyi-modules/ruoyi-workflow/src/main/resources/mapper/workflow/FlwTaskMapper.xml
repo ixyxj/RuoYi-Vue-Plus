@@ -21,6 +21,8 @@
         <result property="formPath" column="form_path"/>
         <result property="delFlag" column="del_flag"/>
         <result property="type" column="type"/>
+        <result property="createBy" column="create_by"/>
+        <result property="nickName" column="nick_name"/>
     </resultMap>
     <resultMap type="org.dromara.workflow.domain.vo.FlowHisTaskVo" id="FlowHisTaskResult">
         <result property="id" column="id"/>
@@ -68,14 +70,17 @@
                 d.form_path,
                 d.version,
                 uu.processed_by,
-                uu.type
+                uu.type,
+                su.nick_name
             from flow_task as t
                     left join flow_user uu on uu.associated = t.id
                     left join flow_definition d on t.definition_id = d.id
                     left join flow_instance i on t.instance_id = i.id
+                    left join sys_user su on i.create_by = su.user_id
             where t.node_type = 1
               and t.del_flag = '0'
               and uu.del_flag = '0'
+              and su.del_flag ='0'
               and uu.type in ('1','2','3')
          ) t
          ${ew.getCustomSqlSegment}
@@ -106,13 +111,17 @@
                 c.form_path,
                 c.flow_name,
                 c.flow_code,
-                c.version
+                c.version,
+                b.create_by,
+                su.nick_name
             from flow_his_task a
                     left join flow_instance b on a.instance_id = b.id
                     left join flow_definition c on a.definition_id = c.id
+                    left join sys_user su on b.create_by = su.user_id
             where a.del_flag ='0'
               and b.del_flag = '0'
               and c.del_flag = '0'
+              and su.del_flag ='0'
               and a.node_type in ('1','3','4')
         ) t
         ${ew.getCustomSqlSegment}

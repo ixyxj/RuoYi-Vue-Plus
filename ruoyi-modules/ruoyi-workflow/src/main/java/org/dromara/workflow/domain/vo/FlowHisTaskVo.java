@@ -223,5 +223,8 @@ public class FlowHisTaskVo implements Serializable {
         this.cooperateType = cooperateType;
         this.cooperateTypeName = CooperateType.getValueByKey(cooperateType);
     }
-
+    /**
+     * 创建者昵称
+     */
+    private String nickName;
 }

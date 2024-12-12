@@ -76,13 +76,17 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     /**
      * 分页查询正在运行的流程实例
      *
-     * @param instance  参数
+     * @param flowInstanceBo  参数
      * @param pageQuery 分页
      */
     @Override
-    public TableDataInfo<FlowInstanceVo> pageByRunning(Instance instance, PageQuery pageQuery) {
+    public TableDataInfo<FlowInstanceVo> pageByRunning(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("fi.flow_status", BusinessStatusEnum.runningStatus());
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getNodeName()), "fi.node_name", flowInstanceBo.getNodeName());
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowName()), "fd.flow_name", flowInstanceBo.getFlowName());
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowCode()), "fd.flow_code", flowInstanceBo.getFlowCode());
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getNickName()), "su.nick_name", flowInstanceBo.getNickName());
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
         build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));
@@ -93,13 +97,17 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     /**
      * 分页查询已结束的流程实例
      *
-     * @param instance  参数
+     * @param flowInstanceBo  参数
      * @param pageQuery 分页
      */
     @Override
-    public TableDataInfo<FlowInstanceVo> pageByFinish(Instance instance, PageQuery pageQuery) {
+    public TableDataInfo<FlowInstanceVo> pageByFinish(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("fi.flow_status", BusinessStatusEnum.finishStatus());
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getNodeName()), "fi.node_name", flowInstanceBo.getNodeName());
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowName()), "fd.flow_name", flowInstanceBo.getFlowName());
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowCode()), "fd.flow_code", flowInstanceBo.getFlowCode());
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getNickName()), "su.nick_name", flowInstanceBo.getNickName());
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
         build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));

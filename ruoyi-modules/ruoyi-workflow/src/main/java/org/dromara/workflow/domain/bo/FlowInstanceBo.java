@@ -40,4 +40,15 @@ public class FlowInstanceBo implements Serializable {
      * 模型分类
      */
     private String categoryCode;
+
+    /**
+     * 任务名称
+     */
+    private String nodeName;
+
+
+    /**
+     * 申请人
+     */
+    private String nickName;
 }
