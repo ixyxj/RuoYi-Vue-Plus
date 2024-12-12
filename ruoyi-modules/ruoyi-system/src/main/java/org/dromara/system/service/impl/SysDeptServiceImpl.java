@@ -1,5 +1,6 @@
 package org.dromara.system.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.tree.Tree;
@@ -10,6 +11,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.constant.CacheNames;
 import org.dromara.common.core.constant.SystemConstants;
+import org.dromara.common.core.domain.dto.DeptDTO;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.DeptService;
 import org.dromara.common.core.utils.*;
@@ -352,6 +354,31 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
     @Override
     public int deleteDeptById(Long deptId) {
         return baseMapper.deleteById(deptId);
+    }
+
+    /**
+     * 根据部门ID查询部门负责人
+     *
+     * @param deptId 部门ID，用于指定需要查询的部门
+     * @return 返回该部门的负责人ID
+     */
+    @Override
+    public Long selectDeptLeaderById(Long deptId) {
+        SysDeptVo vo = SpringUtils.getAopProxy(this).selectDeptById(deptId);
+        return vo.getLeader();
+    }
+
+    /**
+     * 查询部门
+     *
+     * @return 部门列表
+     */
+    @Override
+    public List<DeptDTO> selectDeptsByList() {
+        List<SysDeptVo> list = baseMapper.selectDeptList(new LambdaQueryWrapper<SysDept>()
+            .select(SysDept::getDeptId, SysDept::getDeptName, SysDept::getParentId)
+            .eq(SysDept::getStatus, SystemConstants.NORMAL));
+        return BeanUtil.copyToList(list, DeptDTO.class);
     }
 
 }
