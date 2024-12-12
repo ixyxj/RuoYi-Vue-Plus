@@ -126,10 +126,10 @@ public class SseEmitterManager {
         SseMessageDto broadcastMessage = new SseMessageDto();
         broadcastMessage.setMessage(sseMessageDto.getMessage());
         broadcastMessage.setUserIds(sseMessageDto.getUserIds());
-        RedisUtils.publish(SSE_TOPIC, broadcastMessage, consumer -> {
+        RedisUtils.publish(SSE_TOPIC, broadcastMessage, consumer ->
             log.info("SSE发送主题订阅消息topic:{} session keys:{} message:{}",
-                SSE_TOPIC, sseMessageDto.getUserIds(), sseMessageDto.getMessage());
-        });
+            SSE_TOPIC, sseMessageDto.getUserIds(), sseMessageDto.getMessage())
+        );
     }
 
     /**
@@ -140,8 +140,8 @@ public class SseEmitterManager {
     public void publishAll(String message) {
         SseMessageDto broadcastMessage = new SseMessageDto();
         broadcastMessage.setMessage(message);
-        RedisUtils.publish(SSE_TOPIC, broadcastMessage, consumer -> {
-            log.info("SSE发送主题订阅消息topic:{} message:{}", SSE_TOPIC, message);
-        });
+        RedisUtils.publish(SSE_TOPIC, broadcastMessage, consumer ->
+            log.info("SSE发送主题订阅消息topic:{} message:{}", SSE_TOPIC, message)
+        );
     }
 }
