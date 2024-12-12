@@ -11,8 +11,6 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.warm.flow.core.entity.HisTask;
-import org.dromara.warm.flow.core.service.InsService;
-import org.dromara.warm.flow.core.service.TaskService;
 import org.dromara.workflow.domain.bo.*;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowTaskVo;
@@ -35,8 +33,6 @@ import java.util.Map;
 public class FlwTaskController extends BaseController {
 
     private final IFlwTaskService flwTaskService;
-    private final TaskService taskService;
-    private final InsService insService;
 
     /**
      * 启动任务
