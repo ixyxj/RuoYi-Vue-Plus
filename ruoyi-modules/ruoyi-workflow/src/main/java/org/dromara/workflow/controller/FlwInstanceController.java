@@ -31,7 +31,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/workflow/instance")
 public class FlwInstanceController extends BaseController {
-
     private final IFlwInstanceService flwInstanceService;
     private final InsService insService;
 
@@ -88,20 +87,15 @@ public class FlwInstanceController extends BaseController {
     }
 
     /**
-     * 激活/挂起流程定义
+     * 激活/挂起流程实例
      *
-     * @param id     流程定义id
+     * @param id     流程实例id
      * @param active 激活/挂起
      */
     @PutMapping("/active/{id}")
     public R<Boolean> active(@PathVariable Long id, @RequestParam boolean active) {
-        if (active) {
-            return R.ok(insService.unActive(id));
-        } else {
-            return R.ok(insService.active(id));
-        }
+        return R.ok(active ? insService.active(id) : insService.unActive(id));
     }
-
 
     /**
      * 获取当前登陆人发起的流程实例
@@ -113,7 +107,6 @@ public class FlwInstanceController extends BaseController {
     public TableDataInfo<FlowInstanceVo> pageByCurrent(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
         return flwInstanceService.pageByCurrent(flowInstanceBo, pageQuery);
     }
-
 
     /**
      * 获取流程图，流程记录

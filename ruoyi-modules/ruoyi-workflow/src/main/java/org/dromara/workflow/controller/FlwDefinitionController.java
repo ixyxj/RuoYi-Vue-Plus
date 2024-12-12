@@ -178,7 +178,7 @@ public class FlwDefinitionController extends BaseController {
      */
     @PutMapping("/active/{id}")
     public R<Boolean> active(@PathVariable Long id, @RequestParam boolean active) {
-        return R.ok(active ? defService.unActive(id) : defService.active(id));
+        return R.ok(active ? defService.active(id) : defService.unActive(id));
     }
 
 }
