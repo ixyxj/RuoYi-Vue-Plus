@@ -73,8 +73,6 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
      */
     @Override
     public List<Tree<Long>> selectDeptTreeList(SysDeptBo bo) {
-        // 只查询未禁用部门
-        bo.setStatus(SystemConstants.NORMAL);
         LambdaQueryWrapper<SysDept> lqw = buildQueryWrapper(bo);
         List<SysDeptVo> depts = baseMapper.selectDeptList(lqw);
         return buildDeptTreeSelect(depts);
@@ -116,7 +114,8 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
                     tree.setId(dept.getDeptId())
                         .setParentId(dept.getParentId())
                         .setName(dept.getDeptName())
-                        .setWeight(dept.getOrderNum()));
+                        .setWeight(dept.getOrderNum())
+                        .putExtra("disabled", SystemConstants.DISABLE.equals(dept.getStatus())));
                 Tree<Long> tree = trees.stream().filter(it -> it.getId().longValue() == d.getDeptId()).findFirst().get();
                 treeList.add(tree);
             }
