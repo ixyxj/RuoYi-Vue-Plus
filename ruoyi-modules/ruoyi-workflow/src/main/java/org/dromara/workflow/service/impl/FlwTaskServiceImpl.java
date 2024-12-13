@@ -165,6 +165,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             flowParams.skipType(SkipType.PASS.getKey());
             flowParams.message(completeTaskBo.getMessage());
             flowParams.flowStatus(BusinessStatusEnum.WAITING.getStatus()).hisStatus(TaskStatusEnum.PASS.getStatus());
+
+            flowParams.hisTaskExt(completeTaskBo.getFileId());
             // 执行任务跳转，并根据返回的处理人设置下一步处理人
             setHandler(taskService.skip(taskId, flowParams), flowTask, wfCopyList);
             return true;

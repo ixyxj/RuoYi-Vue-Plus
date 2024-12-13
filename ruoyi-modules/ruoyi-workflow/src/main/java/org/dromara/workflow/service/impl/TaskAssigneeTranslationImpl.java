@@ -1,6 +1,5 @@
 package org.dromara.workflow.service.impl;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.translation.annotation.TranslationType;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-@AllArgsConstructor
 @TranslationType(type = TransConstant.TASK_ID_TO_ASSIGNEE)
 public class TaskAssigneeTranslationImpl implements TranslationInterface<String> {
 

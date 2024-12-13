@@ -54,6 +54,12 @@ public class CompleteTaskBo implements Serializable {
      */
     private Map<String, Object> variables;
 
+    /**
+     * 扩展变量(此处为逗号分隔的ossId)
+     * @return
+     */
+    private String ext;
+
     public Map<String, Object> getVariables() {
         if (variables == null) {
             return new HashMap<>(16);
