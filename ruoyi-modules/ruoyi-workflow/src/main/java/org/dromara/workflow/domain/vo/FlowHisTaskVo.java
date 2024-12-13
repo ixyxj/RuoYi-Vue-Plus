@@ -224,7 +224,8 @@ public class FlowHisTaskVo implements Serializable {
         this.cooperateTypeName = CooperateType.getValueByKey(cooperateType);
     }
     /**
-     * 创建者昵称
+     * 申请人
      */
-    private String nickName;
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "createBy")
+    private String createByName;
 }

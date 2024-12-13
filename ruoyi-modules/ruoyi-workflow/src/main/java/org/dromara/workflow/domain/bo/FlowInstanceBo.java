@@ -4,6 +4,7 @@ import lombok.Data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 流程实例请求对象
@@ -48,7 +49,7 @@ public class FlowInstanceBo implements Serializable {
 
 
     /**
-     * 申请人
+     * 申请人Ids
      */
-    private String nickName;
+    private List<Long> createByIds;
 }

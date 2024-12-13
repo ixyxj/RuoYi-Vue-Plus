@@ -81,12 +81,8 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      */
     @Override
     public TableDataInfo<FlowInstanceVo> pageByRunning(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
-        QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<FlowInstanceBo> queryWrapper = buildQueryWrapper(flowInstanceBo);
         queryWrapper.in("fi.flow_status", BusinessStatusEnum.runningStatus());
-        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getNodeName()), "fi.node_name", flowInstanceBo.getNodeName());
-        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowName()), "fd.flow_name", flowInstanceBo.getFlowName());
-        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowCode()), "fd.flow_code", flowInstanceBo.getFlowCode());
-        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getNickName()), "su.nick_name", flowInstanceBo.getNickName());
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
         build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));
@@ -104,10 +100,6 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     public TableDataInfo<FlowInstanceVo> pageByFinish(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("fi.flow_status", BusinessStatusEnum.finishStatus());
-        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getNodeName()), "fi.node_name", flowInstanceBo.getNodeName());
-        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowName()), "fd.flow_name", flowInstanceBo.getFlowName());
-        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowCode()), "fd.flow_code", flowInstanceBo.getFlowCode());
-        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getNickName()), "su.nick_name", flowInstanceBo.getNickName());
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
         build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));
@@ -115,6 +107,20 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         return build;
     }
 
+    /**
+     * 通用查询条件
+     * @param flowInstanceBo 查询条件
+     * @return 查询条件构造方法
+     */
+    private QueryWrapper<FlowInstanceBo> buildQueryWrapper(FlowInstanceBo flowInstanceBo) {
+        QueryWrapper<FlowInstanceBo> queryWrapper = Wrappers.query();
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getNodeName()), "fi.node_name", flowInstanceBo.getNodeName());
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowName()), "fd.flow_name", flowInstanceBo.getFlowName());
+        queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowCode()), "fd.flow_code", flowInstanceBo.getFlowCode());
+        queryWrapper.in(CollUtil.isNotEmpty(flowInstanceBo.getCreateByIds()), "fi.create_by", flowInstanceBo.getCreateByIds());
+        queryWrapper.orderByDesc("fi.create_time");
+        return queryWrapper;
+    }
     /**
      * 根据业务id查询流程实例
      *

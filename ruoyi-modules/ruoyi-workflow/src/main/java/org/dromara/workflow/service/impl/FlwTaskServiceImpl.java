@@ -326,7 +326,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         wrapper.like(StringUtils.isNotBlank(flowTaskBo.getNodeName()), "t.node_name", flowTaskBo.getNodeName());
         wrapper.like(StringUtils.isNotBlank(flowTaskBo.getFlowName()), "t.flow_name", flowTaskBo.getFlowName());
         wrapper.like(StringUtils.isNotBlank(flowTaskBo.getFlowCode()), "t.flow_code", flowTaskBo.getFlowCode());
-        wrapper.like(StringUtils.isNotBlank(flowTaskBo.getNickName()), "t.nick_name", flowTaskBo.getNickName());
+        wrapper.in(CollUtil.isNotEmpty(flowTaskBo.getCreateByIds()),"t.create_by",flowTaskBo.getCreateByIds());
         wrapper.orderByDesc("t.create_time");
         return wrapper;
     }

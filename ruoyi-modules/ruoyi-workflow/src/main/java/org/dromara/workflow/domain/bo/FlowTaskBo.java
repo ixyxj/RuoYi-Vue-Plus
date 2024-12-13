@@ -42,7 +42,7 @@ public class FlowTaskBo implements Serializable {
      */
     private List<String> permissionList;
     /**
-     * 申请人
+     * 申请人Ids
      */
-    private String nickName;
+    private List<Long> createByIds;
 }

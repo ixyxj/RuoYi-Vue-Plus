@@ -1,6 +1,8 @@
 package org.dromara.workflow.domain.vo;
 
 import lombok.Data;
+import org.dromara.common.translation.annotation.Translation;
+import org.dromara.common.translation.constant.TransConstant;
 
 import java.util.Date;
 
@@ -114,7 +116,8 @@ public class FlowInstanceVo {
      */
     private String version;
     /**
-     * 创建者昵称
+     * 申请人
      */
-    private String nickName;
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "createBy")
+    private String createByName;
 }
