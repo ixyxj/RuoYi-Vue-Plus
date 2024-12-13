@@ -9,12 +9,9 @@ import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.enums.FormatsType;
+import org.dromara.common.core.service.*;
 import org.dromara.workflow.common.enums.TaskAssigneeEnum;
 import org.dromara.common.core.exception.ServiceException;
-import org.dromara.common.core.service.DeptService;
-import org.dromara.common.core.service.PostService;
-import org.dromara.common.core.service.RoleService;
-import org.dromara.common.core.service.UserService;
 import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.warm.flow.ui.dto.HandlerFunDto;
@@ -39,11 +36,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Service
 public class WfTaskAssigneeServiceImpl implements IWfTaskAssigneeService, HandlerSelectService {
-    static final String DEFAULT_GROUP_NAME = "默认分组";
+
+    private static final String DEFAULT_GROUP_NAME = "默认分组";
+    private final TaskAssigneeService taskAssigneeService;
     private final UserService userService;
     private final DeptService deptService;
-    private final RoleService roleService;
-    private final PostService postService;
 
     /**
      * 获取办理人权限设置列表tabs页签
@@ -80,10 +77,10 @@ public class WfTaskAssigneeServiceImpl implements IWfTaskAssigneeService, Handle
      */
     private TaskAssigneeDTO fetchTaskAssigneeData(TaskAssigneeEnum type, TaskAssigneeBody taskQuery) {
         return switch (type) {
-            case USER -> userService.selectUsersByTaskAssigneeList(taskQuery);
-            case ROLE -> roleService.selectRolesByTaskAssigneeList(taskQuery);
-            case DEPT -> deptService.selectDeptsByTaskAssigneeList(taskQuery);
-            case POST -> postService.selectPostsByTaskAssigneeList(taskQuery);
+            case USER -> taskAssigneeService.selectUsersByTaskAssigneeList(taskQuery);
+            case ROLE -> taskAssigneeService.selectRolesByTaskAssigneeList(taskQuery);
+            case DEPT -> taskAssigneeService.selectDeptsByTaskAssigneeList(taskQuery);
+            case POST -> taskAssigneeService.selectPostsByTaskAssigneeList(taskQuery);
             default -> throw new ServiceException("Unsupported handler type");
         };
     }

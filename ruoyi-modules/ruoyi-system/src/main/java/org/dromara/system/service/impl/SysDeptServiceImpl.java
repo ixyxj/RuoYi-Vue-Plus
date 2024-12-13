@@ -8,17 +8,13 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.constant.CacheNames;
 import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.domain.dto.DeptDTO;
-import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
-import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.DeptService;
 import org.dromara.common.core.utils.*;
-import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.helper.DataBaseHelper;
 import org.dromara.common.redis.utils.CacheUtils;
 import org.dromara.common.satoken.utils.LoginHelper;
@@ -203,46 +199,6 @@ public class SysDeptServiceImpl implements ISysDeptService, DeptService {
             .select(SysDept::getDeptId, SysDept::getDeptName, SysDept::getParentId)
             .eq(SysDept::getStatus, SystemConstants.NORMAL));
         return BeanUtil.copyToList(list, DeptDTO.class);
-    }
-
-    /**
-     * 查询部门并返回任务指派的列表，支持分页
-     *
-     * @param taskQuery 查询条件
-     * @return 办理人
-     */
-    @Override
-    public TaskAssigneeDTO selectDeptsByTaskAssigneeList(TaskAssigneeBody taskQuery) {
-        PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
-        // 使用 LambdaQueryWrapper 构建查询条件
-        LambdaQueryWrapper<SysDept> wrapper = Wrappers.lambdaQuery();
-        wrapper.eq(SysDept::getDelFlag, SystemConstants.NORMAL);
-        wrapper.like(StringUtils.isNotBlank(taskQuery.getHandlerCode()), SysDept::getDeptCategory, taskQuery.getHandlerCode());
-        wrapper.like(StringUtils.isNotBlank(taskQuery.getHandlerName()), SysDept::getDeptName, taskQuery.getHandlerName());
-        if (StringUtils.isNotBlank(taskQuery.getGroupId())) {
-            //部门树搜索
-            wrapper.and(x -> {
-                Long parentId = Long.valueOf(taskQuery.getGroupId());
-                List<SysDept> deptList = baseMapper.selectListByParentId(parentId);
-                List<Long> deptIds = StreamUtils.toList(deptList, SysDept::getDeptId);
-                deptIds.add(parentId);
-                x.in(SysDept::getDeptId, deptIds);
-            });
-        }
-        wrapper.between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
-            SysDept::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
-        wrapper.orderByAsc(SysDept::getAncestors);
-        wrapper.orderByAsc(SysDept::getParentId);
-        wrapper.orderByAsc(SysDept::getOrderNum);
-        wrapper.orderByAsc(SysDept::getDeptId);
-
-        Page<SysDeptVo> page = baseMapper.selectPageDeptList(pageQuery.build(), wrapper);
-
-        // 使用封装的字段映射方法进行转换
-        List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
-            SysDeptVo::getDeptId, SysDeptVo::getDeptCategory, SysDeptVo::getDeptName, SysDeptVo::getParentId, SysDeptVo::getCreateTime);
-
-        return new TaskAssigneeDTO(page.getTotal(), handlers);
     }
 
     /**

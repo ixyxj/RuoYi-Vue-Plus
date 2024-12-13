@@ -15,9 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.constant.CacheNames;
 import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.constant.TenantConstants;
-import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.model.LoginUser;
-import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.RoleService;
 import org.dromara.common.core.utils.MapstructUtils;
@@ -549,35 +547,6 @@ public class SysRoleServiceImpl implements ISysRoleService, RoleService {
                 }
             }
         });
-    }
-
-    /**
-     * 查询角色并返回任务指派的列表，支持分页
-     *
-     * @param taskQuery 查询条件
-     * @return 办理人
-     */
-    @Override
-    public TaskAssigneeDTO selectRolesByTaskAssigneeList(TaskAssigneeBody taskQuery) {
-        PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
-
-        SysRoleBo role = new SysRoleBo();
-        role.setRoleKey(taskQuery.getHandlerCode());
-        role.setRoleName(taskQuery.getHandlerName());
-
-        // 如果 beginTime 和 endTime 都有值，才添加到 params 中
-        if (StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime())) {
-            Map<String, Object> params = role.getParams();
-            params.put("beginTime", taskQuery.getBeginTime());
-            params.put("endTime", taskQuery.getEndTime());
-        }
-        Page<SysRoleVo> page = baseMapper.selectPageRoleList(pageQuery.build(), this.buildQueryWrapper(role));
-
-        // 使用封装的字段映射方法进行转换
-        List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
-            SysRoleVo::getRoleId, SysRoleVo::getRoleKey, SysRoleVo::getRoleName, null, SysRoleVo::getCreateTime);
-
-        return new TaskAssigneeDTO(page.getTotal(), handlers);
     }
 
 }

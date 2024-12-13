@@ -7,8 +7,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.constant.SystemConstants;
-import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
-import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.PostService;
 import org.dromara.common.core.utils.MapstructUtils;
@@ -29,7 +27,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * 岗位信息 服务层处理
@@ -247,40 +244,6 @@ public class SysPostServiceImpl implements ISysPostService, PostService {
     public int updatePost(SysPostBo bo) {
         SysPost post = MapstructUtils.convert(bo, SysPost.class);
         return baseMapper.updateById(post);
-    }
-
-    /**
-     * 查询岗位并返回任务指派的列表，支持分页
-     *
-     * @param taskQuery 查询条件
-     * @return 办理人
-     */
-    @Override
-    public TaskAssigneeDTO selectPostsByTaskAssigneeList(TaskAssigneeBody taskQuery) {
-        PageQuery pageQuery = new PageQuery(taskQuery.getPageSize(), taskQuery.getPageNum());
-
-        SysPostBo post = new SysPostBo();
-        post.setPostCategory(taskQuery.getHandlerCode());
-        post.setPostName(taskQuery.getHandlerName());
-        Optional.ofNullable(taskQuery.getGroupId())
-            .filter(StringUtils::isNotBlank)
-            .map(Long::valueOf)
-            .ifPresent(post::setBelongDeptId);
-
-        LambdaQueryWrapper<SysPost> wrapper = buildQueryWrapper(post);
-        // 如果 beginTime 和 endTime 都有值，才添加到 params 中
-        if (StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime())) {
-            wrapper.between(StringUtils.isNotBlank(taskQuery.getBeginTime()) && StringUtils.isNotBlank(taskQuery.getEndTime()),
-                SysPost::getCreateTime, taskQuery.getBeginTime(), taskQuery.getEndTime());
-        }
-
-        Page<SysPostVo> page = baseMapper.selectPagePostList(pageQuery.build(), wrapper);
-
-        // 使用封装的字段映射方法进行转换
-        List<TaskAssigneeDTO.TaskHandler> handlers = TaskAssigneeDTO.convertToHandlerList(page.getRecords(),
-            SysPostVo::getPostId, SysPostVo::getPostCategory, SysPostVo::getPostName, SysPostVo::getDeptId, SysPostVo::getCreateTime);
-
-        return new TaskAssigneeDTO(page.getTotal(), handlers);
     }
 
 }

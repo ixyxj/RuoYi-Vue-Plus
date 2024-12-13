@@ -1,8 +1,6 @@
 package org.dromara.common.core.service;
 
-import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.dto.UserDTO;
-import org.dromara.common.core.domain.model.TaskAssigneeBody;
 
 import java.util.List;
 
@@ -92,13 +90,5 @@ public interface UserService {
      * @return 用户
      */
     List<UserDTO> selectUsersByPostIds(List<Long> postIds);
-
-    /**
-     * 查询用户并返回任务指派的列表，支持分页
-     *
-     * @param taskQuery 查询条件
-     * @return 办理人
-     */
-    TaskAssigneeDTO selectUsersByTaskAssigneeList(TaskAssigneeBody taskQuery);
 
 }
