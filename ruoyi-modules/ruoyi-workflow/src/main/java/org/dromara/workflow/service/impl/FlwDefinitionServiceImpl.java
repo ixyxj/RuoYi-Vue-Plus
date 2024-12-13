@@ -14,6 +14,7 @@ import org.dom4j.io.OutputFormat;
 import org.dom4j.io.XMLWriter;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StreamUtils;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.warm.flow.core.service.DefService;
@@ -56,6 +57,8 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
     @Override
     public TableDataInfo<FlowDefinitionVo> page(FlowDefinition flowDefinition, PageQuery pageQuery) {
         QueryWrapper<FlowDefinition> queryWrapper = new QueryWrapper<>();
+        queryWrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowCode()),"flow_code", flowDefinition.getFlowCode());
+        queryWrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowName()),"flow_Name", flowDefinition.getFlowName());
         queryWrapper.orderByDesc("create_time");
         Page<FlowDefinition> page = flwDefMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowDefinitionVo> build = TableDataInfo.build();
