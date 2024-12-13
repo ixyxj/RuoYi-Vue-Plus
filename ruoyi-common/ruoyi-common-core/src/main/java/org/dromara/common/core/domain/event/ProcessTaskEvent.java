@@ -30,7 +30,7 @@ public class ProcessTaskEvent implements Serializable {
     /**
      * 任务id
      */
-    private String taskId;
+    private Long taskId;
 
     /**
      * 业务id

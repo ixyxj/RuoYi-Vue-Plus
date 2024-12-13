@@ -39,12 +39,10 @@ import org.dromara.workflow.domain.bo.*;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowTaskVo;
 import org.dromara.workflow.domain.vo.WfCopy;
-import org.dromara.workflow.domain.vo.WfDefinitionConfigVo;
 import org.dromara.workflow.handler.FlowProcessEventHandler;
 import org.dromara.workflow.handler.WorkflowPermissionHandler;
 import org.dromara.workflow.mapper.FlwTaskMapper;
 import org.dromara.workflow.service.IFlwTaskService;
-import org.dromara.workflow.service.IWfDefinitionConfigService;
 import org.dromara.workflow.utils.WorkflowUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,7 +68,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     private final FlowInstanceMapper flowInstanceMapper;
     private final FlwTaskMapper flwTaskMapper;
     private final UserService userService;
-    private final IWfDefinitionConfigService wfDefinitionConfigService;
     private final FlowTaskMapper flowTaskMapper;
     private final FlowHisTaskMapper flowHisTaskMapper;
     private final FlowSkipMapper flowSkipMapper;
@@ -98,16 +95,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         variables.put(INITIATOR, LoginHelper.getUserIdStr());
         // 业务id
         variables.put(BUSINESS_KEY, businessKey);
-        WfDefinitionConfigVo wfDefinitionConfigVo = wfDefinitionConfigService.getByTableNameLastVersion(startProcessBo.getTableName());
-        if (wfDefinitionConfigVo == null || wfDefinitionConfigVo.getDefinitionId() == null) {
-            throw new ServiceException("请到流程定义绑定业务表名与流程KEY！");
-        }
-        Long definitionId = wfDefinitionConfigVo.getDefinitionId();
-        Definition definition = defService.getById(definitionId);
-        if (definition == null) {
-            log.error("流程定义ID【{}】不存在！", definitionId);
-            throw new ServiceException("请到流程定义ID【" + definitionId + "】不存在！");
-        }
         FlowInstance flowInstance = flowInstanceMapper.selectOne(new LambdaQueryWrapper<>(FlowInstance.class)
             .eq(FlowInstance::getBusinessId, businessKey));
         if (flowInstance != null) {
@@ -115,7 +102,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             return Map.of(PROCESS_INSTANCE_ID, taskList.get(0).getInstanceId(), TASK_ID, taskList.get(0).getId());
         }
         FlowParams flowParams = new FlowParams();
-        flowParams.flowCode(wfDefinitionConfigVo.getProcessKey());
+        flowParams.flowCode(startProcessBo.getFlowCode());
         flowParams.variable(startProcessBo.getVariables());
         flowParams.flowStatus(BusinessStatusEnum.DRAFT.getStatus());
         Instance instance;
@@ -147,18 +134,12 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             List<WfCopy> wfCopyList = completeTaskBo.getWfCopyList();
             FlowTask flowTask = flowTaskMapper.selectById(taskId);
             Instance ins = insService.getById(flowTask.getInstanceId());
-
             // 获取流程定义信息
             Definition definition = defService.getById(flowTask.getDefinitionId());
-
             // 检查流程状态是否为草稿、已撤销或已退回状态，若是则执行流程提交监听
             if (BusinessStatusEnum.isDraftOrCancelOrBack(ins.getFlowStatus())) {
                 flowProcessEventHandler.processHandler(definition.getFlowCode(), ins.getBusinessId(), ins.getFlowStatus(), true);
             }
-
-            // 办理任务监听，记录任务执行信息
-            flowProcessEventHandler.processTaskHandler(definition.getFlowCode(), flowTask.getNodeCode(), taskId.toString(), ins.getBusinessId());
-
             // 构建流程参数，包括变量、跳转类型、消息、处理人、权限等信息
             FlowParams flowParams = new FlowParams();
             flowParams.variable(completeTaskBo.getVariables());
@@ -328,7 +309,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         wrapper.like(StringUtils.isNotBlank(flowTaskBo.getNodeName()), "t.node_name", flowTaskBo.getNodeName());
         wrapper.like(StringUtils.isNotBlank(flowTaskBo.getFlowName()), "t.flow_name", flowTaskBo.getFlowName());
         wrapper.like(StringUtils.isNotBlank(flowTaskBo.getFlowCode()), "t.flow_code", flowTaskBo.getFlowCode());
-        wrapper.in(CollUtil.isNotEmpty(flowTaskBo.getCreateByIds()),"t.create_by",flowTaskBo.getCreateByIds());
+        wrapper.in(CollUtil.isNotEmpty(flowTaskBo.getCreateByIds()), "t.create_by", flowTaskBo.getCreateByIds());
         wrapper.orderByDesc("t.create_time");
         return wrapper;
     }

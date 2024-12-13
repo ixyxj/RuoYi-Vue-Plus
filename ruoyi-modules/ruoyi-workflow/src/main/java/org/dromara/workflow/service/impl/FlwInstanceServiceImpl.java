@@ -98,9 +98,8 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      */
     @Override
     public TableDataInfo<FlowInstanceVo> pageByFinish(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
-        QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<FlowInstanceBo> queryWrapper = buildQueryWrapper(flowInstanceBo);
         queryWrapper.in("fi.flow_status", BusinessStatusEnum.finishStatus());
-        queryWrapper.orderByDesc("fi.create_time");
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
         build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));
@@ -118,6 +117,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getNodeName()), "fi.node_name", flowInstanceBo.getNodeName());
         queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowName()), "fd.flow_name", flowInstanceBo.getFlowName());
         queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowCode()), "fd.flow_code", flowInstanceBo.getFlowCode());
+        queryWrapper.eq(StringUtils.isNotBlank(flowInstanceBo.getCategory()),"category", flowInstanceBo.getCategory());
         queryWrapper.in(CollUtil.isNotEmpty(flowInstanceBo.getCreateByIds()), "fi.create_by", flowInstanceBo.getCreateByIds());
         queryWrapper.orderByDesc("fi.create_time");
         return queryWrapper;

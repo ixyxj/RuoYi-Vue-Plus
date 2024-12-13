@@ -34,12 +34,6 @@ public class WfCategoryBo extends BaseEntity {
     private String categoryName;
 
     /**
-     * 分类编码
-     */
-    @NotBlank(message = "分类编码不能为空", groups = {AddGroup.class, EditGroup.class})
-    private String categoryCode;
-
-    /**
      * 父级id
      */
     @NotNull(message = "父级id不能为空", groups = {AddGroup.class, EditGroup.class})

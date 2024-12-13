@@ -34,11 +34,6 @@ public class WfCategory extends TenantEntity {
     private String categoryName;
 
     /**
-     * 分类编码
-     */
-    private String categoryCode;
-
-    /**
      * 父级id
      */
     private Long parentId;

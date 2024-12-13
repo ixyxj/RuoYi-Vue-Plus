@@ -1,5 +1,6 @@
 package org.dromara.workflow.handler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.event.ProcessEvent;
 import org.dromara.common.core.domain.event.ProcessTaskEvent;
 import org.dromara.common.core.utils.SpringUtils;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
  * @author may
  * @date 2024-06-02
  */
+@Slf4j
 @Component
 public class FlowProcessEventHandler {
 
@@ -23,6 +25,7 @@ public class FlowProcessEventHandler {
      * @param submit      当为true时为申请人节点办理
      */
     public void processHandler(String flowCode, String businessKey, String status, boolean submit) {
+        log.info("发布流程事件，流程状态: {}, 流程编码: {}, 业务ID: {}", status, flowCode, businessKey);
         ProcessEvent processEvent = new ProcessEvent();
         processEvent.setFlowCode(flowCode);
         processEvent.setBusinessKey(businessKey);
@@ -39,7 +42,7 @@ public class FlowProcessEventHandler {
      * @param taskId      任务id
      * @param businessKey 业务id
      */
-    public void processTaskHandler(String flowCode, String nodeCode, String taskId, String businessKey) {
+    public void processTaskHandler(String flowCode, String nodeCode, Long taskId, String businessKey) {
         ProcessTaskEvent processTaskEvent = new ProcessTaskEvent();
         processTaskEvent.setFlowCode(flowCode);
         processTaskEvent.setNodeCode(nodeCode);

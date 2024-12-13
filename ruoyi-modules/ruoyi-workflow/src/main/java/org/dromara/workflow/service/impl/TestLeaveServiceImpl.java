@@ -88,7 +88,7 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
         bo.setLeaveDays((int) day);
         TestLeave add = MapstructUtils.convert(bo, TestLeave.class);
         if (StringUtils.isBlank(add.getStatus())) {
-            add.setStatus(FlowStatus.TOBESUBMIT.getKey());
+            add.setStatus(BusinessStatusEnum.DRAFT.getStatus());
         }
         boolean flag = baseMapper.insert(add) > 0;
         if (flag) {

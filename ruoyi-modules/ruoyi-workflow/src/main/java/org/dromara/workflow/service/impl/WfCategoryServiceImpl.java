@@ -49,7 +49,6 @@ public class WfCategoryServiceImpl implements IWfCategoryService {
     private LambdaQueryWrapper<WfCategory> buildQueryWrapper(WfCategoryBo bo) {
         LambdaQueryWrapper<WfCategory> lqw = Wrappers.lambdaQuery();
         lqw.like(StringUtils.isNotBlank(bo.getCategoryName()), WfCategory::getCategoryName, bo.getCategoryName());
-        lqw.eq(StringUtils.isNotBlank(bo.getCategoryCode()), WfCategory::getCategoryCode, bo.getCategoryCode());
         return lqw;
     }
 
@@ -94,15 +93,5 @@ public class WfCategoryServiceImpl implements IWfCategoryService {
             // 做一些业务上的校验,判断是否需要校验
         }
         return baseMapper.deleteByIds(ids) > 0;
-    }
-
-    /**
-     * 按照类别编码查询
-     *
-     * @param categoryCode 分类比吗
-     */
-    @Override
-    public WfCategory queryByCategoryCode(String categoryCode) {
-        return baseMapper.selectOne(new LambdaQueryWrapper<WfCategory>().eq(WfCategory::getCategoryCode, categoryCode));
     }
 }

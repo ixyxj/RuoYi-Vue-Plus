@@ -29,10 +29,10 @@ public class StartProcessBo implements Serializable {
     private String businessKey;
 
     /**
-     * 表名
+     * 流程定义编码
      */
-    @NotBlank(message = "表名不能为空", groups = {AddGroup.class})
-    private String tableName;
+    @NotBlank(message = "流程定义编码不能为空", groups = {AddGroup.class})
+    private String flowCode;
 
     /**
      * 流程变量，前端会提交一个元素{'entity': {业务详情数据对象}}
