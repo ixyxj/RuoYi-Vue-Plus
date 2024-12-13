@@ -1,16 +1,22 @@
-package org.dromara.common.translation.core.impl;
+package org.dromara.workflow.service.impl;
 
 import lombok.AllArgsConstructor;
-import org.dromara.common.core.service.AssigneeService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.translation.annotation.TranslationType;
 import org.dromara.common.translation.constant.TransConstant;
 import org.dromara.common.translation.core.TranslationInterface;
+import org.dromara.workflow.service.AssigneeService;
+import org.springframework.stereotype.Service;
 
 /**
  * 任务办理人翻译实现
  *
  * @author AprilWind
  */
+@Slf4j
+@RequiredArgsConstructor
+@Service
 @AllArgsConstructor
 @TranslationType(type = TransConstant.TASK_ID_TO_ASSIGNEE)
 public class TaskAssigneeTranslationImpl implements TranslationInterface<String> {

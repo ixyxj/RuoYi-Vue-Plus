@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.exception.ServiceException;
-import org.dromara.common.core.service.AssigneeService;
+import org.dromara.workflow.service.AssigneeService;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
