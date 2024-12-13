@@ -100,6 +100,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     public TableDataInfo<FlowInstanceVo> pageByFinish(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("fi.flow_status", BusinessStatusEnum.finishStatus());
+        queryWrapper.orderByDesc("fi.create_time");
         Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
         build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));
