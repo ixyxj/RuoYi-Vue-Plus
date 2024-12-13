@@ -11,6 +11,7 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.warm.flow.core.entity.HisTask;
+import org.dromara.warm.flow.orm.entity.FlowHisTask;
 import org.dromara.workflow.domain.bo.*;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowTaskVo;
@@ -182,7 +183,7 @@ public class FlwTaskController extends BaseController {
      * @param instanceId 实例id
      */
     @GetMapping("/getBackTaskNode/{instanceId}")
-    public R<List<HisTask>> getBackTaskNode(@PathVariable String instanceId) {
+    public R<List<FlowHisTask>> getBackTaskNode(@PathVariable String instanceId) {
         return R.ok(flwTaskService.getBackTaskNode(instanceId));
     }
 

@@ -130,6 +130,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
         try {
             // 获取任务ID并查询对应的流程任务和实例信息
             Long taskId = completeTaskBo.getTaskId();
+            List<String> messageType = completeTaskBo.getMessageType();
+            String notice = completeTaskBo.getNotice();
             // 获取抄送人
             List<WfCopy> wfCopyList = completeTaskBo.getWfCopyList();
             FlowTask flowTask = flowTaskMapper.selectById(taskId);
@@ -150,6 +152,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             flowParams.hisTaskExt(completeTaskBo.getFileId());
             // 执行任务跳转，并根据返回的处理人设置下一步处理人
             setHandler(taskService.skip(taskId, flowParams), flowTask, wfCopyList);
+            //消息通知
+            WorkflowUtils.sendMessage(definition.getFlowName(), ins.getId(), messageType, notice);
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -323,11 +327,14 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
     public boolean backProcess(BackProcessBo bo) {
         try {
             Long taskId = bo.getTaskId();
+            String notice = bo.getNotice();
+            List<String> messageType = bo.getMessageType();
             List<FlowTask> flowTasks = flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class).eq(FlowTask::getId, taskId));
             if (CollUtil.isEmpty(flowTasks)) {
                 throw new ServiceException("任务不存在！");
             }
             Long definitionId = flowTasks.get(0).getDefinitionId();
+            Definition definition = defService.getById(definitionId);
             List<FlowSkip> flowSkips = flowSkipMapper.selectList(new LambdaQueryWrapper<>(FlowSkip.class).eq(FlowSkip::getDefinitionId, definitionId));
             FlowSkip flowSkip = StreamUtils.findFirst(flowSkips, e -> NodeType.START.getKey().equals(e.getNowNodeType()));
             //开始节点的下一节点
@@ -347,6 +354,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
             flowParams.nodeCode(bo.getNodeCode());
             Instance instance = taskService.skip(taskId, flowParams);
             setHandler(instance, flowTasks.get(0), null);
+            //消息通知
+            WorkflowUtils.sendMessage(definition.getFlowName(), instance.getId(), messageType, notice);
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -360,20 +369,24 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      * @param instanceId 实例id
      */
     @Override
-    public List<HisTask> getBackTaskNode(String instanceId) {
+    public List<FlowHisTask> getBackTaskNode(String instanceId) {
         // 创建查询条件，查询历史任务记录
         LambdaQueryWrapper<FlowHisTask> lw = new LambdaQueryWrapper<>(FlowHisTask.class)
+            .select(FlowHisTask::getNodeCode, FlowHisTask::getNodeName)
             .eq(FlowHisTask::getInstanceId, instanceId)
             .eq(FlowHisTask::getNodeType, NodeType.BETWEEN.getKey())
             .orderByDesc(FlowHisTask::getCreateTime);
+
         List<FlowHisTask> flowHisTasks = flowHisTaskMapper.selectList(lw);
         if (CollUtil.isEmpty(flowHisTasks)) {
             return Collections.emptyList();
         }
-        // 直接返回去重后的列表
-        return flowHisTasks.stream()
-            .distinct()
-            .collect(Collectors.toList());
+        return new ArrayList<>(flowHisTasks.stream()
+            .collect(Collectors.toMap(
+                FlowHisTask::getNodeCode,
+                task -> task,
+                (existing, replacement) -> existing
+            )).values());
     }
 
     /**

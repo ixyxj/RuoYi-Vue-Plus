@@ -47,6 +47,11 @@ public class BackProcessBo implements Serializable {
     private String message;
 
     /**
+     * 通知
+     */
+    private String notice;
+
+    /**
      * 流程变量
      */
     private Map<String, Object> variables;

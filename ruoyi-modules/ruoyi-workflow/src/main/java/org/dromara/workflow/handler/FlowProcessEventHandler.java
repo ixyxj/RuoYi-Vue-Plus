@@ -43,6 +43,7 @@ public class FlowProcessEventHandler {
      * @param businessKey 业务id
      */
     public void processTaskHandler(String flowCode, String nodeCode, Long taskId, String businessKey) {
+        log.info("发布流程任务事件, 流程编码: {}, 业务ID: {}", flowCode, businessKey);
         ProcessTaskEvent processTaskEvent = new ProcessTaskEvent();
         processTaskEvent.setFlowCode(flowCode);
         processTaskEvent.setNodeCode(nodeCode);

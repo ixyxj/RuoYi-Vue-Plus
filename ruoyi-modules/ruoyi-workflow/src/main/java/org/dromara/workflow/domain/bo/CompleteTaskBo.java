@@ -50,6 +50,11 @@ public class CompleteTaskBo implements Serializable {
     private String message;
 
     /**
+     * 消息通知
+     */
+    private String notice;
+
+    /**
      * 流程变量
      */
     private Map<String, Object> variables;
