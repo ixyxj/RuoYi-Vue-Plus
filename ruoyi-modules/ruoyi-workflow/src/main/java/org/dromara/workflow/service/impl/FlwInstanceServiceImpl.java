@@ -23,7 +23,6 @@ import org.dromara.warm.flow.core.entity.Definition;
 import org.dromara.warm.flow.core.entity.Instance;
 import org.dromara.warm.flow.core.entity.Node;
 import org.dromara.warm.flow.core.entity.Task;
-import org.dromara.warm.flow.core.enums.FlowStatus;
 import org.dromara.warm.flow.core.enums.NodeType;
 import org.dromara.warm.flow.core.enums.SkipType;
 import org.dromara.warm.flow.core.service.DefService;
@@ -76,8 +75,8 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     /**
      * 分页查询正在运行的流程实例
      *
-     * @param flowInstanceBo  参数
-     * @param pageQuery 分页
+     * @param flowInstanceBo 参数
+     * @param pageQuery      分页
      */
     @Override
     public TableDataInfo<FlowInstanceVo> pageByRunning(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
@@ -93,8 +92,8 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     /**
      * 分页查询已结束的流程实例
      *
-     * @param flowInstanceBo  参数
-     * @param pageQuery 分页
+     * @param flowInstanceBo 参数
+     * @param pageQuery      分页
      */
     @Override
     public TableDataInfo<FlowInstanceVo> pageByFinish(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
@@ -109,6 +108,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
 
     /**
      * 通用查询条件
+     *
      * @param flowInstanceBo 查询条件
      * @return 查询条件构造方法
      */
@@ -117,11 +117,12 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getNodeName()), "fi.node_name", flowInstanceBo.getNodeName());
         queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowName()), "fd.flow_name", flowInstanceBo.getFlowName());
         queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowCode()), "fd.flow_code", flowInstanceBo.getFlowCode());
-        queryWrapper.eq(StringUtils.isNotBlank(flowInstanceBo.getCategory()),"category", flowInstanceBo.getCategory());
+        queryWrapper.eq(StringUtils.isNotBlank(flowInstanceBo.getCategory()), "fd.category", flowInstanceBo.getCategory());
         queryWrapper.in(CollUtil.isNotEmpty(flowInstanceBo.getCreateByIds()), "fi.create_by", flowInstanceBo.getCreateByIds());
         queryWrapper.orderByDesc("fi.create_time");
         return queryWrapper;
     }
+
     /**
      * 根据业务id查询流程实例
      *
@@ -225,34 +226,11 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      */
     @Override
     public TableDataInfo<FlowInstanceVo> pageByCurrent(FlowInstanceBo instanceBo, PageQuery pageQuery) {
-        LambdaQueryWrapper<FlowInstance> wrapper = Wrappers.lambdaQuery();
-        if (StringUtils.isNotBlank(instanceBo.getFlowCode())) {
-            List<FlowDefinition> flowDefinitions = flowDefinitionMapper.selectList(
-                new LambdaQueryWrapper<FlowDefinition>().eq(FlowDefinition::getFlowCode, instanceBo.getFlowCode()));
-            if (CollUtil.isNotEmpty(flowDefinitions)) {
-                List<Long> defIdList = StreamUtils.toList(flowDefinitions, FlowDefinition::getId);
-                wrapper.in(FlowInstance::getDefinitionId, defIdList);
-            }
-        }
-        wrapper.eq(FlowInstance::getCreateBy, LoginHelper.getUserIdStr());
-        wrapper.orderByDesc(FlowInstance::getCreateTime);
-        Page<FlowInstance> page = flowInstanceMapper.selectPage(pageQuery.build(), wrapper);
+        QueryWrapper<FlowInstanceBo> queryWrapper = buildQueryWrapper(instanceBo);
+        queryWrapper.eq("fi.create_by", LoginHelper.getUserIdStr());
+        Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
-        List<FlowInstanceVo> flowInstanceVos = BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class);
-        if (CollUtil.isNotEmpty(flowInstanceVos)) {
-            List<Long> definitionIds = StreamUtils.toList(flowInstanceVos, FlowInstanceVo::getDefinitionId);
-            List<FlowDefinition> flowDefinitions = flowDefinitionMapper.selectByIds(definitionIds);
-            for (FlowInstanceVo vo : flowInstanceVos) {
-                flowDefinitions.stream().filter(e -> e.getId().toString().equals(vo.getDefinitionId().toString())).findFirst().ifPresent(e -> {
-                    vo.setFlowName(e.getFlowName());
-                    vo.setFlowCode(e.getFlowCode());
-                    vo.setVersion(e.getVersion());
-                    vo.setFlowStatusName(FlowStatus.getValueByKey(vo.getFlowStatus()));
-                });
-            }
-
-        }
-        build.setRows(flowInstanceVos);
+        build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));
         build.setTotal(page.getTotal());
         return build;
     }

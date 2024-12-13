@@ -22,6 +22,7 @@
         <result property="delFlag" column="del_flag"/>
         <result property="ext" column="ext"/>
         <result property="createBy" column="create_by"/>
+        <result property="category" column="category"/>
     </resultMap>
     <select id="page" resultMap="FlowInstanceResult">
         select fi.id,
@@ -42,7 +43,8 @@
                fd.flow_name,
                fd.flow_code,
                fd.version,
-               fi.create_by
+               fi.create_by,
+               fd.category
         from flow_instance fi
                  left join flow_definition fd on fi.definition_id = fd.id
             and fi.del_flag = '0'

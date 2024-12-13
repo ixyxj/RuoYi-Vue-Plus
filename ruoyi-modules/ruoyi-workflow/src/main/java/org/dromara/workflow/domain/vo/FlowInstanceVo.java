@@ -120,4 +120,9 @@ public class FlowInstanceVo {
      */
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "createBy")
     private String createByName;
+
+    /**
+     * 流程分类id
+     */
+    private String category;
 }
