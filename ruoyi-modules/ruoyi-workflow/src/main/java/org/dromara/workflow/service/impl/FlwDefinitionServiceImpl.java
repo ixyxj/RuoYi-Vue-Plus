@@ -59,6 +59,7 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
         QueryWrapper<FlowDefinition> queryWrapper = new QueryWrapper<>();
         queryWrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowCode()),"flow_code", flowDefinition.getFlowCode());
         queryWrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowName()),"flow_Name", flowDefinition.getFlowName());
+        queryWrapper.like(StringUtils.isNotBlank(flowDefinition.getCategory()),"category", flowDefinition.getCategory());
         queryWrapper.orderByDesc("create_time");
         Page<FlowDefinition> page = flwDefMapper.page(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowDefinitionVo> build = TableDataInfo.build();
