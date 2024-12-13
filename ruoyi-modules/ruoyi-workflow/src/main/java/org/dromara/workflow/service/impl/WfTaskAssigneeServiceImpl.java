@@ -9,7 +9,7 @@ import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.enums.FormatsType;
-import org.dromara.common.core.enums.TaskAssigneeEnum;
+import org.dromara.workflow.common.enums.TaskAssigneeEnum;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.service.DeptService;
 import org.dromara.common.core.service.PostService;

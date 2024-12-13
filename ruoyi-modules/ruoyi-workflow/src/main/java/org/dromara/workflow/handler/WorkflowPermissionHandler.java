@@ -4,7 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.model.LoginUser;
-import org.dromara.common.core.enums.TaskAssigneeEnum;
+import org.dromara.workflow.common.enums.TaskAssigneeEnum;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.handler.PermissionHandler;

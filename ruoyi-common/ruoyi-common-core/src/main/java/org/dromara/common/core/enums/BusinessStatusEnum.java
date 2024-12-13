@@ -40,6 +40,7 @@ public enum BusinessStatusEnum {
      * 已完成
      */
     FINISH("finish", "已完成"),
+
     /**
      * 已作废
      */
