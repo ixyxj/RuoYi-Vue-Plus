@@ -257,7 +257,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             for (FlowHisTaskVo flowHisTaskVo : flowHisTaskVos) {
                 flowHisTaskVo.setFlowStatus(TaskStatusEnum.WAITING.getStatus());
                 flowHisTaskVo.setUpdateTime(null);
-                List<UserDTO> allUser = flwTaskService.currentTaskAllUser(flowHisTaskVo.getTaskId());
+                List<UserDTO> allUser = flwTaskService.currentTaskAllUser(flowHisTaskVo.getId());
                 if (CollUtil.isNotEmpty(allUser)) {
                     String join = StreamUtils.join(allUser, e -> String.valueOf(e.getUserId()));
                     flowHisTaskVo.setApprover(join);

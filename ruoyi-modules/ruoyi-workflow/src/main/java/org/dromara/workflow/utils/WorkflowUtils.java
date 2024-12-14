@@ -63,17 +63,22 @@ public class WorkflowUtils {
             return Set.of();
         }
         Set<User> list = new HashSet<>();
+        Set<String> processedBySet = new HashSet<>();
         for (User user : userList) {
             // 根据 processedBy 前缀判断处理人类型，分别获取用户列表
             List<UserDTO> users = taskAssigneeService.fetchUsersByStorageId(user.getProcessedBy());
             // 转换为 FlowUser 并添加到结果集合
             if (CollUtil.isNotEmpty(users)) {
                 users.forEach(dto -> {
-                    FlowUser flowUser = new FlowUser();
-                    flowUser.setType(user.getType());
-                    flowUser.setProcessedBy(String.valueOf(dto.getUserId()));
-                    flowUser.setAssociated(taskId);
-                    list.add(flowUser);
+                    String processedBy = String.valueOf(dto.getUserId());
+                    if (!processedBySet.contains(processedBy)) {
+                        FlowUser flowUser = new FlowUser();
+                        flowUser.setType(user.getType());
+                        flowUser.setProcessedBy(processedBy);
+                        flowUser.setAssociated(taskId);
+                        list.add(flowUser);
+                        processedBySet.add(processedBy);
+                    }
                 });
             }
         }
