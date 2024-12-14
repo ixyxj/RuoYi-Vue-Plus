@@ -3,7 +3,6 @@ package org.dromara.workflow.service;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
-import org.dromara.warm.flow.core.entity.HisTask;
 import org.dromara.warm.flow.orm.entity.FlowHisTask;
 import org.dromara.warm.flow.orm.entity.FlowTask;
 import org.dromara.workflow.domain.bo.*;
@@ -114,6 +113,22 @@ public interface IFlwTaskService {
      * @return 结果
      */
     boolean terminationTask(FlowTerminationBo bo);
+
+    /**
+     * 通过taskId查询对应的任务办理人
+     *
+     * @param taskIds taskId串逗号分隔
+     * @return 任务办理人名称串逗号分隔
+     */
+    String selectAssigneeNamesByIds(String taskIds);
+
+    /**
+     * 通过taskId查询对应的任务办理人列表
+     *
+     * @param taskIdList 任务id
+     * @return 列表
+     */
+    List<UserDTO> selectAssigneeByIds(List<Long> taskIdList);
 
     /**
      * 按照任务id查询任务

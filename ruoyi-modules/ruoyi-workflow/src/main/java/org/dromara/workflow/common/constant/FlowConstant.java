@@ -9,6 +9,11 @@ package org.dromara.workflow.common.constant;
 public interface FlowConstant {
 
     /**
+     * 任务Id转任务办理人名称
+     */
+    String TASK_ID_TO_ASSIGNEE = "task_id_to_assignee";
+
+    /**
      * 流程发起人
      */
     String INITIATOR = "initiator";
