@@ -14,7 +14,7 @@
                                    max(case when is_publish = 1 then version end),
                                    max(version)
                                ) as version
-                        from flow_definition
+                        from flow_definition where del_flag = '0'
                         group by flow_code
                     ) b on (a.flow_code = b.flow_code and a.version = b.version)
             where a.del_flag = '0'
