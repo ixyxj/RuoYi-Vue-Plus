@@ -125,13 +125,13 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
      *
      * @param processEvent 参数
      */
-    @EventListener(condition = "#processEvent.flowCode.startsWith('leaveFlow-serial1')")
+    @EventListener(condition = "#processEvent.flowCode.startsWith('leave')")
     public void processHandler(ProcessEvent processEvent) {
         log.info("当前任务执行了{}", processEvent.toString());
         TestLeave testLeave = baseMapper.selectById(Long.valueOf(processEvent.getBusinessKey()));
         testLeave.setStatus(processEvent.getStatus());
         if (processEvent.isSubmit()) {
-            testLeave.setStatus(FlowStatus.APPROVAL.getKey());
+            testLeave.setStatus(BusinessStatusEnum.WAITING.getStatus());
         }
         baseMapper.updateById(testLeave);
     }
@@ -140,21 +140,17 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
      * 执行办理任务监听
      * 示例：也可通过  @EventListener(condition = "#processTaskEvent.flowCode=='leave1'")进行判断
      * 在方法中判断流程节点key
-     * if ("xxx".equals(processTaskEvent.getTaskDefinitionKey())) {
+     * if ("xxx".equals(processTaskEvent.getNodeCode())) {
      * //执行业务逻辑
      * }
      *
      * @param processTaskEvent 参数
      */
-    @EventListener(condition = "#processTaskEvent.flowCode=='leaveFlow-serial1'")
+    @EventListener(condition = "#processTaskEvent.flowCode=='leave'")
     public void processTaskHandler(ProcessTaskEvent processTaskEvent) {
-        // 所有demo案例的申请人节点id
-        String[] ids = {"0", "1", "2", "3", "4", "5", "6"};
-        if (StringUtils.equalsAny(processTaskEvent.getNodeCode(), ids)) {
-            log.info("当前任务执行了{}", processTaskEvent.toString());
-            TestLeave testLeave = baseMapper.selectById(Long.valueOf(processTaskEvent.getBusinessKey()));
-            testLeave.setStatus(BusinessStatusEnum.WAITING.getStatus());
-            baseMapper.updateById(testLeave);
-        }
+        log.info("当前任务执行了{}", processTaskEvent.toString());
+        TestLeave testLeave = baseMapper.selectById(Long.valueOf(processTaskEvent.getBusinessKey()));
+        testLeave.setStatus(BusinessStatusEnum.WAITING.getStatus());
+        baseMapper.updateById(testLeave);
     }
 }
