@@ -21,7 +21,7 @@ public interface IFlwInstanceService {
     /**
      * 分页查询正在运行的流程实例
      *
-     * @param instance  参数
+     * @param flowInstanceBo  参数
      * @param pageQuery 分页
      * @return 结果
      */
@@ -30,7 +30,7 @@ public interface IFlwInstanceService {
     /**
      * 分页查询已结束的流程实例
      *
-     * @param instance  参数
+     * @param flowInstanceBo  参数
      * @param pageQuery 分页
      * @return 结果
      */

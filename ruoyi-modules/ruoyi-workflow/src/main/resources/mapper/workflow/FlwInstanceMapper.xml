@@ -47,7 +47,6 @@
                fd.category
         from flow_instance fi
                  left join flow_definition fd on fi.definition_id = fd.id
-            and fi.del_flag = '0'
                 ${ew.getCustomSqlSegment}
     </select>
 
