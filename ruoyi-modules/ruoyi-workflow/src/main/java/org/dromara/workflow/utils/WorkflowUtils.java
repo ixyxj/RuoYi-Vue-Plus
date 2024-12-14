@@ -9,8 +9,8 @@ import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mail.utils.MailUtils;
-import org.dromara.common.websocket.dto.WebSocketMessageDto;
-import org.dromara.common.websocket.utils.WebSocketUtils;
+import org.dromara.common.sse.dto.SseMessageDto;
+import org.dromara.common.sse.utils.SseMessageUtils;
 import org.dromara.warm.flow.core.entity.Task;
 import org.dromara.warm.flow.core.entity.User;
 import org.dromara.warm.flow.orm.entity.FlowTask;
@@ -105,10 +105,10 @@ public class WorkflowUtils {
                 if (ObjectUtil.isNotEmpty(messageTypeEnum)) {
                     switch (messageTypeEnum) {
                         case SYSTEM_MESSAGE:
-                            WebSocketMessageDto dto = new WebSocketMessageDto();
-                            dto.setSessionKeys(new ArrayList<>(StreamUtils.toList(userList, UserDTO::getUserId)));
+                            SseMessageDto dto = new SseMessageDto();
+                            dto.setUserIds(StreamUtils.toList(userList, UserDTO::getUserId));
                             dto.setMessage(message);
-                            WebSocketUtils.publishMessage(dto);
+                            SseMessageUtils.publishMessage(dto);
                             break;
                         case EMAIL_MESSAGE:
                             MailUtils.sendText(StreamUtils.join(userList, UserDTO::getEmail), "单据审批提醒", message);
