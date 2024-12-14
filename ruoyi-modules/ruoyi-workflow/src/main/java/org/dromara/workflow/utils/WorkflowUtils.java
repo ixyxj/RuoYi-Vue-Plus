@@ -44,11 +44,11 @@ public class WorkflowUtils {
             return Collections.emptyList();
         }
         // 获取所有用户的 UserDTO 列表
-        return userList.stream()
+        return new ArrayList<>(userList.stream()
             .map(User::getProcessedBy)
             .filter(Objects::nonNull)
             .flatMap(processedBy -> taskAssigneeService.fetchUsersByStorageId(processedBy).stream())
-            .collect(Collectors.toList());
+            .collect(Collectors.toMap(UserDTO::getUserId, user -> user, (ex, rep) -> ex)).values());
     }
 
     /**

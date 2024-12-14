@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StreamUtils;
@@ -248,12 +249,32 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         if (flowInstance == null) {
             throw new ServiceException(ExceptionCons.NOT_FOUNT_INSTANCE);
         }
+        //运行中的任务
+        List<FlowHisTaskVo> list = new ArrayList<>();
+        List<FlowTask> flowTaskList = flwTaskService.selectByInstId(flowInstance.getId());
+        if (CollUtil.isNotEmpty(flowTaskList)) {
+            List<FlowHisTaskVo> flowHisTaskVos = BeanUtil.copyToList(flowTaskList, FlowHisTaskVo.class);
+            for (FlowHisTaskVo flowHisTaskVo : flowHisTaskVos) {
+                flowHisTaskVo.setFlowStatus(TaskStatusEnum.WAITING.getStatus());
+                flowHisTaskVo.setUpdateTime(null);
+                List<UserDTO> allUser = flwTaskService.currentTaskAllUser(flowHisTaskVo.getTaskId());
+                if (CollUtil.isNotEmpty(allUser)) {
+                    String join = StreamUtils.join(allUser, e -> String.valueOf(e.getUserId()));
+                    flowHisTaskVo.setApprover(join);
+                }
+            }
+            list.addAll(flowHisTaskVos);
+        }
+        //历史任务
         LambdaQueryWrapper<FlowHisTask> wrapper = Wrappers.lambdaQuery();
         wrapper.eq(FlowHisTask::getInstanceId, flowInstance.getId());
         wrapper.eq(FlowHisTask::getNodeType, NodeType.BETWEEN.getKey());
         wrapper.orderByDesc(FlowHisTask::getCreateTime).orderByDesc(FlowHisTask::getUpdateTime);
         List<FlowHisTask> flowHisTasks = flowHisTaskMapper.selectList(wrapper);
-        List<FlowHisTaskVo> list = BeanUtil.copyToList(flowHisTasks, FlowHisTaskVo.class);
+        if (CollUtil.isNotEmpty(flowHisTasks)) {
+            list.addAll(BeanUtil.copyToList(flowHisTasks, FlowHisTaskVo.class));
+        }
+
         map.put("list", list);
         try {
             String flowChart = defService.flowChart(flowInstance.getId());
