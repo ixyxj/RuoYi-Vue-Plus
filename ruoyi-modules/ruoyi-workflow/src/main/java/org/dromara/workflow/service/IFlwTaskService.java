@@ -115,22 +115,6 @@ public interface IFlwTaskService {
     boolean terminationTask(FlowTerminationBo bo);
 
     /**
-     * 通过taskId查询对应的任务办理人
-     *
-     * @param taskIds taskId串逗号分隔
-     * @return 任务办理人名称串逗号分隔
-     */
-    String selectAssigneeNamesByIds(String taskIds);
-
-    /**
-     * 通过taskId查询对应的任务办理人列表
-     *
-     * @param taskIdList 任务id
-     * @return 列表
-     */
-    List<UserDTO> selectAssigneeByIds(List<Long> taskIdList);
-
-    /**
      * 按照任务id查询任务
      *
      * @param taskIdList 任务id
@@ -186,6 +170,14 @@ public interface IFlwTaskService {
      * @return 结果
      */
     boolean taskOperation(TaskOperationBo bo, String taskOperation);
+
+    /**
+     * 获取任务所有办理人
+     *
+     * @param taskIdList 任务id
+     * @return 结果
+     */
+    Map<Long, List<UserDTO>> currentTaskAllUser(List<Long> taskIdList);
 
     /**
      * 获取当前任务的所有办理人

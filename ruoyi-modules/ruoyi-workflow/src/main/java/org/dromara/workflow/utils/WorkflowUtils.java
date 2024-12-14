@@ -20,7 +20,6 @@ import org.dromara.workflow.service.IFlwTaskService;
 import org.dromara.workflow.service.IWfTaskAssigneeService;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 /**
@@ -34,31 +33,13 @@ public class WorkflowUtils {
     public static final IFlwTaskService iFlwTaskService = SpringUtils.getBean(IFlwTaskService.class);
 
     /**
-     * 获取办理人
-     *
-     * @param userList 办理用户
-     * @return 用户
-     */
-    public static List<UserDTO> getHandlerUser(List<User> userList) {
-        if (CollUtil.isEmpty(userList)) {
-            return Collections.emptyList();
-        }
-        // 获取所有用户的 UserDTO 列表
-        return new ArrayList<>(userList.stream()
-            .map(User::getProcessedBy)
-            .filter(Objects::nonNull)
-            .flatMap(processedBy -> taskAssigneeService.fetchUsersByStorageId(processedBy).stream())
-            .collect(Collectors.toMap(UserDTO::getUserId, user -> user, (ex, rep) -> ex)).values());
-    }
-
-    /**
-     * 获取办理人
+     * 构建工作流用户
      *
      * @param userList 办理用户
      * @param taskId   任务ID
      * @return 用户
      */
-    public static Set<User> getUser(List<User> userList, Long taskId) {
+    public static Set<User> buildUser(List<User> userList, Long taskId) {
         if (CollUtil.isEmpty(userList)) {
             return Set.of();
         }

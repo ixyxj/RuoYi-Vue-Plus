@@ -2,7 +2,6 @@ package org.dromara.workflow.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.convert.Convert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.incrementer.IdentifierGenerator;
@@ -76,6 +75,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     private final HisTaskService hisTaskService;
     private final IdentifierGenerator identifierGenerator;
     private final NodeService nodeService;
+    private final org.dromara.common.core.service.UserService sysUserService = SpringUtils.getBean(org.dromara.common.core.service.UserService.class);
 
     /**
      * 启动任务
@@ -182,7 +182,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             // 获取与当前任务关联的用户列表
             List<User> associatedUsers = userService.getByAssociateds(Collections.singletonList(flowTask.getId()));
             if (CollUtil.isNotEmpty(associatedUsers)) {
-                userList.addAll(WorkflowUtils.getUser(associatedUsers, flowTask.getId()));
+                userList.addAll(WorkflowUtils.buildUser(associatedUsers, flowTask.getId()));
             }
         }
         // 批量删除现有任务的办理人记录
@@ -247,7 +247,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
         queryWrapper.in("t.processed_by", SpringUtils.getBean(WorkflowPermissionHandler.class).permissions());
         queryWrapper.in("t.flow_status", BusinessStatusEnum.WAITING.getStatus());
-        Page<FlowTaskVo> page = flwTaskMapper.getTaskWaitByPage(pageQuery.build(), queryWrapper);
+        Page<FlowTaskVo> page = getFlowTaskVoPage(pageQuery, queryWrapper);
         return TableDataInfo.build(page);
     }
 
@@ -277,8 +277,25 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     public TableDataInfo<FlowTaskVo> pageByAllTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
-        Page<FlowTaskVo> page = flwTaskMapper.getTaskWaitByPage(pageQuery.build(), queryWrapper);
+        Page<FlowTaskVo> page = getFlowTaskVoPage(pageQuery, queryWrapper);
         return TableDataInfo.build(page);
+    }
+
+    private Page<FlowTaskVo> getFlowTaskVoPage(PageQuery pageQuery, QueryWrapper<FlowTaskBo> queryWrapper) {
+        Page<FlowTaskVo> page = flwTaskMapper.getTaskWaitByPage(pageQuery.build(), queryWrapper);
+        List<FlowTaskVo> records = page.getRecords();
+        if (CollUtil.isNotEmpty(records)) {
+            List<Long> taskIds = StreamUtils.toList(records, FlowTaskVo::getId);
+            Map<Long, List<UserDTO>> listMap = currentTaskAllUser(taskIds);
+            records.forEach(t -> {
+                List<UserDTO> userList = listMap.getOrDefault(t.getId(), Collections.emptyList());
+                if (CollUtil.isNotEmpty(userList)) {
+                    t.setAssigneeIds(StreamUtils.join(userList, e -> String.valueOf(e.getUserId())));
+                    t.setAssigneeNames(StreamUtils.join(userList, UserDTO::getNickName));
+                }
+            });
+        }
+        return page;
     }
 
     /**
@@ -408,41 +425,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             log.error(e.getMessage(), e);
             throw new ServiceException(e.getMessage());
         }
-    }
-
-    /**
-     * 通过taskId查询对应的任务办理人
-     *
-     * @param taskIds taskId串逗号分隔
-     * @return 任务办理人名称串逗号分隔
-     */
-    @Override
-    public String selectAssigneeNamesByIds(String taskIds) {
-        if (StringUtils.isBlank(taskIds)) {
-            return null;
-        }
-        List<Long> taskIdList = StringUtils.splitTo(taskIds, Convert::toLong);
-        List<UserDTO> list = this.selectAssigneeByIds(taskIdList);
-        if (CollUtil.isEmpty(list)) {
-            return StringUtils.EMPTY;
-        }
-        return StreamUtils.join(list, UserDTO::getNickName);
-    }
-
-    /**
-     * 通过taskId查询对应的任务办理人列表
-     *
-     * @param taskIdList 任务id
-     * @return 列表
-     */
-    @Override
-    public List<UserDTO> selectAssigneeByIds(List<Long> taskIdList) {
-        if (CollUtil.isEmpty(taskIdList)) {
-            return Collections.emptyList();
-        }
-        List<User> userList = userService.getByAssociateds(taskIdList
-            , UserType.APPROVAL.getKey(), UserType.TRANSFER.getKey(), UserType.DEPUTE.getKey());
-        return WorkflowUtils.getHandlerUser(userList);
     }
 
     /**
@@ -638,6 +620,27 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     }
 
     /**
+     * 获取任务所有办理人
+     *
+     * @param taskIdList 任务id
+     */
+    @Override
+    public Map<Long, List<UserDTO>> currentTaskAllUser(List<Long> taskIdList) {
+        Map<Long, List<UserDTO>> map = new HashMap<>();
+        // 获取与当前任务关联的用户列表
+        List<User> associatedUsers = userService.getByAssociateds(taskIdList);
+        Map<Long, List<User>> listMap = StreamUtils.groupByKey(associatedUsers, User::getAssociated);
+        for (Map.Entry<Long, List<User>> entry : listMap.entrySet()) {
+            List<User> value = entry.getValue();
+            if (CollUtil.isNotEmpty(value)) {
+                List<UserDTO> userDTOS = sysUserService.selectListByIds(StreamUtils.toList(value, e -> Long.valueOf(e.getProcessedBy())));
+                map.put(entry.getKey(), userDTOS);
+            }
+        }
+        return map;
+    }
+
+    /**
      * 获取当前任务的所有办理人
      *
      * @param taskId 任务id
@@ -645,14 +648,10 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     @Override
     public List<UserDTO> currentTaskAllUser(Long taskId) {
         // 获取与当前任务关联的用户列表
-        List<User> associatedUsers = userService.getByAssociateds(Collections.singletonList(taskId));
-        if (CollUtil.isEmpty(associatedUsers)) {
+        List<User> userList = userService.getByAssociateds(Collections.singletonList(taskId));
+        if (CollUtil.isEmpty(userList)) {
             return Collections.emptyList();
         }
-        Set<User> users = WorkflowUtils.getUser(associatedUsers, taskId);
-        if (CollUtil.isEmpty(users)) {
-            return Collections.emptyList();
-        }
-        return WorkflowUtils.getHandlerUser(new ArrayList<>(users));
+        return sysUserService.selectListByIds(StreamUtils.toList(userList, e -> Long.valueOf(e.getProcessedBy())));
     }
 }
