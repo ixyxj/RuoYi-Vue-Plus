@@ -2,6 +2,7 @@ package org.dromara.workflow.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.convert.Convert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.incrementer.IdentifierGenerator;
@@ -12,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.exception.ServiceException;
-import org.dromara.workflow.service.AssigneeService;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -61,7 +61,7 @@ import static org.dromara.workflow.common.constant.FlowConstant.*;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
+public class FlwTaskServiceImpl implements IFlwTaskService {
 
     private final TaskService taskService;
     private final InsService insService;
@@ -417,16 +417,16 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      * @return 任务办理人名称串逗号分隔
      */
     @Override
-    public String selectAssigneeByIds(String taskIds) {
+    public String selectAssigneeNamesByIds(String taskIds) {
         if (StringUtils.isBlank(taskIds)) {
             return null;
         }
-        List<User> userList = userService.getByAssociateds(List.of(Long.valueOf(taskIds))
-            , UserType.APPROVAL.getKey(), UserType.TRANSFER.getKey(), UserType.DEPUTE.getKey());
-        // 获取处理用户的昵称并将其合并为一个字符串
-        return WorkflowUtils.getHandlerUser(userList).stream()
-            .map(UserDTO::getNickName)
-            .collect(Collectors.joining(","));
+        List<Long> taskIdList = StringUtils.splitTo(taskIds, Convert::toLong);
+        List<UserDTO> list = this.selectAssigneeByIds(taskIdList);
+        if (CollUtil.isEmpty(list)) {
+            return StringUtils.EMPTY;
+        }
+        return StreamUtils.join(list, UserDTO::getNickName);
     }
 
     /**
@@ -436,7 +436,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService, AssigneeService {
      * @return 列表
      */
     @Override
-    public List<UserDTO> selectByIds(List<Long> taskIdList) {
+    public List<UserDTO> selectAssigneeByIds(List<Long> taskIdList) {
         if (CollUtil.isEmpty(taskIdList)) {
             return Collections.emptyList();
         }
