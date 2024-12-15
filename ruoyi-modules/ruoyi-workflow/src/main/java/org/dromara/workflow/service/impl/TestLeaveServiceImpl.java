@@ -16,7 +16,6 @@ import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.domain.BaseEntity;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
-import org.dromara.warm.flow.core.enums.FlowStatus;
 import org.dromara.workflow.domain.TestLeave;
 import org.dromara.workflow.domain.bo.TestLeaveBo;
 import org.dromara.workflow.domain.vo.TestLeaveVo;
@@ -85,7 +84,8 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
     @Override
     public TestLeaveVo insertByBo(TestLeaveBo bo) {
         long day = DateUtil.betweenDay(bo.getStartDate(), bo.getEndDate(), true);
-        bo.setLeaveDays((int) day);
+        // 截止日期也算一天
+        bo.setLeaveDays((int) day + 1);
         TestLeave add = MapstructUtils.convert(bo, TestLeave.class);
         if (StringUtils.isBlank(add.getStatus())) {
             add.setStatus(BusinessStatusEnum.DRAFT.getStatus());
