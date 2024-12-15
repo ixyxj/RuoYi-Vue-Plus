@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.service.UserService;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -75,7 +76,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     private final HisTaskService hisTaskService;
     private final IdentifierGenerator identifierGenerator;
     private final NodeService nodeService;
-    private final org.dromara.common.core.service.UserService sysUserService = SpringUtils.getBean(org.dromara.common.core.service.UserService.class);
 
     /**
      * 启动任务
@@ -98,6 +98,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         FlowInstance flowInstance = flowInstanceMapper.selectOne(new LambdaQueryWrapper<>(FlowInstance.class)
             .eq(FlowInstance::getBusinessId, businessKey));
         if (flowInstance != null) {
+            BusinessStatusEnum.checkStartStatus(flowInstance.getFlowStatus());
             List<Task> taskList = taskService.list(new FlowTask().setInstanceId(flowInstance.getId()));
             return Map.of(PROCESS_INSTANCE_ID, taskList.get(0).getInstanceId(), TASK_ID, taskList.get(0).getId());
         }
@@ -152,7 +153,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             flowParams.hisTaskExt(completeTaskBo.getFileId());
             // 执行任务跳转，并根据返回的处理人设置下一步处理人
             setHandler(taskService.skip(taskId, flowParams), flowTask, wfCopyList);
-            //消息通知
+            // 消息通知
             WorkflowUtils.sendMessage(definition.getFlowName(), ins.getId(), messageType, notice);
             return true;
         } catch (Exception e) {
@@ -180,18 +181,18 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         // 遍历任务列表，处理每个任务的办理人
         for (FlowTask flowTask : flowTasks) {
             // 获取与当前任务关联的用户列表
-            List<User> associatedUsers = userService.getByAssociateds(Collections.singletonList(flowTask.getId()));
+            List<User> associatedUsers = WorkflowUtils.userService.getByAssociateds(Collections.singletonList(flowTask.getId()));
             if (CollUtil.isNotEmpty(associatedUsers)) {
                 userList.addAll(WorkflowUtils.buildUser(associatedUsers, flowTask.getId()));
             }
         }
         // 批量删除现有任务的办理人记录
         if (CollUtil.isNotEmpty(flowTasks)) {
-            userService.deleteByTaskIds(StreamUtils.toList(flowTasks, FlowTask::getId));
+            WorkflowUtils.userService.deleteByTaskIds(StreamUtils.toList(flowTasks, FlowTask::getId));
         }
         // 确保要保存的 userList 不为空
         if (CollUtil.isNotEmpty(userList)) {
-            userService.saveBatch(userList);
+            WorkflowUtils.userService.saveBatch(userList);
         }
     }
 
@@ -232,7 +233,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
                 return flowUser;
             }).collect(Collectors.toList());
         // 批量保存抄送人员
-        userService.saveBatch(userList);
+        WorkflowUtils.userService.saveBatch(userList);
     }
 
     /**
@@ -350,6 +351,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             if (CollUtil.isEmpty(flowTasks)) {
                 throw new ServiceException("任务不存在！");
             }
+            Instance inst = insService.getById(flowTasks.get(0).getInstanceId());
+            BusinessStatusEnum.checkBackStatus(inst.getFlowStatus());
             Long definitionId = flowTasks.get(0).getDefinitionId();
             Definition definition = defService.getById(definitionId);
             List<FlowSkip> flowSkips = flowSkipMapper.selectList(new LambdaQueryWrapper<>(FlowSkip.class).eq(FlowSkip::getDefinitionId, definitionId));
@@ -415,11 +418,20 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     @Transactional(rollbackFor = Exception.class)
     public boolean terminationTask(FlowTerminationBo bo) {
         try {
+            Long taskId = bo.getTaskId();
+            Task task = taskService.getById(taskId);
+            if (task == null) {
+                throw new ServiceException("任务不存在！");
+            }
+            Instance instance = insService.getById(task.getInstanceId());
+            if (instance != null) {
+                BusinessStatusEnum.checkInvalidStatus(instance.getFlowStatus());
+            }
             FlowParams flowParams = new FlowParams();
             flowParams.message(bo.getComment());
             flowParams.flowStatus(BusinessStatusEnum.TERMINATION.getStatus())
                 .hisStatus(TaskStatusEnum.TERMINATION.getStatus());
-            taskService.termination(bo.getTaskId(), flowParams);
+            taskService.termination(taskId, flowParams);
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -598,7 +610,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             List<FlowTask> flowTasks = selectByIdList(taskIdList);
             // 批量删除现有任务的办理人记录
             if (CollUtil.isNotEmpty(flowTasks)) {
-                userService.deleteByTaskIds(StreamUtils.toList(flowTasks, FlowTask::getId));
+                WorkflowUtils.userService.deleteByTaskIds(StreamUtils.toList(flowTasks, FlowTask::getId));
                 List<User> userList = flowTasks.stream()
                     .map(flowTask -> {
                         FlowUser flowUser = new FlowUser();
@@ -609,7 +621,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
                     })
                     .collect(Collectors.toList());
                 if (CollUtil.isNotEmpty(userList)) {
-                    userService.saveBatch(userList);
+                    WorkflowUtils.userService.saveBatch(userList);
                 }
             }
         } catch (Exception e) {
@@ -628,12 +640,12 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     public Map<Long, List<UserDTO>> currentTaskAllUser(List<Long> taskIdList) {
         Map<Long, List<UserDTO>> map = new HashMap<>();
         // 获取与当前任务关联的用户列表
-        List<User> associatedUsers = userService.getByAssociateds(taskIdList);
+        List<User> associatedUsers = WorkflowUtils.userService.getByAssociateds(taskIdList);
         Map<Long, List<User>> listMap = StreamUtils.groupByKey(associatedUsers, User::getAssociated);
         for (Map.Entry<Long, List<User>> entry : listMap.entrySet()) {
             List<User> value = entry.getValue();
             if (CollUtil.isNotEmpty(value)) {
-                List<UserDTO> userDTOS = sysUserService.selectListByIds(StreamUtils.toList(value, e -> Long.valueOf(e.getProcessedBy())));
+                List<UserDTO> userDTOS = userService.selectListByIds(StreamUtils.toList(value, e -> Long.valueOf(e.getProcessedBy())));
                 map.put(entry.getKey(), userDTOS);
             }
         }
@@ -648,10 +660,10 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     @Override
     public List<UserDTO> currentTaskAllUser(Long taskId) {
         // 获取与当前任务关联的用户列表
-        List<User> userList = userService.getByAssociateds(Collections.singletonList(taskId));
+        List<User> userList = WorkflowUtils.userService.getByAssociateds(Collections.singletonList(taskId));
         if (CollUtil.isEmpty(userList)) {
             return Collections.emptyList();
         }
-        return sysUserService.selectListByIds(StreamUtils.toList(userList, e -> Long.valueOf(e.getProcessedBy())));
+        return userService.selectListByIds(StreamUtils.toList(userList, e -> Long.valueOf(e.getProcessedBy())));
     }
 }

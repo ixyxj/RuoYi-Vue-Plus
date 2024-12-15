@@ -20,22 +20,20 @@ import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.FlowFactory;
 import org.dromara.warm.flow.core.constant.ExceptionCons;
 import org.dromara.warm.flow.core.dto.FlowParams;
-import org.dromara.warm.flow.core.entity.Definition;
-import org.dromara.warm.flow.core.entity.Instance;
-import org.dromara.warm.flow.core.entity.Node;
-import org.dromara.warm.flow.core.entity.Task;
+import org.dromara.warm.flow.core.entity.*;
 import org.dromara.warm.flow.core.enums.NodeType;
 import org.dromara.warm.flow.core.enums.SkipType;
+import org.dromara.warm.flow.core.enums.UserType;
 import org.dromara.warm.flow.core.service.DefService;
 import org.dromara.warm.flow.core.service.InsService;
 import org.dromara.warm.flow.core.service.NodeService;
 import org.dromara.warm.flow.core.service.TaskService;
 import org.dromara.warm.flow.core.utils.AssertUtil;
 import org.dromara.warm.flow.orm.entity.*;
-import org.dromara.warm.flow.orm.mapper.FlowDefinitionMapper;
 import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
 import org.dromara.warm.flow.orm.mapper.FlowInstanceMapper;
 import org.dromara.warm.flow.orm.mapper.FlowNodeMapper;
+import org.dromara.warm.flow.orm.mapper.FlowTaskMapper;
 import org.dromara.workflow.common.enums.TaskStatusEnum;
 import org.dromara.workflow.domain.bo.FlowCancelBo;
 import org.dromara.workflow.domain.bo.FlowInstanceBo;
@@ -46,6 +44,7 @@ import org.dromara.workflow.domain.vo.VariableVo;
 import org.dromara.workflow.mapper.FlwInstanceMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.dromara.workflow.service.IFlwTaskService;
+import org.dromara.workflow.utils.WorkflowUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -65,9 +64,9 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     private final InsService insService;
     private final DefService defService;
     private final FlowHisTaskMapper flowHisTaskMapper;
+    private final FlowTaskMapper flowTaskMapper;
     private final FlowInstanceMapper flowInstanceMapper;
     private final FlwInstanceMapper flwInstanceMapper;
-    private final FlowDefinitionMapper flowDefinitionMapper;
     private final TaskService taskService;
     private final FlowNodeMapper flowNodeMapper;
     private final NodeService nodeService;
@@ -198,21 +197,44 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             if (definition == null) {
                 throw new ServiceException(ExceptionCons.NOT_FOUNT_DEF);
             }
+            BusinessStatusEnum.checkCancelStatus(instance.getFlowStatus());
             List<Task> list = taskService.list(FlowFactory.newTask().setInstanceId(instance.getId()));
-
             //获取已发布的流程节点
             List<FlowNode> flowNodes = flowNodeMapper.selectList(new LambdaQueryWrapper<FlowNode>().eq(FlowNode::getDefinitionId, definition.getId()));
             AssertUtil.isTrue(CollUtil.isEmpty(flowNodes), ExceptionCons.NOT_PUBLISH_NODE);
             Node startNode = flowNodes.stream().filter(t -> NodeType.isStart(t.getNodeType())).findFirst().orElse(null);
             AssertUtil.isNull(startNode, ExceptionCons.LOST_START_NODE);
             Node nextNode = nodeService.getNextNode(definition.getId(), startNode.getNodeCode(), null, SkipType.NONE.getKey());
-            FlowParams flowParams = FlowParams.build();
-            flowParams.nodeCode(nextNode.getNodeCode());
-            flowParams.message(bo.getMessage());
-            flowParams.skipType(SkipType.PASS.getKey());
-            flowParams.flowStatus(BusinessStatusEnum.CANCEL.getStatus()).hisStatus(TaskStatusEnum.CANCEL.getStatus());
-            flowParams.ignore(true);
-            taskService.skip(list.get(0).getId(), flowParams);
+            for (Task task : list) {
+                FlowParams flowParams = FlowParams.build();
+                flowParams.nodeCode(nextNode.getNodeCode());
+                flowParams.message(bo.getMessage());
+                flowParams.skipType(SkipType.PASS.getKey());
+                flowParams.flowStatus(BusinessStatusEnum.CANCEL.getStatus()).hisStatus(TaskStatusEnum.CANCEL.getStatus());
+                flowParams.ignore(true);
+                taskService.skip(task.getId(), flowParams);
+            }
+            //判断申请人节点是否有多个，只保留一个
+            List<Task> currentTaskList = taskService.list(FlowFactory.newTask().setInstanceId(instance.getId()));
+            if (CollUtil.isNotEmpty(currentTaskList)) {
+                Task task = currentTaskList.get(0);
+                if (currentTaskList.size() > 1) {
+                    currentTaskList.remove(0);
+                    List<Long> taskIds = StreamUtils.toList(currentTaskList, Task::getId);
+                    WorkflowUtils.userService.deleteByTaskIds(taskIds);
+                    flowTaskMapper.deleteByIds(taskIds);
+                }
+                //如果为空增加一个申请人
+                List<User> userList = WorkflowUtils.userService.getByAssociateds(Collections.singletonList(task.getId()));
+                if (CollUtil.isEmpty(userList)) {
+                    FlowUser flowUser = new FlowUser();
+                    flowUser.setAssociated(task.getId());
+                    flowUser.setProcessedBy(LoginHelper.getUserIdStr());
+                    flowUser.setType(UserType.APPROVAL.getKey());
+                    WorkflowUtils.userService.save(flowUser);
+                }
+            }
+
         } catch (Exception e) {
             log.error("撤销失败: {}", e.getMessage(), e);
             throw new ServiceException(e.getMessage());
@@ -257,6 +279,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             for (FlowHisTaskVo flowHisTaskVo : flowHisTaskVos) {
                 flowHisTaskVo.setFlowStatus(TaskStatusEnum.WAITING.getStatus());
                 flowHisTaskVo.setUpdateTime(null);
+                flowHisTaskVo.setRunDuration(null);
                 List<UserDTO> allUser = flwTaskService.currentTaskAllUser(flowHisTaskVo.getId());
                 if (CollUtil.isNotEmpty(allUser)) {
                     String join = StreamUtils.join(allUser, e -> String.valueOf(e.getUserId()));
@@ -390,6 +413,10 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Transactional(rollbackFor = Exception.class)
     public boolean processInvalid(FlowInvalidBo bo) {
         try {
+            Instance instance = insService.getById(bo.getId());
+            if (instance != null) {
+                BusinessStatusEnum.checkInvalidStatus(instance.getFlowStatus());
+            }
             List<FlowTask> flowTaskList = flwTaskService.selectByInstId(bo.getId());
             for (FlowTask flowTask : flowTaskList) {
                 FlowParams flowParams = new FlowParams();

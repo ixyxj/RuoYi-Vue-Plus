@@ -3,6 +3,7 @@ package org.dromara.common.core.enums;
 import cn.hutool.core.util.StrUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
 
 import java.util.ArrayList;
@@ -139,6 +140,84 @@ public enum BusinessStatusEnum {
         list.add(BusinessStatusEnum.INVALID.getStatus());
         list.add(BusinessStatusEnum.TERMINATION.getStatus());
         return list;
+    }
+
+    /**
+     * 启动流程校验
+     *
+     * @param status 状态
+     */
+    public static void checkStartStatus(String status) {
+        if (WAITING.getStatus().equals(status)) {
+            throw new ServiceException("该单据已提交过申请,正在审批中！");
+        } else if (FINISH.getStatus().equals(status)) {
+            throw new ServiceException("该单据已完成申请！");
+        } else if (INVALID.getStatus().equals(status)) {
+            throw new ServiceException("该单据已作废！");
+        } else if (TERMINATION.getStatus().equals(status)) {
+            throw new ServiceException("该单据已终止！");
+        } else if (StringUtils.isBlank(status)) {
+            throw new ServiceException("流程状态为空！");
+        }
+    }
+
+    /**
+     * 撤销流程校验
+     *
+     * @param status 状态
+     */
+    public static void checkCancelStatus(String status) {
+        if (CANCEL.getStatus().equals(status)) {
+            throw new ServiceException("该单据已撤销！");
+        } else if (FINISH.getStatus().equals(status)) {
+            throw new ServiceException("该单据已完成申请！");
+        } else if (INVALID.getStatus().equals(status)) {
+            throw new ServiceException("该单据已作废！");
+        } else if (TERMINATION.getStatus().equals(status)) {
+            throw new ServiceException("该单据已终止！");
+        } else if (BACK.getStatus().equals(status)) {
+            throw new ServiceException("该单据已退回！");
+        } else if (StringUtils.isBlank(status)) {
+            throw new ServiceException("流程状态为空！");
+        }
+    }
+
+    /**
+     * 驳回流程校验
+     *
+     * @param status 状态
+     */
+    public static void checkBackStatus(String status) {
+        if (BACK.getStatus().equals(status)) {
+            throw new ServiceException("该单据已退回！");
+        } else if (FINISH.getStatus().equals(status)) {
+            throw new ServiceException("该单据已完成申请！");
+        } else if (INVALID.getStatus().equals(status)) {
+            throw new ServiceException("该单据已作废！");
+        } else if (TERMINATION.getStatus().equals(status)) {
+            throw new ServiceException("该单据已终止！");
+        } else if (CANCEL.getStatus().equals(status)) {
+            throw new ServiceException("该单据已撤销！");
+        } else if (StringUtils.isBlank(status)) {
+            throw new ServiceException("流程状态为空！");
+        }
+    }
+
+    /**
+     * 作废,终止流程校验
+     *
+     * @param status 状态
+     */
+    public static void checkInvalidStatus(String status) {
+        if (FINISH.getStatus().equals(status)) {
+            throw new ServiceException("该单据已完成申请！");
+        } else if (INVALID.getStatus().equals(status)) {
+            throw new ServiceException("该单据已作废！");
+        } else if (TERMINATION.getStatus().equals(status)) {
+            throw new ServiceException("该单据已终止！");
+        } else if (StringUtils.isBlank(status)) {
+            throw new ServiceException("流程状态为空！");
+        }
     }
 
 }

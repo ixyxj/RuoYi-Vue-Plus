@@ -13,6 +13,7 @@ import org.dromara.common.sse.dto.SseMessageDto;
 import org.dromara.common.sse.utils.SseMessageUtils;
 import org.dromara.warm.flow.core.entity.Task;
 import org.dromara.warm.flow.core.entity.User;
+import org.dromara.warm.flow.core.service.UserService;
 import org.dromara.warm.flow.orm.entity.FlowTask;
 import org.dromara.warm.flow.orm.entity.FlowUser;
 import org.dromara.workflow.common.enums.MessageTypeEnum;
@@ -31,6 +32,7 @@ import java.util.*;
 public class WorkflowUtils {
     public static final IWfTaskAssigneeService taskAssigneeService = SpringUtils.getBean(IWfTaskAssigneeService.class);
     public static final IFlwTaskService iFlwTaskService = SpringUtils.getBean(IFlwTaskService.class);
+    public static final UserService userService = SpringUtils.getBean(UserService.class);
 
     /**
      * 构建工作流用户
@@ -77,7 +79,7 @@ public class WorkflowUtils {
         List<UserDTO> userList = new ArrayList<>();
         List<FlowTask> list = iFlwTaskService.selectByInstId(instId);
         if (StringUtils.isBlank(message)) {
-            message = "有新的【" + flowName + "】单据已经提交至您的待办，请您及时处理。";
+            message = "有新的【" + flowName + "】单据已经提交至您，请您及时处理。";
         }
         for (Task task : list) {
             List<UserDTO> users = iFlwTaskService.currentTaskAllUser(task.getId());
