@@ -13,9 +13,9 @@ import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.web.core.BaseController;
-import org.dromara.workflow.domain.bo.WfCategoryBo;
-import org.dromara.workflow.domain.vo.WfCategoryVo;
-import org.dromara.workflow.service.IWfCategoryService;
+import org.dromara.workflow.domain.bo.FlowCategoryBo;
+import org.dromara.workflow.domain.vo.FlowCategoryVo;
+import org.dromara.workflow.service.IFlwCategoryService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,17 +31,17 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/workflow/category")
-public class WfCategoryController extends BaseController {
+public class FlwCategoryController extends BaseController {
 
-    private final IWfCategoryService wfCategoryService;
+    private final IFlwCategoryService FlowCategoryService;
 
     /**
      * 查询流程分类列表
      */
     @SaCheckPermission("workflow:category:list")
     @GetMapping("/list")
-    public R<List<WfCategoryVo>> list(WfCategoryBo bo) {
-        List<WfCategoryVo> list = wfCategoryService.queryList(bo);
+    public R<List<FlowCategoryVo>> list(FlowCategoryBo bo) {
+        List<FlowCategoryVo> list = FlowCategoryService.queryList(bo);
         return R.ok(list);
 
     }
@@ -52,9 +52,9 @@ public class WfCategoryController extends BaseController {
     @SaCheckPermission("workflow:category:export")
     @Log(title = "流程分类", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
-    public void export(WfCategoryBo bo, HttpServletResponse response) {
-        List<WfCategoryVo> list = wfCategoryService.queryList(bo);
-        ExcelUtil.exportExcel(list, "流程分类", WfCategoryVo.class, response);
+    public void export(FlowCategoryBo bo, HttpServletResponse response) {
+        List<FlowCategoryVo> list = FlowCategoryService.queryList(bo);
+        ExcelUtil.exportExcel(list, "流程分类", FlowCategoryVo.class, response);
     }
 
     /**
@@ -64,9 +64,9 @@ public class WfCategoryController extends BaseController {
      */
     @SaCheckPermission("workflow:category:query")
     @GetMapping("/{id}")
-    public R<WfCategoryVo> getInfo(@NotNull(message = "主键不能为空")
+    public R<FlowCategoryVo> getInfo(@NotNull(message = "主键不能为空")
                                    @PathVariable Long id) {
-        return R.ok(wfCategoryService.queryById(id));
+        return R.ok(FlowCategoryService.queryById(id));
     }
 
     /**
@@ -76,8 +76,8 @@ public class WfCategoryController extends BaseController {
     @Log(title = "流程分类", businessType = BusinessType.INSERT)
     @RepeatSubmit()
     @PostMapping()
-    public R<Void> add(@Validated(AddGroup.class) @RequestBody WfCategoryBo bo) {
-        return toAjax(wfCategoryService.insertByBo(bo));
+    public R<Void> add(@Validated(AddGroup.class) @RequestBody FlowCategoryBo bo) {
+        return toAjax(FlowCategoryService.insertByBo(bo));
     }
 
     /**
@@ -87,8 +87,8 @@ public class WfCategoryController extends BaseController {
     @Log(title = "流程分类", businessType = BusinessType.UPDATE)
     @RepeatSubmit()
     @PutMapping()
-    public R<Void> edit(@Validated(EditGroup.class) @RequestBody WfCategoryBo bo) {
-        return toAjax(wfCategoryService.updateByBo(bo));
+    public R<Void> edit(@Validated(EditGroup.class) @RequestBody FlowCategoryBo bo) {
+        return toAjax(FlowCategoryService.updateByBo(bo));
     }
 
     /**
@@ -101,6 +101,6 @@ public class WfCategoryController extends BaseController {
     @DeleteMapping("/{ids}")
     public R<Void> remove(@NotEmpty(message = "主键不能为空")
                           @PathVariable Long[] ids) {
-        return toAjax(wfCategoryService.deleteWithValidByIds(List.of(ids), true));
+        return toAjax(FlowCategoryService.deleteWithValidByIds(List.of(ids), true));
     }
 }

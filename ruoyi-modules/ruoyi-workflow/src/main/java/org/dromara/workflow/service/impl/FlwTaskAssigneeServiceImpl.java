@@ -9,9 +9,10 @@ import org.dromara.common.core.domain.dto.TaskAssigneeDTO;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.domain.model.TaskAssigneeBody;
 import org.dromara.common.core.enums.FormatsType;
-import org.dromara.common.core.service.*;
-import org.dromara.workflow.common.enums.TaskAssigneeEnum;
 import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.service.DeptService;
+import org.dromara.common.core.service.TaskAssigneeService;
+import org.dromara.common.core.service.UserService;
 import org.dromara.common.core.utils.DateUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.warm.flow.ui.dto.HandlerFunDto;
@@ -19,11 +20,11 @@ import org.dromara.warm.flow.ui.dto.HandlerQuery;
 import org.dromara.warm.flow.ui.dto.TreeFunDto;
 import org.dromara.warm.flow.ui.service.HandlerSelectService;
 import org.dromara.warm.flow.ui.vo.HandlerSelectVo;
-import org.dromara.workflow.service.IWfTaskAssigneeService;
+import org.dromara.workflow.common.enums.TaskAssigneeEnum;
+import org.dromara.workflow.service.IFlwTaskAssigneeService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,7 +36,7 @@ import java.util.Optional;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class WfTaskAssigneeServiceImpl implements IWfTaskAssigneeService, HandlerSelectService {
+public class FlwTaskAssigneeServiceImpl implements IFlwTaskAssigneeService, HandlerSelectService {
 
     private static final String DEFAULT_GROUP_NAME = "默认分组";
     private final TaskAssigneeService taskAssigneeService;

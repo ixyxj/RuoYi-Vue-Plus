@@ -213,7 +213,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
                 if (currentTaskList.size() > 1) {
                     currentTaskList.remove(0);
                     List<Long> taskIds = StreamUtils.toList(currentTaskList, Task::getId);
-                    WorkflowUtils.userService.deleteByTaskIds(taskIds);
+                    WorkflowUtils.getFlowUserService().deleteByTaskIds(taskIds);
                     flowTaskMapper.deleteByIds(taskIds);
                 }
             }

@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
 import org.dromara.common.mybatis.core.domain.BaseEntity;
-import org.dromara.workflow.domain.WfCategory;
+import org.dromara.workflow.domain.FlowCategory;
 
 /**
  * 流程分类业务对象 wf_category
@@ -18,8 +18,8 @@ import org.dromara.workflow.domain.WfCategory;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@AutoMapper(target = WfCategory.class, reverseConvertGenerate = false)
-public class WfCategoryBo extends BaseEntity {
+@AutoMapper(target = FlowCategory.class, reverseConvertGenerate = false)
+public class FlowCategoryBo extends BaseEntity {
 
     /**
      * 主键
