@@ -197,23 +197,16 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             if (definition == null) {
                 throw new ServiceException(ExceptionCons.NOT_FOUNT_DEF);
             }
+            String message = bo.getMessage();
             BusinessStatusEnum.checkCancelStatus(instance.getFlowStatus());
-            List<Task> list = taskService.list(FlowFactory.newTask().setInstanceId(instance.getId()));
             //获取已发布的流程节点
             List<FlowNode> flowNodes = flowNodeMapper.selectList(new LambdaQueryWrapper<FlowNode>().eq(FlowNode::getDefinitionId, definition.getId()));
             AssertUtil.isTrue(CollUtil.isEmpty(flowNodes), ExceptionCons.NOT_PUBLISH_NODE);
             Node startNode = flowNodes.stream().filter(t -> NodeType.isStart(t.getNodeType())).findFirst().orElse(null);
             AssertUtil.isNull(startNode, ExceptionCons.LOST_START_NODE);
             Node nextNode = nodeService.getNextNode(definition.getId(), startNode.getNodeCode(), null, SkipType.NONE.getKey());
-            for (Task task : list) {
-                FlowParams flowParams = FlowParams.build();
-                flowParams.nodeCode(nextNode.getNodeCode());
-                flowParams.message(bo.getMessage());
-                flowParams.skipType(SkipType.PASS.getKey());
-                flowParams.flowStatus(BusinessStatusEnum.CANCEL.getStatus()).hisStatus(TaskStatusEnum.CANCEL.getStatus());
-                flowParams.ignore(true);
-                taskService.skip(task.getId(), flowParams);
-            }
+            //撤销
+            cancelTask(message, instance, nextNode);
             //判断申请人节点是否有多个，只保留一个
             List<Task> currentTaskList = taskService.list(FlowFactory.newTask().setInstanceId(instance.getId()));
             if (CollUtil.isNotEmpty(currentTaskList)) {
@@ -240,6 +233,39 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             throw new ServiceException(e.getMessage());
         }
         return true;
+    }
+
+    /**
+     * 撤销流程
+     *
+     * @param message  审批已经
+     * @param instance 流程实例
+     * @param nextNode 申请人节点
+     */
+    private void cancelTask(String message, Instance instance, Node nextNode) {
+        List<Task> list = taskService.list(FlowFactory.newTask().setInstanceId(instance.getId()));
+        if (CollUtil.isNotEmpty(list)) {
+            List<Task> tasks = StreamUtils.filter(list, e -> e.getNodeCode().equals(nextNode.getNodeCode()));
+            if (list.size() == tasks.size()) {
+                return;
+            }
+        }
+        for (Task task : list) {
+            List<UserDTO> userList = flwTaskService.currentTaskAllUser(task.getId());
+            FlowParams flowParams = FlowParams.build();
+            flowParams.nodeCode(nextNode.getNodeCode());
+            flowParams.message(message);
+            flowParams.skipType(SkipType.PASS.getKey());
+            flowParams.flowStatus(BusinessStatusEnum.CANCEL.getStatus()).hisStatus(TaskStatusEnum.CANCEL.getStatus());
+            flowParams.ignore(true);
+            //解决会签，或签撤销没权限问题
+            if (CollUtil.isNotEmpty(userList)) {
+                flowParams.handler(userList.get(0).getUserId().toString());
+            }
+            taskService.skip(task.getId(), flowParams);
+        }
+        //解决会签，或签多人审批问题
+        cancelTask(message, instance, nextNode);
     }
 
     /**
@@ -423,6 +449,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
                 flowParams.message(bo.getComment());
                 flowParams.flowStatus(BusinessStatusEnum.INVALID.getStatus())
                     .hisStatus(TaskStatusEnum.INVALID.getStatus());
+                flowParams.ignore(true);
                 taskService.termination(flowTask.getId(), flowParams);
             }
             return true;
