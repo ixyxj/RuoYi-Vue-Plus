@@ -23,7 +23,6 @@ import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.entity.*;
 import org.dromara.warm.flow.core.enums.NodeType;
 import org.dromara.warm.flow.core.enums.SkipType;
-import org.dromara.warm.flow.core.enums.UserType;
 import org.dromara.warm.flow.core.service.DefService;
 import org.dromara.warm.flow.core.service.InsService;
 import org.dromara.warm.flow.core.service.NodeService;
@@ -206,7 +205,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             AssertUtil.isNull(startNode, ExceptionCons.LOST_START_NODE);
             Node nextNode = nodeService.getNextNode(definition.getId(), startNode.getNodeCode(), null, SkipType.NONE.getKey());
             //撤销
-            cancelTask(message, instance, nextNode);
+            WorkflowUtils.backTask(message, instance.getId(), nextNode.getNodeCode(), BusinessStatusEnum.CANCEL.getStatus(), BusinessStatusEnum.CANCEL.getStatus());
             //判断申请人节点是否有多个，只保留一个
             List<Task> currentTaskList = taskService.list(FlowFactory.newTask().setInstanceId(instance.getId()));
             if (CollUtil.isNotEmpty(currentTaskList)) {
@@ -223,39 +222,6 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             throw new ServiceException(e.getMessage());
         }
         return true;
-    }
-
-    /**
-     * 撤销流程
-     *
-     * @param message  审批已经
-     * @param instance 流程实例
-     * @param nextNode 申请人节点
-     */
-    private void cancelTask(String message, Instance instance, Node nextNode) {
-        List<Task> list = taskService.list(FlowFactory.newTask().setInstanceId(instance.getId()));
-        if (CollUtil.isNotEmpty(list)) {
-            List<Task> tasks = StreamUtils.filter(list, e -> e.getNodeCode().equals(nextNode.getNodeCode()));
-            if (list.size() == tasks.size()) {
-                return;
-            }
-        }
-        for (Task task : list) {
-            List<UserDTO> userList = flwTaskService.currentTaskAllUser(task.getId());
-            FlowParams flowParams = FlowParams.build();
-            flowParams.nodeCode(nextNode.getNodeCode());
-            flowParams.message(message);
-            flowParams.skipType(SkipType.PASS.getKey());
-            flowParams.flowStatus(BusinessStatusEnum.CANCEL.getStatus()).hisStatus(TaskStatusEnum.CANCEL.getStatus());
-            flowParams.ignore(true);
-            //解决会签，或签撤销没权限问题
-            if (CollUtil.isNotEmpty(userList)) {
-                flowParams.handler(userList.get(0).getUserId().toString());
-            }
-            taskService.skip(task.getId(), flowParams);
-        }
-        //解决会签，或签多人审批问题
-        cancelTask(message, instance, nextNode);
     }
 
     /**
