@@ -22,6 +22,7 @@ import org.dromara.common.core.validate.EditGroup;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
+import org.dromara.warm.flow.core.FlowFactory;
 import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.entity.*;
 import org.dromara.warm.flow.core.enums.NodeType;
@@ -347,6 +348,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             Long taskId = bo.getTaskId();
             String notice = bo.getNotice();
             List<String> messageType = bo.getMessageType();
+            String message = bo.getMessage();
             List<FlowTask> flowTasks = flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class).eq(FlowTask::getId, taskId));
             if (CollUtil.isEmpty(flowTasks)) {
                 throw new ServiceException("任务不存在！");
@@ -359,20 +361,23 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             FlowSkip flowSkip = StreamUtils.findFirst(flowSkips, e -> NodeType.START.getKey().equals(e.getNowNodeType()));
             //开始节点的下一节点
             assert flowSkip != null;
-            String nextNodeCode = flowSkip.getNextNodeCode();
-
-            FlowParams flowParams = new FlowParams();
-            flowParams.variable(bo.getVariables());
-            flowParams.skipType(SkipType.PASS.getKey());
-            if (nextNodeCode.equals(bo.getNodeCode())) {
-                flowParams.flowStatus(BusinessStatusEnum.BACK.getStatus());
+            //申请人节点
+            String applyUserNodeCode = flowSkip.getNextNodeCode();
+            if (applyUserNodeCode.equals(bo.getNodeCode())) {
+                backApplyUser(message, inst, applyUserNodeCode);
             } else {
-                flowParams.flowStatus(BusinessStatusEnum.WAITING.getStatus());
+                List<Task> list = taskService.list(FlowFactory.newTask().setInstanceId(inst.getId()));
+                for (Task task : list) {
+                    FlowParams flowParams = FlowParams.build();
+                    flowParams.nodeCode(bo.getNodeCode());
+                    flowParams.message(message);
+                    flowParams.skipType(SkipType.PASS.getKey());
+                    flowParams.flowStatus(BusinessStatusEnum.WAITING.getStatus()).hisStatus(TaskStatusEnum.BACK.getStatus());
+                    flowParams.ignore(true);
+                    taskService.skip(task.getId(), flowParams);
+                }
             }
-            flowParams.hisStatus(TaskStatusEnum.BACK.getStatus());
-            flowParams.message(bo.getMessage());
-            flowParams.nodeCode(bo.getNodeCode());
-            Instance instance = taskService.skip(taskId, flowParams);
+            Instance instance = insService.getById(inst.getId());
             setHandler(instance, flowTasks.get(0), null);
             //消息通知
             WorkflowUtils.sendMessage(definition.getFlowName(), instance.getId(), messageType, notice);
@@ -381,6 +386,39 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             log.error(e.getMessage(), e);
             throw new ServiceException(e.getMessage());
         }
+    }
+
+    /**
+     * 退回
+     *
+     * @param message           审批已经
+     * @param instance          流程实例
+     * @param applyUserNodeCode 申请人节点
+     */
+    private void backApplyUser(String message, Instance instance, String applyUserNodeCode) {
+        List<Task> list = taskService.list(FlowFactory.newTask().setInstanceId(instance.getId()));
+        if (CollUtil.isNotEmpty(list)) {
+            List<Task> tasks = StreamUtils.filter(list, e -> e.getNodeCode().equals(applyUserNodeCode));
+            if (list.size() == tasks.size()) {
+                return;
+            }
+        }
+        for (Task task : list) {
+            List<UserDTO> userList = currentTaskAllUser(task.getId());
+            FlowParams flowParams = FlowParams.build();
+            flowParams.nodeCode(applyUserNodeCode);
+            flowParams.message(message);
+            flowParams.skipType(SkipType.PASS.getKey());
+            flowParams.flowStatus(BusinessStatusEnum.BACK.getStatus()).hisStatus(TaskStatusEnum.BACK.getStatus());
+            flowParams.ignore(true);
+            //解决会签，或签撤销没权限问题
+            if (CollUtil.isNotEmpty(userList)) {
+                flowParams.handler(userList.get(0).getUserId().toString());
+            }
+            taskService.skip(task.getId(), flowParams);
+        }
+        //解决会签，或签多人审批问题
+        backApplyUser(message, instance, applyUserNodeCode);
     }
 
     /**

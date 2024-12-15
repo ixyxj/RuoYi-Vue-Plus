@@ -210,21 +210,11 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             //判断申请人节点是否有多个，只保留一个
             List<Task> currentTaskList = taskService.list(FlowFactory.newTask().setInstanceId(instance.getId()));
             if (CollUtil.isNotEmpty(currentTaskList)) {
-                Task task = currentTaskList.get(0);
                 if (currentTaskList.size() > 1) {
                     currentTaskList.remove(0);
                     List<Long> taskIds = StreamUtils.toList(currentTaskList, Task::getId);
                     WorkflowUtils.userService.deleteByTaskIds(taskIds);
                     flowTaskMapper.deleteByIds(taskIds);
-                }
-                //如果为空增加一个申请人
-                List<User> userList = WorkflowUtils.userService.getByAssociateds(Collections.singletonList(task.getId()));
-                if (CollUtil.isEmpty(userList)) {
-                    FlowUser flowUser = new FlowUser();
-                    flowUser.setAssociated(task.getId());
-                    flowUser.setProcessedBy(LoginHelper.getUserIdStr());
-                    flowUser.setType(UserType.APPROVAL.getKey());
-                    WorkflowUtils.userService.save(flowUser);
                 }
             }
 
@@ -310,6 +300,10 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
                 if (CollUtil.isNotEmpty(allUser)) {
                     String join = StreamUtils.join(allUser, e -> String.valueOf(e.getUserId()));
                     flowHisTaskVo.setApprover(join);
+                }
+                if (BusinessStatusEnum.isDraftOrCancelOrBack(flowInstance.getFlowStatus())) {
+                    flowHisTaskVo.setApprover(LoginHelper.getUserIdStr());
+                    flowHisTaskVo.setApproveName(LoginHelper.getLoginUser().getNickname());
                 }
             }
             list.addAll(flowHisTaskVos);
