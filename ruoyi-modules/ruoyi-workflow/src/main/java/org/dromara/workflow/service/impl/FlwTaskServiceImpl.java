@@ -135,7 +135,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             List<String> messageType = completeTaskBo.getMessageType();
             String notice = completeTaskBo.getNotice();
             // 获取抄送人
-            List<FlowCopy> FlowCopyList = completeTaskBo.getFlowCopyList();
+            List<FlowCopy> flowCopyList = completeTaskBo.getFlowCopyList();
             FlowTask flowTask = flowTaskMapper.selectById(taskId);
             Instance ins = insService.getById(flowTask.getInstanceId());
             // 获取流程定义信息
@@ -153,7 +153,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
 
             flowParams.hisTaskExt(completeTaskBo.getFileId());
             // 执行任务跳转，并根据返回的处理人设置下一步处理人
-            setHandler(taskService.skip(taskId, flowParams), flowTask, FlowCopyList);
+            setHandler(taskService.skip(taskId, flowParams), flowTask, flowCopyList);
             // 消息通知
             WorkflowUtils.sendMessage(definition.getFlowName(), ins.getId(), messageType, notice);
             return true;
@@ -168,14 +168,14 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      *
      * @param instance   实例
      * @param task       (当前任务)未办理的任务
-     * @param FlowCopyList 抄送人
+     * @param flowCopyList 抄送人
      */
-    private void setHandler(Instance instance, FlowTask task, List<FlowCopy> FlowCopyList) {
+    private void setHandler(Instance instance, FlowTask task, List<FlowCopy> flowCopyList) {
         if (instance == null) {
             return;
         }
         //添加抄送人
-        setCopy(task, FlowCopyList);
+        setCopy(task, flowCopyList);
         // 根据流程实例ID查询所有关联的任务
         List<FlowTask> flowTasks = selectByInstId(instance.getId());
         List<User> userList = new ArrayList<>();
@@ -201,10 +201,10 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      * 添加抄送人
      *
      * @param task       任务信息
-     * @param FlowCopyList 抄送人
+     * @param flowCopyList 抄送人
      */
-    private void setCopy(FlowTask task, List<FlowCopy> FlowCopyList) {
-        if (CollUtil.isEmpty(FlowCopyList)) {
+    private void setCopy(FlowTask task, List<FlowCopy> flowCopyList) {
+        if (CollUtil.isEmpty(flowCopyList)) {
             return;
         }
         // 添加抄送人记录
@@ -220,16 +220,16 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         FlowParams flowParams = FlowParams.build();
         flowParams.skipType(SkipType.NONE.getKey());
         flowParams.hisStatus(TaskStatusEnum.COPY.getStatus());
-        flowParams.message("【抄送给】" + StreamUtils.join(FlowCopyList, FlowCopy::getUserName));
+        flowParams.message("【抄送给】" + StreamUtils.join(flowCopyList, FlowCopy::getUserName));
         HisTask hisTask = hisTaskService.setSkipHisTask(task, flowNode, flowParams);
         hisTask.setCreateTime(updateTime);
         hisTask.setUpdateTime(updateTime);
         hisTaskService.save(hisTask);
-        List<User> userList = FlowCopyList.stream()
-            .map(FlowCopy -> {
+        List<User> userList = flowCopyList.stream()
+            .map(flowCopy -> {
                 FlowUser flowUser = new FlowUser();
                 flowUser.setType(TaskAssigneeType.COPY.getCode());
-                flowUser.setProcessedBy(String.valueOf(FlowCopy.getUserId()));
+                flowUser.setProcessedBy(String.valueOf(flowCopy.getUserId()));
                 flowUser.setAssociated(taskId);
                 return flowUser;
             }).collect(Collectors.toList());

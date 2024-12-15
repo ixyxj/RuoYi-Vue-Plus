@@ -37,7 +37,7 @@ public class CompleteTaskBo implements Serializable {
     /**
      * 抄送人员
      */
-    private List<FlowCopy> FlowCopyList;
+    private List<FlowCopy> flowCopyList;
 
     /**
      * 消息类型
