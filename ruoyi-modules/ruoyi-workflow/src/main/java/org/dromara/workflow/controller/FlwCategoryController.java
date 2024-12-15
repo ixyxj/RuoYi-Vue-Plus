@@ -38,7 +38,6 @@ public class FlwCategoryController extends BaseController {
     /**
      * 查询流程分类列表
      */
-    @SaCheckPermission("workflow:category:list")
     @GetMapping("/list")
     public R<List<FlowCategoryVo>> list(FlowCategoryBo bo) {
         List<FlowCategoryVo> list = FlowCategoryService.queryList(bo);
@@ -62,7 +61,6 @@ public class FlwCategoryController extends BaseController {
      *
      * @param id 主键
      */
-    @SaCheckPermission("workflow:category:query")
     @GetMapping("/{id}")
     public R<FlowCategoryVo> getInfo(@NotNull(message = "主键不能为空")
                                    @PathVariable Long id) {
