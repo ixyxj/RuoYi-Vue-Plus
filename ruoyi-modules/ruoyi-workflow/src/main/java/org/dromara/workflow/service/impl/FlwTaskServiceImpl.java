@@ -364,18 +364,9 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             //申请人节点
             String applyUserNodeCode = flowSkip.getNextNodeCode();
             if (applyUserNodeCode.equals(bo.getNodeCode())) {
-                backApplyUser(message, inst, applyUserNodeCode);
+                backTask(message, inst, applyUserNodeCode, TaskStatusEnum.BACK.getStatus());
             } else {
-                List<Task> list = taskService.list(FlowFactory.newTask().setInstanceId(inst.getId()));
-                for (Task task : list) {
-                    FlowParams flowParams = FlowParams.build();
-                    flowParams.nodeCode(bo.getNodeCode());
-                    flowParams.message(message);
-                    flowParams.skipType(SkipType.PASS.getKey());
-                    flowParams.flowStatus(BusinessStatusEnum.WAITING.getStatus()).hisStatus(TaskStatusEnum.BACK.getStatus());
-                    flowParams.ignore(true);
-                    taskService.skip(task.getId(), flowParams);
-                }
+                backTask(message, inst, bo.getNodeCode(), TaskStatusEnum.WAITING.getStatus());
             }
             Instance instance = insService.getById(inst.getId());
             setHandler(instance, flowTasks.get(0), null);
@@ -391,14 +382,14 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     /**
      * 退回
      *
-     * @param message           审批已经
-     * @param instance          流程实例
-     * @param applyUserNodeCode 申请人节点
+     * @param message        审批已经
+     * @param instance       流程实例
+     * @param targetNodeCode 驳回的节点
      */
-    private void backApplyUser(String message, Instance instance, String applyUserNodeCode) {
+    private void backTask(String message, Instance instance, String targetNodeCode, String status) {
         List<Task> list = taskService.list(FlowFactory.newTask().setInstanceId(instance.getId()));
         if (CollUtil.isNotEmpty(list)) {
-            List<Task> tasks = StreamUtils.filter(list, e -> e.getNodeCode().equals(applyUserNodeCode));
+            List<Task> tasks = StreamUtils.filter(list, e -> e.getNodeCode().equals(targetNodeCode));
             if (list.size() == tasks.size()) {
                 return;
             }
@@ -406,10 +397,10 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         for (Task task : list) {
             List<UserDTO> userList = currentTaskAllUser(task.getId());
             FlowParams flowParams = FlowParams.build();
-            flowParams.nodeCode(applyUserNodeCode);
+            flowParams.nodeCode(targetNodeCode);
             flowParams.message(message);
             flowParams.skipType(SkipType.PASS.getKey());
-            flowParams.flowStatus(BusinessStatusEnum.BACK.getStatus()).hisStatus(TaskStatusEnum.BACK.getStatus());
+            flowParams.flowStatus(status).hisStatus(TaskStatusEnum.BACK.getStatus());
             flowParams.ignore(true);
             //解决会签，或签撤销没权限问题
             if (CollUtil.isNotEmpty(userList)) {
@@ -418,7 +409,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             taskService.skip(task.getId(), flowParams);
         }
         //解决会签，或签多人审批问题
-        backApplyUser(message, instance, applyUserNodeCode);
+        backTask(message, instance, targetNodeCode, status);
     }
 
     /**
