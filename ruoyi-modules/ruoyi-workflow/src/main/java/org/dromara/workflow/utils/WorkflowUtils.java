@@ -17,10 +17,13 @@ import org.dromara.warm.flow.core.service.UserService;
 import org.dromara.warm.flow.orm.entity.FlowTask;
 import org.dromara.warm.flow.orm.entity.FlowUser;
 import org.dromara.workflow.common.enums.MessageTypeEnum;
+import org.dromara.workflow.service.IFlwTaskAssigneeService;
 import org.dromara.workflow.service.IFlwTaskService;
-import org.dromara.workflow.service.IWfTaskAssigneeService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -30,9 +33,17 @@ import java.util.*;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class WorkflowUtils {
-    public static final IWfTaskAssigneeService taskAssigneeService = SpringUtils.getBean(IWfTaskAssigneeService.class);
-    public static final IFlwTaskService iFlwTaskService = SpringUtils.getBean(IFlwTaskService.class);
-    public static final UserService userService = SpringUtils.getBean(UserService.class);
+
+    private static final IFlwTaskAssigneeService taskAssigneeService = SpringUtils.getBean(IFlwTaskAssigneeService.class);
+    private static final IFlwTaskService flwTaskService = SpringUtils.getBean(IFlwTaskService.class);
+    private static final UserService userService = SpringUtils.getBean(UserService.class);
+
+    /**
+     * 获取工作流用户service
+     */
+    public static UserService getFlowUserService() {
+        return userService;
+    }
 
     /**
      * 构建工作流用户
@@ -77,12 +88,12 @@ public class WorkflowUtils {
      */
     public static void sendMessage(String flowName, Long instId, List<String> messageType, String message) {
         List<UserDTO> userList = new ArrayList<>();
-        List<FlowTask> list = iFlwTaskService.selectByInstId(instId);
+        List<FlowTask> list = flwTaskService.selectByInstId(instId);
         if (StringUtils.isBlank(message)) {
             message = "有新的【" + flowName + "】单据已经提交至您，请您及时处理。";
         }
         for (Task task : list) {
-            List<UserDTO> users = iFlwTaskService.currentTaskAllUser(task.getId());
+            List<UserDTO> users = flwTaskService.currentTaskAllUser(task.getId());
             if (CollUtil.isNotEmpty(users)) {
                 userList.addAll(users);
             }

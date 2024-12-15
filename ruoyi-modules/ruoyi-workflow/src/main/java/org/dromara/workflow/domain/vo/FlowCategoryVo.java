@@ -4,7 +4,7 @@ import com.alibaba.excel.annotation.ExcelIgnoreUnannotated;
 import com.alibaba.excel.annotation.ExcelProperty;
 import io.github.linpeilie.annotations.AutoMapper;
 import lombok.Data;
-import org.dromara.workflow.domain.WfCategory;
+import org.dromara.workflow.domain.FlowCategory;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -18,8 +18,8 @@ import java.io.Serializable;
  */
 @Data
 @ExcelIgnoreUnannotated
-@AutoMapper(target = WfCategory.class)
-public class WfCategoryVo implements Serializable {
+@AutoMapper(target = FlowCategory.class)
+public class FlowCategoryVo implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

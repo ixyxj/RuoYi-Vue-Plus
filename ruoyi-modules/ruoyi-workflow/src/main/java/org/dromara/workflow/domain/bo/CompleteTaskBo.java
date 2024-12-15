@@ -3,7 +3,7 @@ package org.dromara.workflow.domain.bo;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.dromara.common.core.validate.AddGroup;
-import org.dromara.workflow.domain.vo.WfCopy;
+import org.dromara.workflow.domain.vo.FlowCopy;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -37,7 +37,7 @@ public class CompleteTaskBo implements Serializable {
     /**
      * 抄送人员
      */
-    private List<WfCopy> wfCopyList;
+    private List<FlowCopy> FlowCopyList;
 
     /**
      * 消息类型

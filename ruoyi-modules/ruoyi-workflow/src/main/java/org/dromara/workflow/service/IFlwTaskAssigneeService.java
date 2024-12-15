@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @author AprilWind
  */
-public interface IWfTaskAssigneeService {
+public interface IFlwTaskAssigneeService {
 
     /**
      * 根据存储标识符（storageId）解析分配类型和ID，并获取对应的用户列表

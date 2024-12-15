@@ -5,11 +5,11 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StringUtils;
-import org.dromara.workflow.domain.WfCategory;
-import org.dromara.workflow.domain.bo.WfCategoryBo;
-import org.dromara.workflow.domain.vo.WfCategoryVo;
-import org.dromara.workflow.mapper.WfCategoryMapper;
-import org.dromara.workflow.service.IWfCategoryService;
+import org.dromara.workflow.domain.FlowCategory;
+import org.dromara.workflow.domain.bo.FlowCategoryBo;
+import org.dromara.workflow.domain.vo.FlowCategoryVo;
+import org.dromara.workflow.mapper.FlwCategoryMapper;
+import org.dromara.workflow.service.IFlwCategoryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,15 +24,15 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @Service
-public class WfCategoryServiceImpl implements IWfCategoryService {
+public class FlwCategoryServiceImpl implements IFlwCategoryService {
 
-    private final WfCategoryMapper baseMapper;
+    private final FlwCategoryMapper baseMapper;
 
     /**
      * 查询流程分类
      */
     @Override
-    public WfCategoryVo queryById(Long id) {
+    public FlowCategoryVo queryById(Long id) {
         return baseMapper.selectVoById(id);
     }
 
@@ -41,14 +41,14 @@ public class WfCategoryServiceImpl implements IWfCategoryService {
      * 查询流程分类列表
      */
     @Override
-    public List<WfCategoryVo> queryList(WfCategoryBo bo) {
-        LambdaQueryWrapper<WfCategory> lqw = buildQueryWrapper(bo);
+    public List<FlowCategoryVo> queryList(FlowCategoryBo bo) {
+        LambdaQueryWrapper<FlowCategory> lqw = buildQueryWrapper(bo);
         return baseMapper.selectVoList(lqw);
     }
 
-    private LambdaQueryWrapper<WfCategory> buildQueryWrapper(WfCategoryBo bo) {
-        LambdaQueryWrapper<WfCategory> lqw = Wrappers.lambdaQuery();
-        lqw.like(StringUtils.isNotBlank(bo.getCategoryName()), WfCategory::getCategoryName, bo.getCategoryName());
+    private LambdaQueryWrapper<FlowCategory> buildQueryWrapper(FlowCategoryBo bo) {
+        LambdaQueryWrapper<FlowCategory> lqw = Wrappers.lambdaQuery();
+        lqw.like(StringUtils.isNotBlank(bo.getCategoryName()), FlowCategory::getCategoryName, bo.getCategoryName());
         return lqw;
     }
 
@@ -56,8 +56,8 @@ public class WfCategoryServiceImpl implements IWfCategoryService {
      * 新增流程分类
      */
     @Override
-    public Boolean insertByBo(WfCategoryBo bo) {
-        WfCategory add = MapstructUtils.convert(bo, WfCategory.class);
+    public Boolean insertByBo(FlowCategoryBo bo) {
+        FlowCategory add = MapstructUtils.convert(bo, FlowCategory.class);
         validEntityBeforeSave(add);
         boolean flag = baseMapper.insert(add) > 0;
         if (flag) {
@@ -71,8 +71,8 @@ public class WfCategoryServiceImpl implements IWfCategoryService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean updateByBo(WfCategoryBo bo) {
-        WfCategory update = MapstructUtils.convert(bo, WfCategory.class);
+    public Boolean updateByBo(FlowCategoryBo bo) {
+        FlowCategory update = MapstructUtils.convert(bo, FlowCategory.class);
         validEntityBeforeSave(update);
         return baseMapper.updateById(update) > 0;
     }
@@ -80,7 +80,7 @@ public class WfCategoryServiceImpl implements IWfCategoryService {
     /**
      * 保存前的数据校验
      */
-    private void validEntityBeforeSave(WfCategory entity) {
+    private void validEntityBeforeSave(FlowCategory entity) {
         // 做一些数据校验,如唯一约束
     }
 

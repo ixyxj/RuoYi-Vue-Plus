@@ -12,7 +12,7 @@ import java.io.Serializable;
  * @author may
  */
 @Data
-public class WfCopy implements Serializable {
+public class FlowCopy implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

@@ -16,8 +16,8 @@ import java.io.Serial;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("wf_category")
-public class WfCategory extends TenantEntity {
+@TableName("flow_category")
+public class FlowCategory extends TenantEntity {
 
     @Serial
     private static final long serialVersionUID = 1L;
