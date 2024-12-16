@@ -2,6 +2,7 @@ package org.dromara.workflow.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.convert.Convert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -28,7 +29,9 @@ import org.dromara.warm.flow.orm.entity.FlowDefinition;
 import org.dromara.warm.flow.orm.entity.FlowHisTask;
 import org.dromara.warm.flow.orm.mapper.FlowDefinitionMapper;
 import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
+import org.dromara.workflow.domain.FlowCategory;
 import org.dromara.workflow.domain.vo.FlowDefinitionVo;
+import org.dromara.workflow.mapper.FlwCategoryMapper;
 import org.dromara.workflow.mapper.FlwDefMapper;
 import org.dromara.workflow.service.IFlwDefinitionService;
 import org.springframework.stereotype.Service;
@@ -37,6 +40,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 流程定义 服务层实现
@@ -52,6 +56,7 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
     private final FlowDefinitionMapper flowDefinitionMapper;
     private final FlwDefMapper flwDefMapper;
     private final FlowHisTaskMapper flowHisTaskMapper;
+    private final FlwCategoryMapper flwCategoryMapper;
 
     /**
      * 查询流程定义列表
@@ -64,7 +69,15 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
         QueryWrapper<FlowDefinition> queryWrapper = new QueryWrapper<>();
         queryWrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowCode()), "flow_code", flowDefinition.getFlowCode());
         queryWrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowName()), "flow_Name", flowDefinition.getFlowName());
-        queryWrapper.eq(StringUtils.isNotBlank(flowDefinition.getCategory()), "category", flowDefinition.getCategory());
+        if (StringUtils.isNotBlank(flowDefinition.getCategory())) {
+            Long categoryId = Convert.toLong(flowDefinition.getCategory());
+            List<Long> categoryIds = flwCategoryMapper.selectListByParentId(categoryId)
+                .stream()
+                .map(FlowCategory::getCategoryId)
+                .collect(Collectors.toList());
+            categoryIds.add(categoryId);
+            queryWrapper.in("category", categoryIds);
+        }
         queryWrapper.orderByDesc("create_time");
         Page<FlowDefinitionVo> page = flwDefMapper.selectDefinitionList(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
