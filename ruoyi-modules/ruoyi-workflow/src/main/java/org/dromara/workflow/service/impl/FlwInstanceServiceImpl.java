@@ -20,7 +20,10 @@ import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.FlowFactory;
 import org.dromara.warm.flow.core.constant.ExceptionCons;
 import org.dromara.warm.flow.core.dto.FlowParams;
-import org.dromara.warm.flow.core.entity.*;
+import org.dromara.warm.flow.core.entity.Definition;
+import org.dromara.warm.flow.core.entity.Instance;
+import org.dromara.warm.flow.core.entity.Node;
+import org.dromara.warm.flow.core.entity.Task;
 import org.dromara.warm.flow.core.enums.NodeType;
 import org.dromara.warm.flow.core.enums.SkipType;
 import org.dromara.warm.flow.core.service.DefService;
@@ -28,7 +31,10 @@ import org.dromara.warm.flow.core.service.InsService;
 import org.dromara.warm.flow.core.service.NodeService;
 import org.dromara.warm.flow.core.service.TaskService;
 import org.dromara.warm.flow.core.utils.AssertUtil;
-import org.dromara.warm.flow.orm.entity.*;
+import org.dromara.warm.flow.orm.entity.FlowHisTask;
+import org.dromara.warm.flow.orm.entity.FlowInstance;
+import org.dromara.warm.flow.orm.entity.FlowNode;
+import org.dromara.warm.flow.orm.entity.FlowTask;
 import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
 import org.dromara.warm.flow.orm.mapper.FlowInstanceMapper;
 import org.dromara.warm.flow.orm.mapper.FlowNodeMapper;
@@ -78,14 +84,11 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param pageQuery      分页
      */
     @Override
-    public TableDataInfo<FlowInstanceVo> pageByRunning(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+    public TableDataInfo<FlowInstanceVo> selectRunningInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = buildQueryWrapper(flowInstanceBo);
         queryWrapper.in("fi.flow_status", BusinessStatusEnum.runningStatus());
-        Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
-        TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
-        build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));
-        build.setTotal(page.getTotal());
-        return build;
+        Page<FlowInstanceVo> page = flwInstanceMapper.selectInstanceList(pageQuery.build(), queryWrapper);
+        return TableDataInfo.build(page);
     }
 
     /**
@@ -95,14 +98,11 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
      * @param pageQuery      分页
      */
     @Override
-    public TableDataInfo<FlowInstanceVo> pageByFinish(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+    public TableDataInfo<FlowInstanceVo> selectFinishInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = buildQueryWrapper(flowInstanceBo);
         queryWrapper.in("fi.flow_status", BusinessStatusEnum.finishStatus());
-        Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
-        TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
-        build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));
-        build.setTotal(page.getTotal());
-        return build;
+        Page<FlowInstanceVo> page = flwInstanceMapper.selectInstanceList(pageQuery.build(), queryWrapper);
+        return TableDataInfo.build(page);
     }
 
     /**
@@ -227,18 +227,15 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     /**
      * 获取当前登陆人发起的流程实例
      *
-     * @param instanceBo 参数
+     * @param instanceBo 流程实例
      * @param pageQuery  分页
      */
     @Override
-    public TableDataInfo<FlowInstanceVo> pageByCurrent(FlowInstanceBo instanceBo, PageQuery pageQuery) {
+    public TableDataInfo<FlowInstanceVo> selectCurrentInstanceList(FlowInstanceBo instanceBo, PageQuery pageQuery) {
         QueryWrapper<FlowInstanceBo> queryWrapper = buildQueryWrapper(instanceBo);
         queryWrapper.eq("fi.create_by", LoginHelper.getUserIdStr());
-        Page<FlowInstanceVo> page = flwInstanceMapper.page(pageQuery.build(), queryWrapper);
-        TableDataInfo<FlowInstanceVo> build = TableDataInfo.build();
-        build.setRows(BeanUtil.copyToList(page.getRecords(), FlowInstanceVo.class));
-        build.setTotal(page.getTotal());
-        return build;
+        Page<FlowInstanceVo> page = flwInstanceMapper.selectInstanceList(pageQuery.build(), queryWrapper);
+        return TableDataInfo.build(page);
     }
 
     /**
@@ -249,7 +246,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     public Map<String, Object> flowImage(String businessId) {
         Map<String, Object> map = new HashMap<>(16);
-        FlowInstance flowInstance = selectInstByBusinessId(businessId);
+        FlowInstance flowInstance = this.selectInstByBusinessId(businessId);
         if (flowInstance == null) {
             throw new ServiceException(ExceptionCons.NOT_FOUNT_INSTANCE);
         }
@@ -357,10 +354,10 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         if (task == null) {
             FlowHisTask flowHisTask = flwTaskService.selectHisTaskById(taskId);
             if (flowHisTask != null) {
-                return selectInstById(flowHisTask.getInstanceId());
+                return this.selectInstById(flowHisTask.getInstanceId());
             }
         } else {
-            return selectInstById(task.getInstanceId());
+            return this.selectInstById(task.getInstanceId());
         }
         return null;
     }
@@ -385,7 +382,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             instanceIds.add(flowHisTask.getInstanceId());
         }
         if (!instanceIds.isEmpty()) {
-            return selectInstListByIdList(new ArrayList<>(instanceIds));
+            return this.selectInstListByIdList(new ArrayList<>(instanceIds));
         }
         return Collections.emptyList();
     }

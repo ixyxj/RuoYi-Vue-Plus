@@ -3,8 +3,26 @@
     PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.workflow.mapper.FlwDefMapper">
+    <resultMap type="org.dromara.workflow.domain.vo.FlowDefinitionVo" id="FlowDefinitionResult">
+        <result property="id" column="id"/>
+        <result property="flowCode" column="flow_code"/>
+        <result property="flowName" column="flow_name"/>
+        <result property="category" column="category"/>
+        <result property="version" column="version"/>
+        <result property="isPublish" column="is_publish"/>
+        <result property="formCustom" column="form_custom"/>
+        <result property="formPath" column="form_path"/>
+        <result property="activityStatus" column="activity_status"/>
+        <result property="listenerType" column="listener_type"/>
+        <result property="listenerPath" column="listener_path"/>
+        <result property="ext" column="ext"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="tenantId" column="tenant_id"/>
+    </resultMap>
 
-    <select id="selectDefinitionList" resultType="org.dromara.warm.flow.orm.entity.FlowDefinition">
+    <select id="selectDefinitionList" resultMap="FlowDefinitionResult">
         select *
         from (
             select a.*

@@ -25,7 +25,7 @@ public interface IFlwInstanceService {
      * @param pageQuery 分页
      * @return 结果
      */
-    TableDataInfo<FlowInstanceVo> pageByRunning(FlowInstanceBo flowInstanceBo, PageQuery pageQuery);
+    TableDataInfo<FlowInstanceVo> selectRunningInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery);
 
     /**
      * 分页查询已结束的流程实例
@@ -34,7 +34,7 @@ public interface IFlwInstanceService {
      * @param pageQuery 分页
      * @return 结果
      */
-    TableDataInfo<FlowInstanceVo> pageByFinish(FlowInstanceBo flowInstanceBo, PageQuery pageQuery);
+    TableDataInfo<FlowInstanceVo> selectFinishInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery);
 
     /**
      * 按照业务id查询流程实例
@@ -91,7 +91,7 @@ public interface IFlwInstanceService {
      * @param pageQuery  分页
      * @return 结果
      */
-    TableDataInfo<FlowInstanceVo> pageByCurrent(FlowInstanceBo instanceBo, PageQuery pageQuery);
+    TableDataInfo<FlowInstanceVo> selectCurrentInstanceList(FlowInstanceBo instanceBo, PageQuery pageQuery);
 
     /**
      * 获取流程图,流程记录

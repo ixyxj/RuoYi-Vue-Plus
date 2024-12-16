@@ -18,7 +18,6 @@ public interface TaskAssigneeService {
      */
     TaskAssigneeDTO selectRolesByTaskAssigneeList(TaskAssigneeBody taskQuery);
 
-
     /**
      * 查询岗位并返回任务指派的列表，支持分页
      *
@@ -26,7 +25,6 @@ public interface TaskAssigneeService {
      * @return 办理人
      */
     TaskAssigneeDTO selectPostsByTaskAssigneeList(TaskAssigneeBody taskQuery);
-
 
     /**
      * 查询部门并返回任务指派的列表，支持分页

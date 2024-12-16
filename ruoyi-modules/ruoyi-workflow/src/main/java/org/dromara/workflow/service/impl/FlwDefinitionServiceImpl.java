@@ -47,6 +47,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
+
     private final DefService defService;
     private final FlowDefinitionMapper flowDefinitionMapper;
     private final FlwDefMapper flwDefMapper;
@@ -65,11 +66,8 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
         queryWrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowName()), "flow_Name", flowDefinition.getFlowName());
         queryWrapper.eq(StringUtils.isNotBlank(flowDefinition.getCategory()), "category", flowDefinition.getCategory());
         queryWrapper.orderByDesc("create_time");
-        Page<FlowDefinition> page = flwDefMapper.selectDefinitionList(pageQuery.build(), queryWrapper);
-        TableDataInfo<FlowDefinitionVo> build = TableDataInfo.build();
-        build.setRows(BeanUtil.copyToList(page.getRecords(), FlowDefinitionVo.class));
-        build.setTotal(page.getTotal());
-        return build;
+        Page<FlowDefinitionVo> page = flwDefMapper.selectDefinitionList(pageQuery.build(), queryWrapper);
+        return TableDataInfo.build(page);
     }
 
     /**

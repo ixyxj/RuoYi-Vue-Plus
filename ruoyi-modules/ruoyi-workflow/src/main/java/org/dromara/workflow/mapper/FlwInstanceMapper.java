@@ -22,6 +22,6 @@ public interface FlwInstanceMapper {
      * @param queryWrapper 条件
      * @return 结果
      */
-    Page<FlowInstanceVo> page(@Param("page") Page<FlowInstanceVo> page, @Param(Constants.WRAPPER) Wrapper<FlowInstanceBo> queryWrapper);
+    Page<FlowInstanceVo> selectInstanceList(@Param("page") Page<FlowInstanceVo> page, @Param(Constants.WRAPPER) Wrapper<FlowInstanceBo> queryWrapper);
 
 }

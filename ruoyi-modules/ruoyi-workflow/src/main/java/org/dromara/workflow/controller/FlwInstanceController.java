@@ -34,25 +34,25 @@ public class FlwInstanceController extends BaseController {
     private final InsService insService;
 
     /**
-     * 分页查询正在运行的流程实例
+     * 查询正在运行的流程实例列表
      *
-     * @param flowInstanceBo  参数
-     * @param pageQuery 分页
+     * @param flowInstanceBo 流程实例
+     * @param pageQuery      分页
      */
     @GetMapping("/pageByRunning")
-    public TableDataInfo<FlowInstanceVo> pageByRunning(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
-        return flwInstanceService.pageByRunning(flowInstanceBo, pageQuery);
+    public TableDataInfo<FlowInstanceVo> selectRunningInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+        return flwInstanceService.selectRunningInstanceList(flowInstanceBo, pageQuery);
     }
 
     /**
-     * 分页查询已结束的流程实例
+     * 查询已结束的流程实例列表
      *
-     * @param flowInstanceBo  参数
-     * @param pageQuery 分页
+     * @param flowInstanceBo 流程实例
+     * @param pageQuery      分页
      */
     @GetMapping("/pageByFinish")
-    public TableDataInfo<FlowInstanceVo> pageByFinish(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
-        return flwInstanceService.pageByFinish(flowInstanceBo, pageQuery);
+    public TableDataInfo<FlowInstanceVo> selectFinishInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+        return flwInstanceService.selectFinishInstanceList(flowInstanceBo, pageQuery);
     }
 
     /**
@@ -103,8 +103,8 @@ public class FlwInstanceController extends BaseController {
      * @param pageQuery      分页
      */
     @GetMapping("/pageByCurrent")
-    public TableDataInfo<FlowInstanceVo> pageByCurrent(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
-        return flwInstanceService.pageByCurrent(flowInstanceBo, pageQuery);
+    public TableDataInfo<FlowInstanceVo> selectCurrentInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery) {
+        return flwInstanceService.selectCurrentInstanceList(flowInstanceBo, pageQuery);
     }
 
     /**

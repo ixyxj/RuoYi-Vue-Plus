@@ -24,7 +24,8 @@
         <result property="createBy" column="create_by"/>
         <result property="category" column="category"/>
     </resultMap>
-    <select id="page" resultMap="FlowInstanceResult">
+
+    <select id="selectInstanceList" resultMap="FlowInstanceResult">
         select fi.id,
                fi.create_time,
                fi.update_time,
@@ -44,6 +45,8 @@
                fd.flow_code,
                fd.version,
                fi.create_by,
+               fd.form_custom,
+               fd.form_path,
                fd.category
         from flow_instance fi
                  left join flow_definition fd on fi.definition_id = fd.id

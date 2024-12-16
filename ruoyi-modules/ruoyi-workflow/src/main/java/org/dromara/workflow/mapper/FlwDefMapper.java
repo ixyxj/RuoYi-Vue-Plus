@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.toolkit.Constants;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Param;
 import org.dromara.warm.flow.orm.entity.FlowDefinition;
+import org.dromara.workflow.domain.vo.FlowDefinitionVo;
 
 /**
  * 实例信息Mapper接口
@@ -21,6 +22,6 @@ public interface FlwDefMapper {
      * @param queryWrapper 条件
      * @return 结果
      */
-    Page<FlowDefinition> selectDefinitionList(@Param("page") Page<FlowDefinition> page, @Param(Constants.WRAPPER) Wrapper<FlowDefinition> queryWrapper);
+    Page<FlowDefinitionVo> selectDefinitionList(@Param("page") Page<FlowDefinition> page, @Param(Constants.WRAPPER) Wrapper<FlowDefinition> queryWrapper);
 
 }
