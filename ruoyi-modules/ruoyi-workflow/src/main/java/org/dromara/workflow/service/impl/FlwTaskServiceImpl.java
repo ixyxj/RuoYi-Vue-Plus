@@ -2,6 +2,7 @@ package org.dromara.workflow.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.incrementer.IdentifierGenerator;
@@ -26,7 +27,6 @@ import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.entity.*;
 import org.dromara.warm.flow.core.enums.NodeType;
 import org.dromara.warm.flow.core.enums.SkipType;
-import org.dromara.warm.flow.core.enums.UserType;
 import org.dromara.warm.flow.core.service.*;
 import org.dromara.warm.flow.orm.entity.*;
 import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
@@ -36,9 +36,9 @@ import org.dromara.warm.flow.orm.mapper.FlowTaskMapper;
 import org.dromara.workflow.common.enums.TaskAssigneeType;
 import org.dromara.workflow.common.enums.TaskStatusEnum;
 import org.dromara.workflow.domain.bo.*;
+import org.dromara.workflow.domain.vo.FlowCopy;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowTaskVo;
-import org.dromara.workflow.domain.vo.FlowCopy;
 import org.dromara.workflow.handler.FlowProcessEventHandler;
 import org.dromara.workflow.handler.WorkflowPermissionHandler;
 import org.dromara.workflow.mapper.FlwTaskMapper;
@@ -97,7 +97,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         variables.put(BUSINESS_KEY, businessKey);
         FlowInstance flowInstance = flowInstanceMapper.selectOne(new LambdaQueryWrapper<>(FlowInstance.class)
             .eq(FlowInstance::getBusinessId, businessKey));
-        if (flowInstance != null) {
+        if (ObjectUtil.isNotNull(flowInstance)) {
             BusinessStatusEnum.checkStartStatus(flowInstance.getFlowStatus());
             List<Task> taskList = taskService.list(new FlowTask().setInstanceId(flowInstance.getId()));
             return Map.of(PROCESS_INSTANCE_ID, taskList.get(0).getInstanceId(), TASK_ID, taskList.get(0).getId());
@@ -152,7 +152,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
 
             flowParams.hisTaskExt(completeTaskBo.getFileId());
             // 执行任务跳转，并根据返回的处理人设置下一步处理人
-            setHandler(taskService.skip(taskId, flowParams), flowTask, flowCopyList);
+            Instance instance = taskService.skip(taskId, flowParams);
+            this.setHandler(instance, flowTask, flowCopyList);
             // 消息通知
             WorkflowUtils.sendMessage(definition.getFlowName(), ins.getId(), messageType, notice);
             return true;
@@ -170,13 +171,13 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      * @param flowCopyList 抄送人
      */
     private void setHandler(Instance instance, FlowTask task, List<FlowCopy> flowCopyList) {
-        if (instance == null) {
+        if (ObjectUtil.isNull(instance)) {
             return;
         }
         //添加抄送人
-        setCopy(task, flowCopyList);
+        this.setCopy(task, flowCopyList);
         // 根据流程实例ID查询所有关联的任务
-        List<FlowTask> flowTasks = selectByInstId(instance.getId());
+        List<FlowTask> flowTasks = this.selectByInstId(instance.getId());
         List<User> userList = new ArrayList<>();
         // 遍历任务列表，处理每个任务的办理人
         for (FlowTask flowTask : flowTasks) {
@@ -368,7 +369,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
                 WorkflowUtils.backTask(message, inst.getId(), bo.getNodeCode(), TaskStatusEnum.WAITING.getStatus(), TaskStatusEnum.BACK.getStatus());
             }
             Instance instance = insService.getById(inst.getId());
-            setHandler(instance, flowTasks.get(0), null);
+            this.setHandler(instance, flowTasks.get(0), null);
             //消息通知
             WorkflowUtils.sendMessage(definition.getFlowName(), instance.getId(), messageType, notice);
             return true;
@@ -419,7 +420,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
                 throw new ServiceException("任务不存在！");
             }
             Instance instance = insService.getById(task.getInstanceId());
-            if (instance != null) {
+            if (ObjectUtil.isNotNull(instance)) {
                 BusinessStatusEnum.checkInvalidStatus(instance.getFlowStatus());
             }
             FlowParams flowParams = new FlowParams();
@@ -453,7 +454,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     @Override
     public FlowTaskVo selectById(Long taskId) {
         Task task = taskService.getById(taskId);
-        if (task == null) {
+        if (ObjectUtil.isNull(task)) {
             return null;
         }
         FlowTaskVo flowTaskVo = BeanUtil.toBean(task, FlowTaskVo.class);
@@ -602,14 +603,14 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             return false;
         }
         try {
-            List<FlowTask> flowTasks = selectByIdList(taskIdList);
+            List<FlowTask> flowTasks = this.selectByIdList(taskIdList);
             // 批量删除现有任务的办理人记录
             if (CollUtil.isNotEmpty(flowTasks)) {
                 WorkflowUtils.getFlowUserService().deleteByTaskIds(StreamUtils.toList(flowTasks, FlowTask::getId));
                 List<User> userList = flowTasks.stream()
                     .map(flowTask -> {
                         FlowUser flowUser = new FlowUser();
-                        flowUser.setType(UserType.APPROVAL.getKey());
+                        flowUser.setType(TaskAssigneeType.APPROVER.getCode());
                         flowUser.setProcessedBy(userId);
                         flowUser.setAssociated(flowTask.getId());
                         return flowUser;
