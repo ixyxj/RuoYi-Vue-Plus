@@ -210,13 +210,14 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService {
      */
     @Override
     public int insertByBo(FlowCategoryBo bo) {
-        FlowCategory info = baseMapper.selectById(bo.getParentId());
-        // 如果父节点不为正常状态,则不允许新增子节点
-        if (!SystemConstants.NORMAL.equals(info.getStatus())) {
-            throw new ServiceException("流程分类停用，不允许新增");
-        }
         FlowCategory category = MapstructUtils.convert(bo, FlowCategory.class);
-        category.setAncestors(info.getAncestors() + StringUtils.SEPARATOR + category.getParentId());
+        if(bo.getParentId().intValue()==0) {
+            category.setAncestors(SystemConstants.NORMAL);
+        }else{
+            FlowCategory info = baseMapper.selectById(bo.getParentId());
+            category.setAncestors(info.getAncestors() + StringUtils.SEPARATOR + category.getParentId());
+        }
+
         return baseMapper.insert(category);
     }
 
