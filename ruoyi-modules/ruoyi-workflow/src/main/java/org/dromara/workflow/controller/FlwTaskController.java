@@ -99,7 +99,6 @@ public class FlwTaskController extends BaseController {
      * @param flowTaskBo 参数
      * @param pageQuery  分页
      */
-
     @GetMapping("/pageByAllTaskFinish")
     public TableDataInfo<FlowHisTaskVo> pageByAllTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         return flwTaskService.pageByAllTaskFinish(flowTaskBo, pageQuery);

@@ -1,42 +1,102 @@
 package org.dromara.workflow.service;
 
+import cn.hutool.core.lang.tree.Tree;
 import org.dromara.workflow.domain.bo.FlowCategoryBo;
 import org.dromara.workflow.domain.vo.FlowCategoryVo;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
  * 流程分类Service接口
  *
  * @author may
- * @date 2023-06-28
  */
 public interface IFlwCategoryService {
 
     /**
      * 查询流程分类
+     *
+     * @param categoryId 主键
+     * @return 流程分类
      */
-    FlowCategoryVo queryById(Long id);
-
+    FlowCategoryVo queryById(Long categoryId);
 
     /**
-     * 查询流程分类列表
+     * 查询符合条件的流程分类列表
+     *
+     * @param bo 查询条件
+     * @return 流程分类列表
      */
     List<FlowCategoryVo> queryList(FlowCategoryBo bo);
 
     /**
-     * 新增流程分类
+     * 查询流程分类树结构信息
+     *
+     * @param category 流程分类信息
+     * @return 流程分类树信息集合
      */
-    Boolean insertByBo(FlowCategoryBo bo);
+    List<Tree<Long>> selectCategoryTreeList(FlowCategoryBo category);
+
+    /**
+     * 校验流程分类是否有数据权限
+     *
+     * @param categoryId 流程分类ID
+     */
+    void checkCategoryDataScope(Long categoryId);
+
+    /**
+     * 校验流程分类名称是否唯一
+     *
+     * @param category 流程分类信息
+     * @return 结果
+     */
+    boolean checkCategoryNameUnique(FlowCategoryBo category);
+
+    /**
+     * 根据ID查询所有子流程分类数（正常状态）
+     *
+     * @param categoryId 流程分类ID
+     * @return 子流程分类数
+     */
+    long selectNormalChildrenCategoryById(Long categoryId);
+
+    /**
+     * 查询流程分类是否存在流程定义
+     *
+     * @param categoryId 流程分类ID
+     * @return 结果 true 存在 false 不存在
+     */
+    boolean checkCategoryExistDefinition(Long categoryId);
+
+    /**
+     * 是否存在流程分类子节点
+     *
+     * @param categoryId 流程分类ID
+     * @return 结果
+     */
+    boolean hasChildByCategoryId(Long categoryId);
+
+    /**
+     * 新增流程分类
+     *
+     * @param bo 流程分类
+     * @return 是否新增成功
+     */
+    int insertByBo(FlowCategoryBo bo);
 
     /**
      * 修改流程分类
+     *
+     * @param bo 流程分类
+     * @return 是否修改成功
      */
-    Boolean updateByBo(FlowCategoryBo bo);
+    int updateByBo(FlowCategoryBo bo);
 
     /**
-     * 校验并批量删除流程分类信息
+     * 删除流程分类信息
+     *
+     * @param categoryId 主键
+     * @return 是否删除成功
      */
-    Boolean deleteWithValidByIds(Collection<Long> ids, Boolean isValid);
+    int deleteWithValidById(Long categoryId);
 }

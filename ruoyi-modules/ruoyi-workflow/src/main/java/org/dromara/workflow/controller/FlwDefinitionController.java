@@ -1,5 +1,6 @@
 package org.dromara.workflow.controller;
 
+import cn.hutool.core.lang.tree.Tree;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.domain.R;
@@ -11,7 +12,9 @@ import org.dromara.common.web.core.BaseController;
 import org.dromara.warm.flow.core.entity.Definition;
 import org.dromara.warm.flow.core.service.DefService;
 import org.dromara.warm.flow.orm.entity.FlowDefinition;
+import org.dromara.workflow.domain.bo.FlowCategoryBo;
 import org.dromara.workflow.domain.vo.FlowDefinitionVo;
+import org.dromara.workflow.service.IFlwCategoryService;
 import org.dromara.workflow.service.IFlwDefinitionService;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -32,6 +35,7 @@ import java.util.List;
 @RequestMapping("/workflow/definition")
 public class FlwDefinitionController extends BaseController {
 
+    private final IFlwCategoryService flwCategoryService;
     private final IFlwDefinitionService iFlwDefinitionService;
     private final DefService defService;
 
@@ -43,6 +47,14 @@ public class FlwDefinitionController extends BaseController {
     @GetMapping("/list")
     public TableDataInfo<FlowDefinitionVo> page(FlowDefinition flowDefinition, PageQuery pageQuery) {
         return iFlwDefinitionService.page(flowDefinition, pageQuery);
+    }
+
+    /**
+     * 获取流程分类树列表
+     */
+    @GetMapping("/categoryTree")
+    public R<List<Tree<Long>>> categoryTree(FlowCategoryBo dept) {
+        return R.ok(flwCategoryService.selectCategoryTreeList(dept));
     }
 
     /**

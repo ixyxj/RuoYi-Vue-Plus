@@ -151,22 +151,24 @@ CREATE TABLE `flow_user`
 -- ----------------------------
 create table flow_category
 (
-    id            bigint(20)   not null comment '流程分类ID',
-    tenant_id     varchar(20) default '000000' comment '租户编号',
-    category_name varchar(255) null comment '分类名称',
-    category_code varchar(255) null comment '分类编码',
-    parent_id     bigint       null comment '父级id',
-    sort_num      int(19)      null comment '排序',
-    create_dept   bigint(20)   null comment '创建部门',
-    create_by     bigint(20)   null comment '创建者',
-    create_time   datetime     null comment '创建时间',
-    update_by     bigint(20)   null comment '更新者',
-    update_time   datetime     null comment '更新时间',
-    constraint uni_category_code unique (category_code),
-    primary key (id)
+    category_id   bigint(20)  not null comment '流程分类ID',
+    tenant_id     varchar(20)  default '000000' comment '租户编号',
+    parent_id     bigint(20)   default 0 comment '父流程分类id',
+    ancestors     varchar(500) default '' comment '祖级列表',
+    category_name varchar(30) not null comment '流程分类名称',
+    category_code varchar(100) default '' comment '流程分类编码',
+    order_num     int(4)       default 0 comment '显示顺序',
+    status        char(1)      default '0' comment '流程分类状态（0正常 1停用）',
+    del_flag      char(1)      default '0' comment '删除标志（0代表存在 2代表删除）',
+    create_dept   bigint(20)  null comment '创建部门',
+    create_by     bigint(20)  null comment '创建者',
+    create_time   datetime    null comment '创建时间',
+    update_by     bigint(20)  null comment '更新者',
+    update_time   datetime    null comment '更新时间',
+    primary key (category_id)
 ) engine = innodb comment = '流程分类';
 
-INSERT INTO flow_category values (1, '000000', 'OA', 'OA', 0, 0, 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (1, '000000', 0, '0', 'OA', 'OA', 0, '0', '0', 103, 1, sysdate(), null, null);
 
 -- ----------------------------
 -- 请假单信息

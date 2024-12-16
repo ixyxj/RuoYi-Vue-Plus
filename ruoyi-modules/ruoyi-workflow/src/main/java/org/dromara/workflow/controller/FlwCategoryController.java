@@ -2,10 +2,11 @@ package org.dromara.workflow.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
 import org.dromara.common.excel.utils.ExcelUtil;
@@ -25,7 +26,6 @@ import java.util.List;
  * 流程分类
  *
  * @author may
- * @date 2023-06-28
  */
 @Validated
 @RequiredArgsConstructor
@@ -33,16 +33,16 @@ import java.util.List;
 @RequestMapping("/workflow/category")
 public class FlwCategoryController extends BaseController {
 
-    private final IFlwCategoryService FlowCategoryService;
+    private final IFlwCategoryService flwCategoryService;
 
     /**
      * 查询流程分类列表
      */
+    @SaCheckPermission("workflow:category:list")
     @GetMapping("/list")
     public R<List<FlowCategoryVo>> list(FlowCategoryBo bo) {
-        List<FlowCategoryVo> list = FlowCategoryService.queryList(bo);
+        List<FlowCategoryVo> list = flwCategoryService.queryList(bo);
         return R.ok(list);
-
     }
 
     /**
@@ -52,19 +52,20 @@ public class FlwCategoryController extends BaseController {
     @Log(title = "流程分类", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(FlowCategoryBo bo, HttpServletResponse response) {
-        List<FlowCategoryVo> list = FlowCategoryService.queryList(bo);
+        List<FlowCategoryVo> list = flwCategoryService.queryList(bo);
         ExcelUtil.exportExcel(list, "流程分类", FlowCategoryVo.class, response);
     }
 
     /**
      * 获取流程分类详细信息
      *
-     * @param id 主键
+     * @param categoryId 主键
      */
-    @GetMapping("/{id}")
-    public R<FlowCategoryVo> getInfo(@NotNull(message = "主键不能为空")
-                                   @PathVariable Long id) {
-        return R.ok(FlowCategoryService.queryById(id));
+    @SaCheckPermission("workflow:category:query")
+    @GetMapping("/{categoryId}")
+    public R<FlowCategoryVo> getInfo(@NotNull(message = "主键不能为空") @PathVariable Long categoryId) {
+        flwCategoryService.checkCategoryDataScope(categoryId);
+        return R.ok(flwCategoryService.queryById(categoryId));
     }
 
     /**
@@ -74,8 +75,11 @@ public class FlwCategoryController extends BaseController {
     @Log(title = "流程分类", businessType = BusinessType.INSERT)
     @RepeatSubmit()
     @PostMapping()
-    public R<Void> add(@Validated(AddGroup.class) @RequestBody FlowCategoryBo bo) {
-        return toAjax(FlowCategoryService.insertByBo(bo));
+    public R<Void> add(@Validated(AddGroup.class) @RequestBody FlowCategoryBo category) {
+        if (!flwCategoryService.checkCategoryNameUnique(category)) {
+            return R.fail("新增流程分类'" + category.getCategoryName() + "'失败，流程分类名称已存在");
+        }
+        return toAjax(flwCategoryService.insertByBo(category));
     }
 
     /**
@@ -85,20 +89,39 @@ public class FlwCategoryController extends BaseController {
     @Log(title = "流程分类", businessType = BusinessType.UPDATE)
     @RepeatSubmit()
     @PutMapping()
-    public R<Void> edit(@Validated(EditGroup.class) @RequestBody FlowCategoryBo bo) {
-        return toAjax(FlowCategoryService.updateByBo(bo));
+    public R<Void> edit(@Validated(EditGroup.class) @RequestBody FlowCategoryBo category) {
+        Long categoryId = category.getCategoryId();
+        flwCategoryService.checkCategoryDataScope(categoryId);
+        if (!flwCategoryService.checkCategoryNameUnique(category)) {
+            return R.fail("修改流程分类'" + category.getCategoryName() + "'失败，流程分类名称已存在");
+        } else if (category.getParentId().equals(categoryId)) {
+            return R.fail("修改流程分类'" + category.getCategoryName() + "'失败，上级流程分类不能是自己");
+        } else if (StringUtils.equals(SystemConstants.DISABLE, category.getStatus())) {
+            if (flwCategoryService.selectNormalChildrenCategoryById(categoryId) > 0) {
+                return R.fail("该流程分类包含未停用的子流程分类!");
+            } else if (flwCategoryService.checkCategoryExistDefinition(categoryId)) {
+                return R.fail("该部门下存在已分配流程定义，不能禁用!");
+            }
+        }
+        return toAjax(flwCategoryService.updateByBo(category));
     }
 
     /**
      * 删除流程分类
      *
-     * @param ids 主键串
+     * @param categoryId 主键
      */
     @SaCheckPermission("workflow:category:remove")
     @Log(title = "流程分类", businessType = BusinessType.DELETE)
-    @DeleteMapping("/{ids}")
-    public R<Void> remove(@NotEmpty(message = "主键不能为空")
-                          @PathVariable Long[] ids) {
-        return toAjax(FlowCategoryService.deleteWithValidByIds(List.of(ids), true));
+    @DeleteMapping("/{categoryId}")
+    public R<Void> remove(@PathVariable Long categoryId) {
+        if (flwCategoryService.hasChildByCategoryId(categoryId)) {
+            return R.warn("存在下级流程分类,不允许删除");
+        }
+        if (flwCategoryService.checkCategoryExistDefinition(categoryId)) {
+            return R.warn("流程分类存在流程定义,不允许删除");
+        }
+        return toAjax(flwCategoryService.deleteWithValidById(categoryId));
     }
+
 }

@@ -1,6 +1,7 @@
 package org.dromara.workflow.domain;
 
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,25 +24,45 @@ public class FlowCategory extends TenantEntity {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 主键
+     * 流程分类ID
      */
-    @TableId(value = "id")
-    private Long id;
+    @TableId(value = "category_id")
+    private Long categoryId;
 
     /**
-     * 分类名称
-     */
-    private String categoryName;
-
-    /**
-     * 父级id
+     * 父流程分类id
      */
     private Long parentId;
 
     /**
-     * 排序
+     * 祖级列表
      */
-    private Long sortNum;
+    private String ancestors;
 
+    /**
+     * 流程分类名称
+     */
+    private String categoryName;
+
+    /**
+     * 流程分类编码
+     */
+    private String categoryCode;
+
+    /**
+     * 显示顺序
+     */
+    private Long orderNum;
+
+    /**
+     * 流程分类状态（0正常 1停用）
+     */
+    private String status;
+
+    /**
+     * 删除标志（0代表存在 2代表删除）
+     */
+    @TableLogic
+    private String delFlag;
 
 }

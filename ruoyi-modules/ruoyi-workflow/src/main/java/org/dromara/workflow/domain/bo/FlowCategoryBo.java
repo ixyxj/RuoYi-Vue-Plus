@@ -22,26 +22,36 @@ import org.dromara.workflow.domain.FlowCategory;
 public class FlowCategoryBo extends BaseEntity {
 
     /**
-     * 主键
+     * 流程分类ID
      */
-    @NotNull(message = "主键不能为空", groups = {EditGroup.class})
-    private Long id;
+    @NotNull(message = "流程分类ID不能为空", groups = { EditGroup.class })
+    private Long categoryId;
 
     /**
-     * 分类名称
+     * 父流程分类id
      */
-    @NotBlank(message = "分类名称不能为空", groups = {AddGroup.class, EditGroup.class})
-    private String categoryName;
-
-    /**
-     * 父级id
-     */
-    @NotNull(message = "父级id不能为空", groups = {AddGroup.class, EditGroup.class})
+    @NotNull(message = "父流程分类id不能为空", groups = {AddGroup.class, EditGroup.class})
     private Long parentId;
 
     /**
-     * 排序
+     * 流程分类名称
      */
-    private Long sortNum;
+    @NotBlank(message = "流程分类名称不能为空", groups = {AddGroup.class, EditGroup.class})
+    private String categoryName;
+
+    /**
+     * 流程分类编码
+     */
+    private String categoryCode;
+
+    /**
+     * 显示顺序
+     */
+    private Long orderNum;
+
+    /**
+     * 流程分类状态（0正常 1停用）
+     */
+    private String status;
 
 }
