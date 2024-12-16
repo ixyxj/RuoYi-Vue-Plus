@@ -53,19 +53,19 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
     private final FlowHisTaskMapper flowHisTaskMapper;
 
     /**
-     * 分页查询
+     * 查询流程定义列表
      *
-     * @param flowDefinition 参数
+     * @param flowDefinition 流程定义信息
      * @return 返回分页列表
      */
     @Override
-    public TableDataInfo<FlowDefinitionVo> page(FlowDefinition flowDefinition, PageQuery pageQuery) {
+    public TableDataInfo<FlowDefinitionVo> queryList(FlowDefinition flowDefinition, PageQuery pageQuery) {
         QueryWrapper<FlowDefinition> queryWrapper = new QueryWrapper<>();
-        queryWrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowCode()),"flow_code", flowDefinition.getFlowCode());
-        queryWrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowName()),"flow_Name", flowDefinition.getFlowName());
-        queryWrapper.eq(StringUtils.isNotBlank(flowDefinition.getCategory()),"category", flowDefinition.getCategory());
+        queryWrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowCode()), "flow_code", flowDefinition.getFlowCode());
+        queryWrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowName()), "flow_Name", flowDefinition.getFlowName());
+        queryWrapper.eq(StringUtils.isNotBlank(flowDefinition.getCategory()), "category", flowDefinition.getCategory());
         queryWrapper.orderByDesc("create_time");
-        Page<FlowDefinition> page = flwDefMapper.page(pageQuery.build(), queryWrapper);
+        Page<FlowDefinition> page = flwDefMapper.selectDefinitionList(pageQuery.build(), queryWrapper);
         TableDataInfo<FlowDefinitionVo> build = TableDataInfo.build();
         build.setRows(BeanUtil.copyToList(page.getRecords(), FlowDefinitionVo.class));
         build.setTotal(page.getTotal());

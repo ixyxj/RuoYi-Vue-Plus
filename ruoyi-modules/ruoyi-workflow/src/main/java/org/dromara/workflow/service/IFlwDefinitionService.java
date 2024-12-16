@@ -16,14 +16,15 @@ import java.util.List;
  * @author may
  */
 public interface IFlwDefinitionService {
+
     /**
-     * 分页查询
+     * 查询流程定义列表
      *
      * @param flowDefinition 参数
      * @param pageQuery      分页
      * @return 返回分页列表
      */
-    TableDataInfo<FlowDefinitionVo> page(FlowDefinition flowDefinition, PageQuery pageQuery);
+    TableDataInfo<FlowDefinitionVo> queryList(FlowDefinition flowDefinition, PageQuery pageQuery);
 
     /**
      * 获取历史流程定义列表

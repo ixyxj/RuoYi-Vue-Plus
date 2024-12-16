@@ -3,7 +3,8 @@
     PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.workflow.mapper.FlwDefMapper">
-    <select id="page" resultType="org.dromara.warm.flow.orm.entity.FlowDefinition">
+
+    <select id="selectDefinitionList" resultType="org.dromara.warm.flow.orm.entity.FlowDefinition">
         select *
         from (
             select a.*

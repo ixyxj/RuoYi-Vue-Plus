@@ -36,17 +36,17 @@ import java.util.List;
 public class FlwDefinitionController extends BaseController {
 
     private final IFlwCategoryService flwCategoryService;
-    private final IFlwDefinitionService iFlwDefinitionService;
+    private final IFlwDefinitionService flwDefinitionService;
     private final DefService defService;
 
     /**
-     * 分页查询
+     * 查询流程定义列表
      *
      * @param flowDefinition 参数
      */
     @GetMapping("/list")
-    public TableDataInfo<FlowDefinitionVo> page(FlowDefinition flowDefinition, PageQuery pageQuery) {
-        return iFlwDefinitionService.page(flowDefinition, pageQuery);
+    public TableDataInfo<FlowDefinitionVo> list(FlowDefinition flowDefinition, PageQuery pageQuery) {
+        return flwDefinitionService.queryList(flowDefinition, pageQuery);
     }
 
     /**
@@ -64,7 +64,7 @@ public class FlwDefinitionController extends BaseController {
      */
     @GetMapping("/getHisListByKey/{flowCode}")
     public R<List<FlowDefinitionVo>> getHisListByKey(@PathVariable String flowCode) {
-        return R.ok(iFlwDefinitionService.getHisListByKey(flowCode));
+        return R.ok(flwDefinitionService.getHisListByKey(flowCode));
     }
 
     /**
@@ -132,7 +132,7 @@ public class FlwDefinitionController extends BaseController {
     @DeleteMapping("/{ids}")
     @Transactional(rollbackFor = Exception.class)
     public R<Void> remove(@PathVariable List<Long> ids) {
-        return toAjax(iFlwDefinitionService.removeDef(ids));
+        return toAjax(flwDefinitionService.removeDef(ids));
     }
 
     /**
@@ -156,7 +156,7 @@ public class FlwDefinitionController extends BaseController {
     @PostMapping("/importDef")
     @Transactional(rollbackFor = Exception.class)
     public R<Boolean> importDef(MultipartFile file, String category) {
-        return R.ok(iFlwDefinitionService.importXml(file, category));
+        return R.ok(flwDefinitionService.importXml(file, category));
     }
 
     /**
@@ -169,7 +169,7 @@ public class FlwDefinitionController extends BaseController {
     @Log(title = "流程定义", businessType = BusinessType.EXPORT)
     @PostMapping("/exportDef/{id}")
     public void exportDef(@PathVariable Long id, HttpServletResponse response) throws IOException {
-        iFlwDefinitionService.exportDef(id, response);
+        flwDefinitionService.exportDef(id, response);
     }
 
     /**

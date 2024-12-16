@@ -21,6 +21,6 @@ public interface FlwDefMapper {
      * @param queryWrapper 条件
      * @return 结果
      */
-    Page<FlowDefinition> page(@Param("page") Page<FlowDefinition> page, @Param(Constants.WRAPPER) Wrapper<FlowDefinition> queryWrapper);
+    Page<FlowDefinition> selectDefinitionList(@Param("page") Page<FlowDefinition> page, @Param(Constants.WRAPPER) Wrapper<FlowDefinition> queryWrapper);
 
 }
