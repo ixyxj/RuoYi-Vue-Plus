@@ -48,7 +48,7 @@ public interface IFlwDefinitionService {
      * @param file 文件
      * @return 结果
      */
-    boolean importXml(MultipartFile file);
+    boolean importXml(MultipartFile file, String category);
 
     /**
      * 删除流程定义

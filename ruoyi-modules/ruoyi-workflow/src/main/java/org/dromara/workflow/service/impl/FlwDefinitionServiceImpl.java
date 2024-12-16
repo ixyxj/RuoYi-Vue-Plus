@@ -15,9 +15,15 @@ import org.dom4j.io.XMLWriter;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
+import org.dromara.common.core.utils.reflect.ReflectUtils;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.warm.flow.core.dto.FlowCombine;
+import org.dromara.warm.flow.core.entity.Definition;
+import org.dromara.warm.flow.core.entity.Node;
+import org.dromara.warm.flow.core.entity.Skip;
 import org.dromara.warm.flow.core.service.DefService;
+import org.dromara.warm.flow.core.utils.FlowConfigUtil;
 import org.dromara.warm.flow.orm.entity.FlowDefinition;
 import org.dromara.warm.flow.orm.entity.FlowHisTask;
 import org.dromara.warm.flow.orm.mapper.FlowDefinitionMapper;
@@ -85,9 +91,17 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
      * @param file 文件
      */
     @Override
-    public boolean importXml(MultipartFile file) {
+    public boolean importXml(MultipartFile file, String category) {
         try {
-            defService.importXml(file.getInputStream());
+            FlowCombine combine = FlowConfigUtil.readConfig(file.getInputStream());
+            // 流程定义
+            Definition definition = combine.getDefinition();
+            definition.setCategory(category);
+            // 所有的流程节点
+            List<Node> allNodes = combine.getAllNodes();
+            // 所有的流程连线
+            List<Skip> allSkips = combine.getAllSkips();
+            ReflectUtils.invoke(defService, "insertFlow", definition, allNodes, allSkips);
         } catch (Exception e) {
             log.error("导入流程定义错误: {}", e.getMessage(), e);
             throw new RuntimeException(e);
