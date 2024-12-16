@@ -80,7 +80,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     /**
      * 分页查询正在运行的流程实例
      *
-     * @param flowInstanceBo 参数
+     * @param flowInstanceBo 流程实例
      * @param pageQuery      分页
      */
     @Override
@@ -94,7 +94,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     /**
      * 分页查询已结束的流程实例
      *
-     * @param flowInstanceBo 参数
+     * @param flowInstanceBo 流程实例
      * @param pageQuery      分页
      */
     @Override

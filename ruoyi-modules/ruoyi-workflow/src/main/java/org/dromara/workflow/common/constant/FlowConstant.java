@@ -48,4 +48,14 @@ public interface FlowConstant {
      */
     String REDUCTION_SIGNATURE = "reductionSignature";
 
+    /**
+     * 流程分类Id转名称
+     */
+    String CATEGORY_ID_TO_NAME = "category_id_to_name";
+
+    /**
+     * 流程分类名称
+     */
+    String FLOW_CATEGORY_NAME = "flow_category_name#30d";
+
 }

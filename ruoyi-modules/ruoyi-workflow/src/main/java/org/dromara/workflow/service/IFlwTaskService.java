@@ -18,6 +18,7 @@ import java.util.Map;
  * @author may
  */
 public interface IFlwTaskService {
+
     /**
      * 启动任务
      *
@@ -25,7 +26,6 @@ public interface IFlwTaskService {
      * @return 结果
      */
     Map<String, Object> startWorkFlow(StartProcessBo startProcessBo);
-
 
     /**
      * 办理任务
@@ -52,7 +52,6 @@ public interface IFlwTaskService {
      * @return 结果
      */
     TableDataInfo<FlowHisTaskVo> pageByTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery);
-
 
     /**
      * 查询待办任务

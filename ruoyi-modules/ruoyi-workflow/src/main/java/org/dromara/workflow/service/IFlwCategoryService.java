@@ -22,6 +22,14 @@ public interface IFlwCategoryService {
     FlowCategoryVo queryById(Long categoryId);
 
     /**
+     * 根据流程分类ID查询流程分类名称
+     *
+     * @param categoryId 流程分类ID
+     * @return 流程分类名称
+     */
+    String selectCategoryNameById(String categoryId);
+
+    /**
      * 查询符合条件的流程分类列表
      *
      * @param bo 查询条件

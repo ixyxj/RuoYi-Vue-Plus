@@ -15,11 +15,14 @@ import org.dromara.common.mybatis.helper.DataBaseHelper;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.service.DefService;
 import org.dromara.warm.flow.orm.entity.FlowDefinition;
+import org.dromara.workflow.common.constant.FlowConstant;
 import org.dromara.workflow.domain.FlowCategory;
 import org.dromara.workflow.domain.bo.FlowCategoryBo;
 import org.dromara.workflow.domain.vo.FlowCategoryVo;
 import org.dromara.workflow.mapper.FlwCategoryMapper;
 import org.dromara.workflow.service.IFlwCategoryService;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -54,6 +57,20 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService {
             .select(FlowCategory::getCategoryName).eq(FlowCategory::getCategoryId, category.getParentId()));
         category.setParentName(ObjectUtils.notNullGetter(parentCategory, FlowCategoryVo::getCategoryName));
         return category;
+    }
+
+    /**
+     * 根据流程分类ID查询流程分类名称
+     *
+     * @param categoryId 流程分类ID
+     * @return 流程分类名称
+     */
+    @Cacheable(cacheNames = FlowConstant.FLOW_CATEGORY_NAME, key = "#categoryId")
+    @Override
+    public String selectCategoryNameById(String categoryId) {
+        FlowCategory category = baseMapper.selectOne(new LambdaQueryWrapper<FlowCategory>()
+            .select(FlowCategory::getCategoryName).eq(FlowCategory::getCategoryId, categoryId));
+        return ObjectUtils.notNullGetter(category, FlowCategory::getCategoryName);
     }
 
     /**
@@ -210,6 +227,7 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService {
      * @param bo 流程分类
      * @return 是否修改成功
      */
+    @CacheEvict(cacheNames = FlowConstant.FLOW_CATEGORY_NAME, key = "#bo.categoryId")
     @Override
     public int updateByBo(FlowCategoryBo bo) {
         FlowCategory category = MapstructUtils.convert(bo, FlowCategory.class);
@@ -280,6 +298,7 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService {
      * @param categoryId 主键
      * @return 是否删除成功
      */
+    @CacheEvict(cacheNames = FlowConstant.FLOW_CATEGORY_NAME, key = "#categoryId")
     @Override
     public int deleteWithValidById(Long categoryId) {
         return baseMapper.deleteById(categoryId);
