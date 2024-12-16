@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.service.PostService;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
@@ -34,7 +35,7 @@ import java.util.List;
  */
 @RequiredArgsConstructor
 @Service
-public class SysPostServiceImpl implements ISysPostService {
+public class SysPostServiceImpl implements ISysPostService, PostService {
 
     private final SysPostMapper baseMapper;
     private final SysDeptMapper deptMapper;
@@ -55,6 +56,17 @@ public class SysPostServiceImpl implements ISysPostService {
     @Override
     public List<SysPostVo> selectPostList(SysPostBo post) {
         return baseMapper.selectVoList(buildQueryWrapper(post));
+    }
+
+    /**
+     * 查询用户所属岗位组
+     *
+     * @param userId 用户ID
+     * @return 岗位ID
+     */
+    @Override
+    public List<SysPostVo> selectPostsByUserId(Long userId) {
+        return baseMapper.selectPostsByUserId(userId);
     }
 
     /**

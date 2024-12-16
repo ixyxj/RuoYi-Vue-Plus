@@ -44,7 +44,7 @@ public class AuthTopIamRequest extends AuthDefaultRequest {
     }
 
     @Override
-    protected AuthToken getAccessToken(AuthCallback authCallback) {
+    public AuthToken getAccessToken(AuthCallback authCallback) {
         String body = doPostAuthorizationCode(authCallback.getCode());
         Dict object = JsonUtils.parseMap(body);
         checkResponse(object);
@@ -58,7 +58,7 @@ public class AuthTopIamRequest extends AuthDefaultRequest {
     }
 
     @Override
-    protected AuthUser getUserInfo(AuthToken authToken) {
+    public AuthUser getUserInfo(AuthToken authToken) {
         String body = doGetUserInfo(authToken);
         Dict object = JsonUtils.parseMap(body);
         checkResponse(object);
