@@ -66,7 +66,7 @@
                 d.flow_name,
                 d.flow_code,
                 d.form_custom,
-                d.form_path,
+                COALESCE(t.form_path, d.form_path),
                 d.version,
                 uu.processed_by,
                 uu.type,
