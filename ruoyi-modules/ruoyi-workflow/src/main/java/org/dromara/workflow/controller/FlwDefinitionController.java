@@ -51,10 +51,12 @@ public class FlwDefinitionController extends BaseController {
 
     /**
      * 获取流程分类树列表
+     *
+     * @param categoryBo 参数
      */
     @GetMapping("/categoryTree")
-    public R<List<Tree<Long>>> categoryTree(FlowCategoryBo dept) {
-        return R.ok(flwCategoryService.selectCategoryTreeList(dept));
+    public R<List<Tree<Long>>> categoryTree(FlowCategoryBo categoryBo) {
+        return R.ok(flwCategoryService.selectCategoryTreeList(categoryBo));
     }
 
     /**

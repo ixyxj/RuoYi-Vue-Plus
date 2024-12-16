@@ -194,7 +194,6 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService {
         lqw.eq(ObjectUtil.isNotNull(bo.getCategoryId()), FlowCategory::getCategoryId, bo.getCategoryId());
         lqw.eq(ObjectUtil.isNotNull(bo.getParentId()), FlowCategory::getParentId, bo.getParentId());
         lqw.like(StringUtils.isNotBlank(bo.getCategoryName()), FlowCategory::getCategoryName, bo.getCategoryName());
-        lqw.like(StringUtils.isNotBlank(bo.getCategoryCode()), FlowCategory::getCategoryCode, bo.getCategoryCode());
         lqw.eq(StringUtils.isNotBlank(bo.getStatus()), FlowCategory::getStatus, bo.getStatus());
         lqw.orderByAsc(FlowCategory::getAncestors);
         lqw.orderByAsc(FlowCategory::getParentId);

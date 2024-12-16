@@ -34,12 +34,12 @@ public class FlowCategoryVo implements Serializable {
     private Long categoryId;
 
     /**
-     * 父部门id
+     * 父级id
      */
     private Long parentId;
 
     /**
-     * 父部门名称
+     * 父类别名称
      */
     private String parentName;
 
@@ -53,12 +53,6 @@ public class FlowCategoryVo implements Serializable {
      */
     @ExcelProperty(value = "流程分类名称")
     private String categoryName;
-
-    /**
-     * 流程分类编码
-     */
-    @ExcelProperty(value = "流程分类编码")
-    private String categoryCode;
 
     /**
      * 显示顺序

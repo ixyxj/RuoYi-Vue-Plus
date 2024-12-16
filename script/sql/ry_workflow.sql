@@ -156,7 +156,6 @@ create table flow_category
     parent_id     bigint(20)   default 0 comment '父流程分类id',
     ancestors     varchar(500) default '' comment '祖级列表',
     category_name varchar(30) not null comment '流程分类名称',
-    category_code varchar(100) default '' comment '流程分类编码',
     order_num     int(4)       default 0 comment '显示顺序',
     status        char(1)      default '0' comment '流程分类状态（0正常 1停用）',
     del_flag      char(1)      default '0' comment '删除标志（0代表存在 2代表删除）',
@@ -168,7 +167,7 @@ create table flow_category
     primary key (category_id)
 ) engine = innodb comment = '流程分类';
 
-INSERT INTO flow_category values (1, '000000', 0, '0', 'OA', 'OA', 0, '0', '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (1, '000000', 0, '0', 'OA', 0, '0', '0', 103, 1, sysdate(), null, null);
 
 -- ----------------------------
 -- 请假单信息

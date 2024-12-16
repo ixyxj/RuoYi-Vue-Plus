@@ -40,11 +40,6 @@ public class FlowCategoryBo extends BaseEntity {
     private String categoryName;
 
     /**
-     * 流程分类编码
-     */
-    private String categoryCode;
-
-    /**
      * 显示顺序
      */
     private Long orderNum;

@@ -4,49 +4,8 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.workflow.mapper.FlwTaskMapper">
     <resultMap type="org.dromara.workflow.domain.vo.FlowTaskVo" id="FlowTaskResult">
-        <result property="id" column="id"/>
-        <result property="nodeCode" column="node_code"/>
-        <result property="nodeName" column="node_name"/>
-        <result property="nodeType" column="node_type"/>
-        <result property="definitionId" column="definition_id"/>
-        <result property="instanceId" column="instance_id"/>
-        <result property="flowStatus" column="flow_status"/>
-        <result property="createTime" column="create_time"/>
-        <result property="updateTime" column="update_time"/>
-        <result property="tenantId" column="tenant_id"/>
-        <result property="businessId" column="business_id"/>
-        <result property="flowName" column="flow_name"/>
-        <result property="flowCode" column="flow_code"/>
-        <result property="formCustom" column="form_custom"/>
-        <result property="formPath" column="form_path"/>
-        <result property="delFlag" column="del_flag"/>
-        <result property="type" column="type"/>
-        <result property="createBy" column="create_by"/>
     </resultMap>
     <resultMap type="org.dromara.workflow.domain.vo.FlowHisTaskVo" id="FlowHisTaskResult">
-        <result property="id" column="id"/>
-        <result property="nodeCode" column="node_code"/>
-        <result property="nodeName" column="node_name"/>
-        <result property="nodeType" column="node_type"/>
-        <result property="targetNodeCode" column="target_node_code"/>
-        <result property="targetNodeName" column="target_node_name"/>
-        <result property="approver" column="approver"/>
-        <result property="collaborator" column="collaborator"/>
-        <result property="definitionId" column="definition_id"/>
-        <result property="instanceId" column="instance_id"/>
-        <result property="taskId" column="task_id"/>
-        <result property="cooperateType" column="cooperate_type"/>
-        <result property="flowStatus" column="flow_status"/>
-        <result property="message" column="message"/>
-        <result property="createTime" column="create_time"/>
-        <result property="updateTime" column="update_time"/>
-        <result property="businessId" column="business_id"/>
-        <result property="nodeName" column="node_name"/>
-        <result property="tenantId" column="tenant_id"/>
-        <result property="flowName" column="flow_name"/>
-        <result property="flowCode" column="flow_code"/>
-        <result property="delFlag" column="del_flag"/>
-        <result property="formPath" column="form_path"/>
     </resultMap>
 
     <select id="getTaskWaitByPage" resultMap="FlowTaskResult">
@@ -66,7 +25,7 @@
                 d.flow_name,
                 d.flow_code,
                 d.form_custom,
-                COALESCE(t.form_path, d.form_path),
+                COALESCE(t.form_path, d.form_path) as form_path,
                 d.version,
                 uu.processed_by,
                 uu.type,
