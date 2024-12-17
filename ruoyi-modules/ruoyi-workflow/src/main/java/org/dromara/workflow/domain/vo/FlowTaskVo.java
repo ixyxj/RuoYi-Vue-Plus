@@ -90,7 +90,7 @@ public class FlowTaskVo implements Serializable {
     private List<User> userList;
 
     /**
-     * 审批表单是否自定义（Y是 2否）
+     * 审批表单是否自定义（Y是 N否）
      */
     private String formCustom;
 

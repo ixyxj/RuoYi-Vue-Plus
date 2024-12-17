@@ -73,12 +73,12 @@ public class FlowDefinitionVo implements Serializable {
     private Integer isPublish;
 
     /**
-     * 审批表单是否自定义（Y是 2否）
+     * 审批表单是否自定义（Y是 N否）
      */
     private String formCustom;
 
     /**
-     * 审批表单是否自定义（Y是 2否）
+     * 审批表单路径
      */
     private String formPath;
 

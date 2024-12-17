@@ -162,7 +162,7 @@ public class FlowHisTaskVo implements Serializable {
 
 
     /**
-     * 审批表单是否自定义（Y是 2否）
+     * 审批表单是否自定义（Y是 N否）
      */
     private String formCustom;
 

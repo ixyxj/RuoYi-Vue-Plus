@@ -173,7 +173,7 @@ INSERT INTO flow_category values (103, '000000', 101, '0,100,101', '请假', 0, 
 INSERT INTO flow_category values (104, '000000', 101, '0,100,101', '出差', 1, '0', 103, 1, sysdate(), null, null);
 INSERT INTO flow_category values (105, '000000', 101, '0,100,101', '加班', 2, '0', 103, 1, sysdate(), null, null);
 INSERT INTO flow_category values (106, '000000', 101, '0,100,101', '换班', 3, '0', 103, 1, sysdate(), null, null);
-INSERT INTO flow_category values (107, '000000', 101, '0,100,101', '外出', 3, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (107, '000000', 101, '0,100,101', '外出', 4, '0', 103, 1, sysdate(), null, null);
 INSERT INTO flow_category values (108, '000000', 102, '0,100,102', '转正', 1, '0', 103, 1, sysdate(), null, null);
 INSERT INTO flow_category values (109, '000000', 102, '0,100,102', '离职', 2, '0', 103, 1, sysdate(), null, null);
 
