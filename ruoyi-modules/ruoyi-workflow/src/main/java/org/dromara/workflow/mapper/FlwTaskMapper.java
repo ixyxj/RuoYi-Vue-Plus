@@ -9,6 +9,8 @@ import org.dromara.workflow.domain.bo.FlowTaskBo;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowTaskVo;
 
+import java.util.List;
+
 
 /**
  * 任务信息Mapper接口
@@ -25,8 +27,15 @@ public interface FlwTaskMapper {
      * @param queryWrapper 条件
      * @return 结果
      */
-    Page<FlowTaskVo> getTaskWaitByPage(@Param("page") Page<FlowTaskVo> page, @Param(Constants.WRAPPER) Wrapper<FlowTaskBo> queryWrapper);
+    Page<FlowTaskVo> getListRunTask(@Param("page") Page<FlowTaskVo> page, @Param(Constants.WRAPPER) Wrapper<FlowTaskBo> queryWrapper);
 
+    /**
+     * 获取待办信息
+     *
+     * @param queryWrapper 条件
+     * @return 结果
+     */
+    List<FlowTaskVo> getListRunTask(@Param(Constants.WRAPPER) Wrapper<FlowTaskBo> queryWrapper);
     /**
      * 获取已办
      *
@@ -34,7 +43,7 @@ public interface FlwTaskMapper {
      * @param queryWrapper 条件
      * @return 结果
      */
-    Page<FlowHisTaskVo> getTaskFinishByPage(@Param("page") Page<FlowTaskVo> page, @Param(Constants.WRAPPER) Wrapper<FlowTaskBo> queryWrapper);
+    Page<FlowHisTaskVo> getListFinishTask(@Param("page") Page<FlowTaskVo> page, @Param(Constants.WRAPPER) Wrapper<FlowTaskBo> queryWrapper);
 
     /**
      * 查询当前用户的抄送

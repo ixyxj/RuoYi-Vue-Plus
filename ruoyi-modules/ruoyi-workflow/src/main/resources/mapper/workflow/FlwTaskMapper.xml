@@ -8,7 +8,7 @@
     <resultMap type="org.dromara.workflow.domain.vo.FlowHisTaskVo" id="FlowHisTaskResult">
     </resultMap>
 
-    <select id="getTaskWaitByPage" resultMap="FlowTaskResult">
+    <select id="getListRunTask" resultMap="FlowTaskResult">
         select * from (
             select distinct
                 t.id,
@@ -42,7 +42,7 @@
          ${ew.getCustomSqlSegment}
     </select>
 
-    <select id="getTaskFinishByPage" resultMap="FlowHisTaskResult">
+    <select id="getListFinishTask" resultMap="FlowHisTaskResult">
         select * from (
             select
                 a.id,

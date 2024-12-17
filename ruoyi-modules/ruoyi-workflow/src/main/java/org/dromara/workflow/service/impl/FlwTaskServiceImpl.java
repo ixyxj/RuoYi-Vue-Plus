@@ -44,6 +44,7 @@ import org.dromara.workflow.handler.WorkflowPermissionHandler;
 import org.dromara.workflow.mapper.FlwTaskMapper;
 import org.dromara.workflow.service.IFlwTaskService;
 import org.dromara.workflow.utils.WorkflowUtils;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -155,7 +156,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             Instance instance = taskService.skip(taskId, flowParams);
             this.setHandler(instance, flowTask, flowCopyList);
             // 消息通知
-            WorkflowUtils.sendMessage(definition.getFlowName(), ins.getId(), messageType, notice);
+            sendMessage(definition.getFlowName(), ins.getId(), messageType, notice);
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -203,7 +204,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      * @param task         任务信息
      * @param flowCopyList 抄送人
      */
-    private void setCopy(FlowTask task, List<FlowCopy> flowCopyList) {
+    @Async
+    public void setCopy(FlowTask task, List<FlowCopy> flowCopyList) {
         if (CollUtil.isEmpty(flowCopyList)) {
             return;
         }
@@ -265,7 +267,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
         queryWrapper.in("t.approver", LoginHelper.getUserIdStr());
         queryWrapper.orderByDesc("t.create_time").orderByDesc("t.update_time");
-        Page<FlowHisTaskVo> page = flwTaskMapper.getTaskFinishByPage(pageQuery.build(), queryWrapper);
+        Page<FlowHisTaskVo> page = flwTaskMapper.getListFinishTask(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
     }
 
@@ -284,7 +286,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     }
 
     private Page<FlowTaskVo> getFlowTaskVoPage(PageQuery pageQuery, QueryWrapper<FlowTaskBo> queryWrapper) {
-        Page<FlowTaskVo> page = flwTaskMapper.getTaskWaitByPage(pageQuery.build(), queryWrapper);
+        Page<FlowTaskVo> page = flwTaskMapper.getListRunTask(pageQuery.build(), queryWrapper);
         List<FlowTaskVo> records = page.getRecords();
         if (CollUtil.isNotEmpty(records)) {
             List<Long> taskIds = StreamUtils.toList(records, FlowTaskVo::getId);
@@ -309,7 +311,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     @Override
     public TableDataInfo<FlowHisTaskVo> pageByAllTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
-        Page<FlowHisTaskVo> page = flwTaskMapper.getTaskFinishByPage(pageQuery.build(), queryWrapper);
+        Page<FlowHisTaskVo> page = flwTaskMapper.getListFinishTask(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
     }
 
@@ -360,36 +362,30 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             Long definitionId = task.getDefinitionId();
             Definition definition = defService.getById(definitionId);
             String applyNodeCode = WorkflowUtils.applyNodeCode(definitionId);
-            FlowNode node = flowNodes.stream().filter(e -> e.getNodeCode().equals(task.getNodeCode())).findFirst().orElse(null);
-            BigDecimal nodeRatio = node.getNodeRatio();
-            //票签
-            if (nodeRatio.compareTo(BigDecimal.ZERO) > 0 && nodeRatio.compareTo(new BigDecimal(100)) < 0) {
-                List<UserDTO> userList = this.currentTaskAllUser(task.getId());
-                FlowParams flowParams = FlowParams.build();
-                flowParams.nodeCode(bo.getNodeCode());
-                flowParams.message(message);
-                flowParams.skipType(SkipType.PASS.getKey());
-                if (applyNodeCode.equals(bo.getNodeCode())) {
-                    flowParams.flowStatus(TaskStatusEnum.BACK.getStatus()).hisStatus(TaskStatusEnum.BACK.getStatus());
-                } else {
-                    flowParams.flowStatus(TaskStatusEnum.WAITING.getStatus()).hisStatus(TaskStatusEnum.BACK.getStatus());
-                }
-                flowParams.ignore(true);
-                //解决票签没权限问题
-                if (CollUtil.isNotEmpty(userList)) {
-                    flowParams.handler(userList.get(0).getUserId().toString());
-                }
-                taskService.skip(task.getId(), flowParams);
+            List<FlowTaskVo> listRunTask = flwTaskMapper.getListRunTask(new QueryWrapper<FlowTaskBo>().eq("instance_id", task.getInstanceId()));
+            //不是当前节点的待审任务
+            List<FlowTaskVo> taskVos = StreamUtils.filter(listRunTask, e -> !e.getId().equals(taskId));
+            WorkflowUtils.deleteRunTask(StreamUtils.toList(taskVos, FlowTaskVo::getId));
+            if (applyNodeCode.equals(bo.getNodeCode())) {
+                WorkflowUtils.backTask(message, inst.getId(), bo.getNodeCode(), TaskStatusEnum.BACK.getStatus(), TaskStatusEnum.BACK.getStatus());
             } else {
-                //申请人节点
-                if (applyNodeCode.equals(bo.getNodeCode())) {
-                    WorkflowUtils.backTask(message, inst.getId(), applyNodeCode, TaskStatusEnum.BACK.getStatus(), TaskStatusEnum.BACK.getStatus());
-                } else {
-                    WorkflowUtils.backTask(message, inst.getId(), bo.getNodeCode(), TaskStatusEnum.WAITING.getStatus(), TaskStatusEnum.BACK.getStatus());
+                WorkflowUtils.backTask(message, inst.getId(), bo.getNodeCode(), TaskStatusEnum.WAITING.getStatus(), TaskStatusEnum.BACK.getStatus());
+            }
+            //删除记录
+            FlowNode node = flowNodes.stream().filter(e -> e.getNodeCode().equals(task.getNodeCode())).findFirst().orElse(null);
+            if (node.getNodeRatio().compareTo(BigDecimal.ZERO) > 0) {
+                List<FlowHisTask> flowHisTasks = flowHisTaskMapper.selectList(
+                    new LambdaQueryWrapper<FlowHisTask>()
+                        .eq(FlowHisTask::getFlowStatus, BusinessStatusEnum.BACK.getStatus())
+                        .eq(FlowHisTask::getTaskId, taskId)
+                        .ne(FlowHisTask::getApprover, LoginHelper.getUserIdStr())
+                );
+                if (CollUtil.isNotEmpty(flowHisTasks)) {
+                    flowHisTaskMapper.deleteByIds(StreamUtils.toList(flowHisTasks, FlowHisTask::getId));
                 }
             }
             Instance instance = insService.getById(inst.getId());
-            //判断申请人节点是否有多个，只保留一个
+            //判断或节点是否有多个，只保留一个
             List<FlowTask> currentTaskList = selectByInstId(instance.getId());
             if (CollUtil.isNotEmpty(currentTaskList)) {
                 List<String> nodeCodes = StreamUtils.toList(currentTaskList, FlowTask::getNodeCode);
@@ -398,20 +394,30 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
                     List<FlowTask> flowTasks = currentTaskList.stream().filter(e -> e.getNodeCode().equals(n.getNodeCode()) && n.getNodeRatio().compareTo(BigDecimal.ZERO) == 0).collect(Collectors.toList());
                     if (flowTasks.size() > 1) {
                         flowTasks.remove(0);
-                        List<Long> taskIds = StreamUtils.toList(flowTasks, Task::getId);
-                        WorkflowUtils.getFlowUserService().deleteByTaskIds(taskIds);
-                        flowTaskMapper.deleteByIds(taskIds);
+                        WorkflowUtils.deleteRunTask(StreamUtils.toList(flowTasks, Task::getId));
                     }
                 }
             }
             this.setHandler(instance, task, null);
             //消息通知
-            WorkflowUtils.sendMessage(definition.getFlowName(), instance.getId(), messageType, notice);
+            sendMessage(definition.getFlowName(), instance.getId(), messageType, notice);
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceException(e.getMessage());
         }
+    }
+
+    /**
+     * 发送消息
+     *
+     * @param flowName    流程定义名称
+     * @param messageType 消息类型
+     * @param notice      消息内容，为空则发送默认配置的消息内容
+     */
+    @Async
+    public void sendMessage(String flowName, Long instId, List<String> messageType, String notice) {
+        WorkflowUtils.sendMessage(flowName, instId, messageType, notice);
     }
 
     /**

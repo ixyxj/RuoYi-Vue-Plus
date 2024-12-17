@@ -22,23 +22,16 @@ import org.dromara.warm.flow.core.constant.ExceptionCons;
 import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.entity.Definition;
 import org.dromara.warm.flow.core.entity.Instance;
-import org.dromara.warm.flow.core.entity.Node;
 import org.dromara.warm.flow.core.entity.Task;
 import org.dromara.warm.flow.core.enums.NodeType;
-import org.dromara.warm.flow.core.enums.SkipType;
 import org.dromara.warm.flow.core.service.DefService;
 import org.dromara.warm.flow.core.service.InsService;
-import org.dromara.warm.flow.core.service.NodeService;
 import org.dromara.warm.flow.core.service.TaskService;
-import org.dromara.warm.flow.core.utils.AssertUtil;
 import org.dromara.warm.flow.orm.entity.FlowHisTask;
 import org.dromara.warm.flow.orm.entity.FlowInstance;
-import org.dromara.warm.flow.orm.entity.FlowNode;
 import org.dromara.warm.flow.orm.entity.FlowTask;
 import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
 import org.dromara.warm.flow.orm.mapper.FlowInstanceMapper;
-import org.dromara.warm.flow.orm.mapper.FlowNodeMapper;
-import org.dromara.warm.flow.orm.mapper.FlowTaskMapper;
 import org.dromara.workflow.common.enums.TaskStatusEnum;
 import org.dromara.workflow.domain.bo.FlowCancelBo;
 import org.dromara.workflow.domain.bo.FlowInstanceBo;
@@ -69,12 +62,9 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     private final InsService insService;
     private final DefService defService;
     private final FlowHisTaskMapper flowHisTaskMapper;
-    private final FlowTaskMapper flowTaskMapper;
     private final FlowInstanceMapper flowInstanceMapper;
     private final FlwInstanceMapper flwInstanceMapper;
     private final TaskService taskService;
-    private final FlowNodeMapper flowNodeMapper;
-    private final NodeService nodeService;
     private final IFlwTaskService flwTaskService;
 
     /**
@@ -206,9 +196,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             if (CollUtil.isNotEmpty(currentTaskList)) {
                 if (currentTaskList.size() > 1) {
                     currentTaskList.remove(0);
-                    List<Long> taskIds = StreamUtils.toList(currentTaskList, Task::getId);
-                    WorkflowUtils.getFlowUserService().deleteByTaskIds(taskIds);
-                    flowTaskMapper.deleteByIds(taskIds);
+                    WorkflowUtils.deleteRunTask(StreamUtils.toList(currentTaskList, Task::getId));
                 }
             }
 

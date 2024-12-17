@@ -28,6 +28,7 @@ import org.dromara.warm.flow.orm.entity.FlowNode;
 import org.dromara.warm.flow.orm.entity.FlowTask;
 import org.dromara.warm.flow.orm.entity.FlowUser;
 import org.dromara.warm.flow.orm.mapper.FlowNodeMapper;
+import org.dromara.warm.flow.orm.mapper.FlowTaskMapper;
 import org.dromara.workflow.common.enums.MessageTypeEnum;
 import org.dromara.workflow.service.IFlwTaskAssigneeService;
 import org.dromara.workflow.service.IFlwTaskService;
@@ -52,6 +53,7 @@ public class WorkflowUtils {
     private static final TaskService taskService = SpringUtils.getBean(TaskService.class);
     private static final FlowNodeMapper FLOW_NODE_MAPPER = SpringUtils.getBean(FlowNodeMapper.class);
     private static final NodeService nodeService = SpringUtils.getBean(NodeService.class);
+    private static final FlowTaskMapper FLOW_TASK_MAPPER = SpringUtils.getBean(FlowTaskMapper.class);
 
     /**
      * 获取工作流用户service
@@ -189,4 +191,16 @@ public class WorkflowUtils {
         return nextNode.getNodeCode();
     }
 
+    /**
+     * 删除运行中的任务
+     *
+     * @param taskIds 任务id
+     */
+    public static void deleteRunTask(List<Long> taskIds) {
+        if (CollUtil.isEmpty(taskIds)) {
+            return;
+        }
+        userService.deleteByTaskIds(taskIds);
+        FLOW_TASK_MAPPER.deleteByIds(taskIds);
+    }
 }
