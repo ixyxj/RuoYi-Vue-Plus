@@ -1,12 +1,11 @@
 package org.dromara.workflow.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import cn.hutool.core.lang.tree.Tree;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.domain.R;
-import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.core.validate.AddGroup;
 import org.dromara.common.core.validate.EditGroup;
 import org.dromara.common.excel.utils.ExcelUtil;
@@ -116,6 +115,18 @@ public class FlwCategoryController extends BaseController {
             return R.warn("流程分类存在流程定义,不允许删除");
         }
         return toAjax(flwCategoryService.deleteWithValidById(categoryId));
+    }
+
+
+
+    /**
+     * 获取流程分类树列表
+     *
+     * @param categoryBo 参数
+     */
+    @GetMapping("/categoryTree")
+    public R<List<Tree<Long>>> categoryTree(FlowCategoryBo categoryBo) {
+        return R.ok(flwCategoryService.selectCategoryTreeList(categoryBo));
     }
 
 }
