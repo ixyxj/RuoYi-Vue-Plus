@@ -21,7 +21,7 @@ public interface FlowConstant {
     /**
      * 业务id
      */
-    String BUSINESS_KEY = "businessId";
+    String BUSINESS_ID = "businessId";
 
     /**
      * 任务id

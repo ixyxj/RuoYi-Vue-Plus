@@ -94,7 +94,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         // 流程发起人
         variables.put(INITIATOR, LoginHelper.getUserIdStr());
         // 业务id
-        variables.put(BUSINESS_KEY, businessId);
+        variables.put(BUSINESS_ID, businessId);
         FlowInstance flowInstance = flowInstanceMapper.selectOne(new LambdaQueryWrapper<>(FlowInstance.class)
             .eq(FlowInstance::getBusinessId, businessId));
         if (ObjectUtil.isNotNull(flowInstance)) {
