@@ -31,7 +31,7 @@ import org.dromara.warm.flow.core.service.*;
 import org.dromara.warm.flow.orm.entity.*;
 import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
 import org.dromara.warm.flow.orm.mapper.FlowInstanceMapper;
-import org.dromara.warm.flow.orm.mapper.FlowSkipMapper;
+import org.dromara.warm.flow.orm.mapper.FlowNodeMapper;
 import org.dromara.warm.flow.orm.mapper.FlowTaskMapper;
 import org.dromara.workflow.common.enums.TaskAssigneeType;
 import org.dromara.workflow.common.enums.TaskStatusEnum;
@@ -70,12 +70,12 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     private final UserService userService;
     private final FlowTaskMapper flowTaskMapper;
     private final FlowHisTaskMapper flowHisTaskMapper;
-    private final FlowSkipMapper flowSkipMapper;
     private final FlowProcessEventHandler flowProcessEventHandler;
     private final DefService defService;
     private final HisTaskService hisTaskService;
     private final IdentifierGenerator identifierGenerator;
     private final NodeService nodeService;
+    private final FlowNodeMapper flowNodeMapper;
 
     /**
      * 启动任务
@@ -343,33 +343,68 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      * @param bo 参数
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public boolean backProcess(BackProcessBo bo) {
         try {
             Long taskId = bo.getTaskId();
             String notice = bo.getNotice();
             List<String> messageType = bo.getMessageType();
             String message = bo.getMessage();
-            List<FlowTask> flowTasks = flowTaskMapper.selectList(new LambdaQueryWrapper<>(FlowTask.class).eq(FlowTask::getId, taskId));
-            if (CollUtil.isEmpty(flowTasks)) {
+            FlowTask task = flowTaskMapper.selectById(taskId);
+            if (ObjectUtil.isNull(task)) {
                 throw new ServiceException("任务不存在！");
             }
-            Instance inst = insService.getById(flowTasks.get(0).getInstanceId());
+            List<FlowNode> flowNodes = flowNodeMapper.selectList(new LambdaQueryWrapper<FlowNode>().eq(FlowNode::getDefinitionId, task.getDefinitionId()));
+            Instance inst = insService.getById(task.getInstanceId());
             BusinessStatusEnum.checkBackStatus(inst.getFlowStatus());
-            Long definitionId = flowTasks.get(0).getDefinitionId();
+            Long definitionId = task.getDefinitionId();
             Definition definition = defService.getById(definitionId);
-            List<FlowSkip> flowSkips = flowSkipMapper.selectList(new LambdaQueryWrapper<>(FlowSkip.class).eq(FlowSkip::getDefinitionId, definitionId));
-            FlowSkip flowSkip = StreamUtils.findFirst(flowSkips, e -> NodeType.START.getKey().equals(e.getNowNodeType()));
-            //开始节点的下一节点
-            assert flowSkip != null;
-            //申请人节点
-            String applyUserNodeCode = flowSkip.getNextNodeCode();
-            if (applyUserNodeCode.equals(bo.getNodeCode())) {
-                WorkflowUtils.backTask(message, inst.getId(), applyUserNodeCode, TaskStatusEnum.BACK.getStatus(), TaskStatusEnum.BACK.getStatus());
+            String applyNodeCode = WorkflowUtils.applyNodeCode(definitionId);
+            FlowNode node = flowNodes.stream().filter(e -> e.getNodeCode().equals(task.getNodeCode())).findFirst().orElse(null);
+            BigDecimal nodeRatio = node.getNodeRatio();
+            //票签
+            if (nodeRatio.compareTo(BigDecimal.ZERO) > 0 && nodeRatio.compareTo(new BigDecimal(100)) < 0) {
+                List<UserDTO> userList = this.currentTaskAllUser(task.getId());
+                FlowParams flowParams = FlowParams.build();
+                flowParams.nodeCode(bo.getNodeCode());
+                flowParams.message(message);
+                flowParams.skipType(SkipType.PASS.getKey());
+                if (applyNodeCode.equals(bo.getNodeCode())) {
+                    flowParams.flowStatus(TaskStatusEnum.BACK.getStatus()).hisStatus(TaskStatusEnum.BACK.getStatus());
+                } else {
+                    flowParams.flowStatus(TaskStatusEnum.WAITING.getStatus()).hisStatus(TaskStatusEnum.BACK.getStatus());
+                }
+                flowParams.ignore(true);
+                //解决票签没权限问题
+                if (CollUtil.isNotEmpty(userList)) {
+                    flowParams.handler(userList.get(0).getUserId().toString());
+                }
+                taskService.skip(task.getId(), flowParams);
             } else {
-                WorkflowUtils.backTask(message, inst.getId(), bo.getNodeCode(), TaskStatusEnum.WAITING.getStatus(), TaskStatusEnum.BACK.getStatus());
+                //申请人节点
+                if (applyNodeCode.equals(bo.getNodeCode())) {
+                    WorkflowUtils.backTask(message, inst.getId(), applyNodeCode, TaskStatusEnum.BACK.getStatus(), TaskStatusEnum.BACK.getStatus());
+                } else {
+                    WorkflowUtils.backTask(message, inst.getId(), bo.getNodeCode(), TaskStatusEnum.WAITING.getStatus(), TaskStatusEnum.BACK.getStatus());
+                }
             }
             Instance instance = insService.getById(inst.getId());
-            this.setHandler(instance, flowTasks.get(0), null);
+            //判断申请人节点是否有多个，只保留一个
+            List<FlowTask> currentTaskList = selectByInstId(instance.getId());
+            if (CollUtil.isNotEmpty(currentTaskList)) {
+                List<String> nodeCodes = StreamUtils.toList(currentTaskList, FlowTask::getNodeCode);
+                List<FlowNode> nodeCodeList = StreamUtils.filter(flowNodes, flowNode -> nodeCodes.contains(flowNode.getNodeCode()));
+                for (Node n : nodeCodeList) {
+                    List<FlowTask> flowTasks = currentTaskList.stream().filter(e -> e.getNodeCode().equals(n.getNodeCode()) && n.getNodeRatio().compareTo(BigDecimal.ZERO) == 0).collect(Collectors.toList());
+                    if (flowTasks.size() > 1) {
+                        flowTasks.remove(0);
+                        List<Long> taskIds = StreamUtils.toList(flowTasks, Task::getId);
+                        WorkflowUtils.getFlowUserService().deleteByTaskIds(taskIds);
+                        flowTaskMapper.deleteByIds(taskIds);
+                    }
+                }
+            }
+            this.setHandler(instance, task, null);
             //消息通知
             WorkflowUtils.sendMessage(definition.getFlowName(), instance.getId(), messageType, notice);
             return true;
@@ -385,7 +420,9 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      * @param instanceId 实例id
      */
     @Override
-    public List<FlowHisTask> getBackTaskNode(String instanceId) {
+    public List<FlowHisTask> getBackTaskNode(Long instanceId) {
+        //运行中的节点
+        List<FlowTask> flowTaskList = this.selectByInstId(instanceId);
         // 创建查询条件，查询历史任务记录
         LambdaQueryWrapper<FlowHisTask> lw = new LambdaQueryWrapper<>(FlowHisTask.class)
             .select(FlowHisTask::getNodeCode, FlowHisTask::getNodeName)
@@ -397,12 +434,17 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         if (CollUtil.isEmpty(flowHisTasks)) {
             return Collections.emptyList();
         }
-        return new ArrayList<>(flowHisTasks.stream()
+        List<FlowHisTask> flowHisTasksList = new ArrayList<>(flowHisTasks.stream()
             .collect(Collectors.toMap(
                 FlowHisTask::getNodeCode,
                 task -> task,
                 (existing, replacement) -> existing
             )).values());
+        if (CollUtil.isNotEmpty(flowTaskList)) {
+            List<String> runNode = StreamUtils.toList(flowTaskList, FlowTask::getNodeCode);
+            return StreamUtils.filter(flowHisTasksList, e -> !runNode.contains(e.getNodeCode()));
+        }
+        return flowHisTasksList;
     }
 
     /**

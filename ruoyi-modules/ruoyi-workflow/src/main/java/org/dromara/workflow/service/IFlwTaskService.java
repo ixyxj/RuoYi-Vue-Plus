@@ -103,7 +103,7 @@ public interface IFlwTaskService {
      * @param instanceId 实例id
      * @return 结果
      */
-    List<FlowHisTask> getBackTaskNode(String instanceId);
+    List<FlowHisTask> getBackTaskNode(Long instanceId);
 
     /**
      * 终止任务

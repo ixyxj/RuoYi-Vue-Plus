@@ -2,6 +2,7 @@ package org.dromara.workflow.utils;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.dromara.common.core.domain.dto.UserDTO;
@@ -11,15 +12,22 @@ import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mail.utils.MailUtils;
 import org.dromara.common.sse.dto.SseMessageDto;
 import org.dromara.common.sse.utils.SseMessageUtils;
+import org.dromara.warm.flow.core.constant.ExceptionCons;
 import org.dromara.warm.flow.core.dto.FlowParams;
 import org.dromara.warm.flow.core.entity.Instance;
+import org.dromara.warm.flow.core.entity.Node;
 import org.dromara.warm.flow.core.entity.Task;
 import org.dromara.warm.flow.core.entity.User;
+import org.dromara.warm.flow.core.enums.NodeType;
 import org.dromara.warm.flow.core.enums.SkipType;
+import org.dromara.warm.flow.core.service.NodeService;
 import org.dromara.warm.flow.core.service.TaskService;
 import org.dromara.warm.flow.core.service.UserService;
+import org.dromara.warm.flow.core.utils.AssertUtil;
+import org.dromara.warm.flow.orm.entity.FlowNode;
 import org.dromara.warm.flow.orm.entity.FlowTask;
 import org.dromara.warm.flow.orm.entity.FlowUser;
+import org.dromara.warm.flow.orm.mapper.FlowNodeMapper;
 import org.dromara.workflow.common.enums.MessageTypeEnum;
 import org.dromara.workflow.service.IFlwTaskAssigneeService;
 import org.dromara.workflow.service.IFlwTaskService;
@@ -42,6 +50,8 @@ public class WorkflowUtils {
     private static final IFlwTaskService flwTaskService = SpringUtils.getBean(IFlwTaskService.class);
     private static final UserService userService = SpringUtils.getBean(UserService.class);
     private static final TaskService taskService = SpringUtils.getBean(TaskService.class);
+    private static final FlowNodeMapper FLOW_NODE_MAPPER = SpringUtils.getBean(FlowNodeMapper.class);
+    private static final NodeService nodeService = SpringUtils.getBean(NodeService.class);
 
     /**
      * 获取工作流用户service
@@ -153,14 +163,30 @@ public class WorkflowUtils {
             flowParams.skipType(SkipType.PASS.getKey());
             flowParams.flowStatus(flowStatus).hisStatus(flowHisStatus);
             flowParams.ignore(true);
-            //解决会签，或签撤销没权限问题
+            //解决会签没权限问题
             if (CollUtil.isNotEmpty(userList)) {
                 flowParams.handler(userList.get(0).getUserId().toString());
             }
             taskService.skip(task.getId(), flowParams);
         }
-        //解决会签，或签多人审批问题
+        //解决会签多人审批问题
         backTask(message, instanceId, targetNodeCode, flowStatus, flowHisStatus);
+    }
+
+    /**
+     * 申请人节点编码
+     *
+     * @param definitionId 流程定义id
+     * @return 申请人节点编码
+     */
+    public static String applyNodeCode(Long definitionId) {
+        //获取已发布的流程节点
+        List<FlowNode> flowNodes = FLOW_NODE_MAPPER.selectList(new LambdaQueryWrapper<FlowNode>().eq(FlowNode::getDefinitionId, definitionId));
+        AssertUtil.isTrue(CollUtil.isEmpty(flowNodes), ExceptionCons.NOT_PUBLISH_NODE);
+        Node startNode = flowNodes.stream().filter(t -> NodeType.isStart(t.getNodeType())).findFirst().orElse(null);
+        AssertUtil.isNull(startNode, ExceptionCons.LOST_START_NODE);
+        Node nextNode = nodeService.getNextNode(definitionId, startNode.getNodeCode(), null, SkipType.NONE.getKey());
+        return nextNode.getNodeCode();
     }
 
 }

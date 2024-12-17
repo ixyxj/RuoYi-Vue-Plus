@@ -181,7 +181,7 @@ public class FlwTaskController extends BaseController {
      * @param instanceId 实例id
      */
     @GetMapping("/getBackTaskNode/{instanceId}")
-    public R<List<FlowHisTask>> getBackTaskNode(@PathVariable String instanceId) {
+    public R<List<FlowHisTask>> getBackTaskNode(@PathVariable Long instanceId) {
         return R.ok(flwTaskService.getBackTaskNode(instanceId));
     }
 

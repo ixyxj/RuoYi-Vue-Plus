@@ -198,15 +198,10 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
             }
             String message = bo.getMessage();
             BusinessStatusEnum.checkCancelStatus(instance.getFlowStatus());
-            //获取已发布的流程节点
-            List<FlowNode> flowNodes = flowNodeMapper.selectList(new LambdaQueryWrapper<FlowNode>().eq(FlowNode::getDefinitionId, definition.getId()));
-            AssertUtil.isTrue(CollUtil.isEmpty(flowNodes), ExceptionCons.NOT_PUBLISH_NODE);
-            Node startNode = flowNodes.stream().filter(t -> NodeType.isStart(t.getNodeType())).findFirst().orElse(null);
-            AssertUtil.isNull(startNode, ExceptionCons.LOST_START_NODE);
-            Node nextNode = nodeService.getNextNode(definition.getId(), startNode.getNodeCode(), null, SkipType.NONE.getKey());
+            String applyNodeCode = WorkflowUtils.applyNodeCode(definition.getId());
             //撤销
-            WorkflowUtils.backTask(message, instance.getId(), nextNode.getNodeCode(), BusinessStatusEnum.CANCEL.getStatus(), BusinessStatusEnum.CANCEL.getStatus());
-            //判断申请人节点是否有多个，只保留一个
+            WorkflowUtils.backTask(message, instance.getId(), applyNodeCode, BusinessStatusEnum.CANCEL.getStatus(), BusinessStatusEnum.CANCEL.getStatus());
+            //判断或签节点是否有多个，只保留一个
             List<Task> currentTaskList = taskService.list(FlowFactory.newTask().setInstanceId(instance.getId()));
             if (CollUtil.isNotEmpty(currentTaskList)) {
                 if (currentTaskList.size() > 1) {
