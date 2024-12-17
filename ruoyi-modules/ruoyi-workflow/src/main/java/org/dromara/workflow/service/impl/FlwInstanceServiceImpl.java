@@ -107,6 +107,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowName()), "fd.flow_name", flowInstanceBo.getFlowName());
         queryWrapper.like(StringUtils.isNotBlank(flowInstanceBo.getFlowCode()), "fd.flow_code", flowInstanceBo.getFlowCode());
         queryWrapper.eq(StringUtils.isNotBlank(flowInstanceBo.getCategory()), "fd.category", flowInstanceBo.getCategory());
+        queryWrapper.eq(StringUtils.isNotBlank(flowInstanceBo.getBusinessKey()), "fi.business_id", flowInstanceBo.getBusinessKey());
         queryWrapper.in(CollUtil.isNotEmpty(flowInstanceBo.getCreateByIds()), "fi.create_by", flowInstanceBo.getCreateByIds());
         queryWrapper.eq("fi.del_flag", "0");
         queryWrapper.orderByDesc("fi.create_time");
