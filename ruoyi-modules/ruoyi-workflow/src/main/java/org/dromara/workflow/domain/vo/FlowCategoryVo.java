@@ -61,13 +61,6 @@ public class FlowCategoryVo implements Serializable {
     private Long orderNum;
 
     /**
-     * 流程分类状态（0正常 1停用）
-     */
-    @ExcelProperty(value = "流程分类状态", converter = ExcelDictConvert.class)
-    @ExcelDictFormat(readConverterExp = "0=正常,1=停用")
-    private String status;
-
-    /**
      * 创建时间
      */
     @ExcelProperty(value = "创建时间")

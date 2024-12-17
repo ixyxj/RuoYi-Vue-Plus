@@ -96,12 +96,6 @@ public class FlwCategoryController extends BaseController {
             return R.fail("修改流程分类'" + category.getCategoryName() + "'失败，流程分类名称已存在");
         } else if (category.getParentId().equals(categoryId)) {
             return R.fail("修改流程分类'" + category.getCategoryName() + "'失败，上级流程分类不能是自己");
-        } else if (StringUtils.equals(SystemConstants.DISABLE, category.getStatus())) {
-            if (flwCategoryService.selectNormalChildrenCategoryById(categoryId) > 0) {
-                return R.fail("该流程分类包含未停用的子流程分类!");
-            } else if (flwCategoryService.checkCategoryExistDefinition(categoryId)) {
-                return R.fail("该部门下存在已分配流程定义，不能禁用!");
-            }
         }
         return toAjax(flwCategoryService.updateByBo(category));
     }

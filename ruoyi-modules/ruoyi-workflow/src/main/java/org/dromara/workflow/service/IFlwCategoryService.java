@@ -61,14 +61,6 @@ public interface IFlwCategoryService {
     boolean checkCategoryNameUnique(FlowCategoryBo category);
 
     /**
-     * 根据ID查询所有子流程分类数（正常状态）
-     *
-     * @param categoryId 流程分类ID
-     * @return 子流程分类数
-     */
-    long selectNormalChildrenCategoryById(Long categoryId);
-
-    /**
      * 查询流程分类是否存在流程定义
      *
      * @param categoryId 流程分类ID

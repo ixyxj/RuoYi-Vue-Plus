@@ -1,11 +1,9 @@
 package org.dromara.workflow.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.constant.SystemConstants;
@@ -26,7 +24,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -108,8 +105,7 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService {
                     tree.setId(dept.getCategoryId())
                         .setParentId(dept.getParentId())
                         .setName(dept.getCategoryName())
-                        .setWeight(dept.getOrderNum())
-                        .putExtra("disabled", SystemConstants.DISABLE.equals(dept.getStatus())));
+                        .setWeight(dept.getOrderNum()));
                 Tree<Long> tree = StreamUtils.findFirst(trees, it -> it.getId().longValue() == d.getCategoryId());
                 treeList.add(tree);
             }
@@ -151,19 +147,6 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService {
     }
 
     /**
-     * 根据ID查询所有子流程分类数（正常状态）
-     *
-     * @param categoryId 流程分类ID
-     * @return 子流程分类数
-     */
-    @Override
-    public long selectNormalChildrenCategoryById(Long categoryId) {
-        return baseMapper.selectCount(new LambdaQueryWrapper<FlowCategory>()
-            .eq(FlowCategory::getStatus, SystemConstants.NORMAL)
-            .apply(DataBaseHelper.findInSet(categoryId, "ancestors")));
-    }
-
-    /**
      * 查询流程分类是否存在流程定义
      *
      * @param categoryId 流程分类ID
@@ -194,7 +177,6 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService {
         lqw.eq(ObjectUtil.isNotNull(bo.getCategoryId()), FlowCategory::getCategoryId, bo.getCategoryId());
         lqw.eq(ObjectUtil.isNotNull(bo.getParentId()), FlowCategory::getParentId, bo.getParentId());
         lqw.like(StringUtils.isNotBlank(bo.getCategoryName()), FlowCategory::getCategoryName, bo.getCategoryName());
-        lqw.eq(StringUtils.isNotBlank(bo.getStatus()), FlowCategory::getStatus, bo.getStatus());
         lqw.orderByAsc(FlowCategory::getAncestors);
         lqw.orderByAsc(FlowCategory::getParentId);
         lqw.orderByAsc(FlowCategory::getOrderNum);
@@ -217,7 +199,6 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService {
             FlowCategory info = baseMapper.selectById(bo.getParentId());
             category.setAncestors(info.getAncestors() + StringUtils.SEPARATOR + category.getParentId());
         }
-
         return baseMapper.insert(category);
     }
 
@@ -248,13 +229,7 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService {
         } else {
             category.setAncestors(oldCategory.getAncestors());
         }
-        int result = baseMapper.updateById(category);
-        if (SystemConstants.NORMAL.equals(category.getStatus()) && StringUtils.isNotEmpty(category.getAncestors())
-            && !StringUtils.equals(SystemConstants.NORMAL, category.getAncestors())) {
-            // 如果该流程分类是启用状态，则启用该流程分类的所有上级流程分类
-            updateParentCategoryStatusNormal(category);
-        }
-        return result;
+        return baseMapper.updateById(category);
     }
 
     /**
@@ -277,19 +252,6 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService {
         if (CollUtil.isNotEmpty(list)) {
             baseMapper.updateBatchById(list);
         }
-    }
-
-    /**
-     * 修改该流程分类的父级流程分类状态
-     *
-     * @param category 当前流程分类
-     */
-    private void updateParentCategoryStatusNormal(FlowCategory category) {
-        String ancestors = category.getAncestors();
-        Long[] categoryIds = Convert.toLongArray(ancestors);
-        baseMapper.update(null, new LambdaUpdateWrapper<FlowCategory>()
-            .set(FlowCategory::getStatus, SystemConstants.NORMAL)
-            .in(FlowCategory::getCategoryId, Arrays.asList(categoryIds)));
     }
 
     /**

@@ -44,9 +44,4 @@ public class FlowCategoryBo extends BaseEntity {
      */
     private Long orderNum;
 
-    /**
-     * 流程分类状态（0正常 1停用）
-     */
-    private String status;
-
 }
