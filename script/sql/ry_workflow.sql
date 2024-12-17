@@ -169,10 +169,13 @@ create table flow_category
 INSERT INTO flow_category values (100, '000000', 0, '0', 'OA审批', 0, '0', 103, 1, sysdate(), null, null);
 INSERT INTO flow_category values (101, '000000', 100, '0,100', '假勤管理', 0, '0', 103, 1, sysdate(), null, null);
 INSERT INTO flow_category values (102, '000000', 100, '0,100', '人事管理', 0, '0', 103, 1, sysdate(), null, null);
-INSERT INTO flow_category values (103, '000000', 100, '0,100', '财税管理', 0, '0', 103, 1, sysdate(), null, null);
-INSERT INTO flow_category values (104, '000000', 100, '0,100', '资产管理', 0, '0', 103, 1, sysdate(), null, null);
-INSERT INTO flow_category values (105, '000000', 100, '0,100', '工程管理', 0, '0', 103, 1, sysdate(), null, null);
-INSERT INTO flow_category values (106, '000000', 100, '0,100', '商旅管理', 0, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (103, '000000', 101, '0,100,101', '请假', 0, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (104, '000000', 101, '0,100,101', '出差', 1, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (105, '000000', 101, '0,100,101', '加班', 2, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (106, '000000', 101, '0,100,101', '换班', 3, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (107, '000000', 101, '0,100,101', '外出', 3, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (108, '000000', 102, '0,100,102', '转正', 1, '0', 103, 1, sysdate(), null, null);
+INSERT INTO flow_category values (109, '000000', 102, '0,100,102', '离职', 2, '0', 103, 1, sysdate(), null, null);
 
 -- ----------------------------
 -- 请假单信息
