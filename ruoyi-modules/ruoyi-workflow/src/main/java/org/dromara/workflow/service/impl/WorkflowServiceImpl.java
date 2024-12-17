@@ -4,6 +4,7 @@ import cn.hutool.core.util.ObjectUtil;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.service.WorkflowService;
 import org.dromara.common.core.utils.StringUtils;
+import org.dromara.warm.flow.orm.entity.FlowInstance;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.springframework.stereotype.Service;
 
@@ -39,7 +40,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @Override
     public String getBusinessStatusByTaskId(Long taskId) {
-        return ObjectUtil.isNotNull(flwInstanceService.selectByTaskId(taskId)) ? flwInstanceService.selectByTaskId(taskId).getFlowStatus() : StringUtils.EMPTY;
+        FlowInstance flowInstance = flwInstanceService.selectByTaskId(taskId);
+        return ObjectUtil.isNotNull(flowInstance) ? flowInstance.getFlowStatus() : StringUtils.EMPTY;
     }
 
     /**
@@ -49,7 +51,8 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @Override
     public String getBusinessStatus(String businessKey) {
-        return ObjectUtil.isNotNull(flwInstanceService.selectInstByBusinessId(businessKey)) ? flwInstanceService.selectInstByBusinessId(businessKey).getFlowStatus() : StringUtils.EMPTY;
+        FlowInstance flowInstance = flwInstanceService.selectInstByBusinessId(businessKey);
+        return ObjectUtil.isNotNull(flowInstance) ? flowInstance.getFlowStatus() : StringUtils.EMPTY;
     }
 
     /**
@@ -71,6 +74,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      */
     @Override
     public Long getInstanceIdByBusinessKey(String businessKey) {
-        return ObjectUtil.isNotNull(flwInstanceService.selectInstByBusinessId(businessKey)) ? flwInstanceService.selectInstByBusinessId(businessKey).getId() : null;
+        FlowInstance flowInstance = flwInstanceService.selectInstByBusinessId(businessKey);
+        return ObjectUtil.isNotNull(flowInstance) ? flowInstance.getId() : null;
     }
 }
