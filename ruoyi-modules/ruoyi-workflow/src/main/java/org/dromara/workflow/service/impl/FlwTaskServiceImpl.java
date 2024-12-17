@@ -44,7 +44,6 @@ import org.dromara.workflow.handler.WorkflowPermissionHandler;
 import org.dromara.workflow.mapper.FlwTaskMapper;
 import org.dromara.workflow.service.IFlwTaskService;
 import org.dromara.workflow.utils.WorkflowUtils;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -156,7 +155,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             Instance instance = taskService.skip(taskId, flowParams);
             this.setHandler(instance, flowTask, flowCopyList);
             // 消息通知
-            sendMessage(definition.getFlowName(), ins.getId(), messageType, notice);
+            WorkflowUtils.sendMessage(definition.getFlowName(), ins.getId(), messageType, notice);
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -175,7 +174,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         if (ObjectUtil.isNull(instance)) {
             return;
         }
-        //添加抄送人
+        // 添加抄送人
         this.setCopy(task, flowCopyList);
         // 根据流程实例ID查询所有关联的任务
         List<FlowTask> flowTasks = this.selectByInstId(instance.getId());
@@ -204,7 +203,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      * @param task         任务信息
      * @param flowCopyList 抄送人
      */
-    @Async
     public void setCopy(FlowTask task, List<FlowCopy> flowCopyList) {
         if (CollUtil.isEmpty(flowCopyList)) {
             return;
@@ -399,25 +397,13 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
                 }
             }
             this.setHandler(instance, task, null);
-            //消息通知
-            sendMessage(definition.getFlowName(), instance.getId(), messageType, notice);
+            // 消息通知
+            WorkflowUtils.sendMessage(definition.getFlowName(), instance.getId(), messageType, notice);
             return true;
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw new ServiceException(e.getMessage());
         }
-    }
-
-    /**
-     * 发送消息
-     *
-     * @param flowName    流程定义名称
-     * @param messageType 消息类型
-     * @param notice      消息内容，为空则发送默认配置的消息内容
-     */
-    @Async
-    public void sendMessage(String flowName, Long instId, List<String> messageType, String notice) {
-        WorkflowUtils.sendMessage(flowName, instId, messageType, notice);
     }
 
     /**
