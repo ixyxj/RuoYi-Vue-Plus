@@ -4,6 +4,7 @@ import cn.hutool.core.lang.tree.Tree;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.domain.R;
+import org.dromara.common.idempotent.annotation.RepeatSubmit;
 import org.dromara.common.log.annotation.Log;
 import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -86,6 +87,7 @@ public class FlwDefinitionController extends BaseController {
      */
     @Log(title = "流程定义", businessType = BusinessType.INSERT)
     @PostMapping
+    @RepeatSubmit()
     @Transactional(rollbackFor = Exception.class)
     public R<Boolean> add(@RequestBody FlowDefinition flowDefinition) {
         return R.ok(defService.checkAndSave(flowDefinition));
@@ -98,6 +100,7 @@ public class FlwDefinitionController extends BaseController {
      */
     @Log(title = "流程定义", businessType = BusinessType.UPDATE)
     @PutMapping
+    @RepeatSubmit()
     @Transactional(rollbackFor = Exception.class)
     public R<Boolean> edit(@RequestBody FlowDefinition flowDefinition) {
         return R.ok(defService.updateById(flowDefinition));
@@ -110,6 +113,7 @@ public class FlwDefinitionController extends BaseController {
      */
     @Log(title = "流程定义", businessType = BusinessType.INSERT)
     @PutMapping("/publish/{id}")
+    @RepeatSubmit()
     @Transactional(rollbackFor = Exception.class)
     public R<Boolean> publish(@PathVariable Long id) {
         return R.ok(defService.publish(id));
@@ -122,6 +126,7 @@ public class FlwDefinitionController extends BaseController {
      */
     @Log(title = "流程定义", businessType = BusinessType.INSERT)
     @PutMapping("/unPublish/{id}")
+    @RepeatSubmit()
     @Transactional(rollbackFor = Exception.class)
     public R<Boolean> unPublish(@PathVariable Long id) {
         return R.ok(defService.unPublish(id));
@@ -144,6 +149,7 @@ public class FlwDefinitionController extends BaseController {
      */
     @Log(title = "流程定义", businessType = BusinessType.INSERT)
     @PostMapping("/copy/{id}")
+    @RepeatSubmit()
     @Transactional(rollbackFor = Exception.class)
     public R<Boolean> copy(@PathVariable Long id) {
         return R.ok(defService.copyDef(id));
@@ -156,6 +162,7 @@ public class FlwDefinitionController extends BaseController {
      */
     @Log(title = "流程定义", businessType = BusinessType.IMPORT)
     @PostMapping("/importDef")
+    @RepeatSubmit()
     @Transactional(rollbackFor = Exception.class)
     public R<Boolean> importDef(MultipartFile file, String category) {
         return R.ok(flwDefinitionService.importXml(file, category));
@@ -190,6 +197,7 @@ public class FlwDefinitionController extends BaseController {
      * @param id     流程定义id
      * @param active 激活/挂起
      */
+    @RepeatSubmit()
     @PutMapping("/active/{id}")
     public R<Boolean> active(@PathVariable Long id, @RequestParam boolean active) {
         return R.ok(active ? defService.active(id) : defService.unActive(id));

@@ -80,6 +80,7 @@ public class FlwInstanceController extends BaseController {
      *
      * @param bo 参数
      */
+    @RepeatSubmit()
     @PutMapping("/cancelProcessApply")
     public R<Void> cancelProcessApply(@RequestBody FlowCancelBo bo) {
         return toAjax(flwInstanceService.cancelProcessApply(bo));
@@ -91,6 +92,7 @@ public class FlwInstanceController extends BaseController {
      * @param id     流程实例id
      * @param active 激活/挂起
      */
+    @RepeatSubmit()
     @PutMapping("/active/{id}")
     public R<Boolean> active(@PathVariable Long id, @RequestParam boolean active) {
         return R.ok(active ? insService.active(id) : insService.unActive(id));
