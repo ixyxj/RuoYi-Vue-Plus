@@ -192,13 +192,9 @@ public class FlwCategoryServiceImpl implements IFlwCategoryService {
      */
     @Override
     public int insertByBo(FlowCategoryBo bo) {
+        FlowCategory info = baseMapper.selectById(bo.getParentId());
         FlowCategory category = MapstructUtils.convert(bo, FlowCategory.class);
-        if(bo.getParentId().intValue()==0) {
-            category.setAncestors(SystemConstants.NORMAL);
-        }else{
-            FlowCategory info = baseMapper.selectById(bo.getParentId());
-            category.setAncestors(info.getAncestors() + StringUtils.SEPARATOR + category.getParentId());
-        }
+        category.setAncestors(info.getAncestors() + StringUtils.SEPARATOR + category.getParentId());
         return baseMapper.insert(category);
     }
 
