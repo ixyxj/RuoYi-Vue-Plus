@@ -26,7 +26,7 @@ public class StartProcessBo implements Serializable {
      * 业务唯一值id
      */
     @NotBlank(message = "业务ID不能为空", groups = {AddGroup.class})
-    private String businessKey;
+    private String businessId;
 
     /**
      * 流程定义编码

@@ -35,6 +35,6 @@ public class ProcessTaskEvent implements Serializable {
     /**
      * 业务id
      */
-    private String businessKey;
+    private String businessId;
 
 }

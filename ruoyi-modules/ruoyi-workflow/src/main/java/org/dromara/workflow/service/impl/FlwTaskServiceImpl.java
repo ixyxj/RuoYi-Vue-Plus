@@ -85,8 +85,8 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> startWorkFlow(StartProcessBo startProcessBo) {
-        String businessKey = startProcessBo.getBusinessKey();
-        if (StringUtils.isBlank(businessKey)) {
+        String businessId = startProcessBo.getBusinessId();
+        if (StringUtils.isBlank(businessId)) {
             throw new ServiceException("启动工作流时必须包含业务ID");
         }
         // 启动流程实例（提交申请）
@@ -94,9 +94,9 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         // 流程发起人
         variables.put(INITIATOR, LoginHelper.getUserIdStr());
         // 业务id
-        variables.put(BUSINESS_KEY, businessKey);
+        variables.put(BUSINESS_KEY, businessId);
         FlowInstance flowInstance = flowInstanceMapper.selectOne(new LambdaQueryWrapper<>(FlowInstance.class)
-            .eq(FlowInstance::getBusinessId, businessKey));
+            .eq(FlowInstance::getBusinessId, businessId));
         if (ObjectUtil.isNotNull(flowInstance)) {
             BusinessStatusEnum.checkStartStatus(flowInstance.getFlowStatus());
             List<Task> taskList = taskService.list(new FlowTask().setInstanceId(flowInstance.getId()));
@@ -108,7 +108,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         flowParams.flowStatus(BusinessStatusEnum.DRAFT.getStatus());
         Instance instance;
         try {
-            instance = insService.start(businessKey, flowParams);
+            instance = insService.start(businessId, flowParams);
         } catch (Exception e) {
             throw new ServiceException(e.getMessage());
         }

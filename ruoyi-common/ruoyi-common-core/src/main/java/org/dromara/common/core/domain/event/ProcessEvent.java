@@ -25,7 +25,7 @@ public class ProcessEvent implements Serializable {
     /**
      * 业务id
      */
-    private String businessKey;
+    private String businessId;
 
     /**
      * 状态

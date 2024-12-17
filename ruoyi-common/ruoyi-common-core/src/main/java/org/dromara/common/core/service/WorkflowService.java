@@ -28,9 +28,9 @@ public interface WorkflowService {
     /**
      * 获取当前流程状态
      *
-     * @param businessKey 业务id
+     * @param businessId 业务id
      */
-    String getBusinessStatus(String businessKey);
+    String getBusinessStatus(String businessId);
 
     /**
      * 设置流程变量
@@ -43,8 +43,8 @@ public interface WorkflowService {
     /**
      * 按照业务id查询流程实例id
      *
-     * @param businessKey 业务id
+     * @param businessId 业务id
      * @return 结果
      */
-    Long getInstanceIdByBusinessKey(String businessKey);
+    Long getInstanceIdByBusinessKey(String businessId);
 }

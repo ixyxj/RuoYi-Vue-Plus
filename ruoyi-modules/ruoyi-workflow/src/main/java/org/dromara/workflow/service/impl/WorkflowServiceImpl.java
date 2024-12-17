@@ -47,11 +47,11 @@ public class WorkflowServiceImpl implements WorkflowService {
     /**
      * 获取当前流程状态
      *
-     * @param businessKey 业务id
+     * @param businessId 业务id
      */
     @Override
-    public String getBusinessStatus(String businessKey) {
-        FlowInstance flowInstance = flwInstanceService.selectInstByBusinessId(businessKey);
+    public String getBusinessStatus(String businessId) {
+        FlowInstance flowInstance = flwInstanceService.selectInstByBusinessId(businessId);
         return ObjectUtil.isNotNull(flowInstance) ? flowInstance.getFlowStatus() : StringUtils.EMPTY;
     }
 
@@ -69,12 +69,12 @@ public class WorkflowServiceImpl implements WorkflowService {
     /**
      * 按照业务id查询流程实例id
      *
-     * @param businessKey 业务id
+     * @param businessId 业务id
      * @return 结果
      */
     @Override
-    public Long getInstanceIdByBusinessKey(String businessKey) {
-        FlowInstance flowInstance = flwInstanceService.selectInstByBusinessId(businessKey);
+    public Long getInstanceIdByBusinessKey(String businessId) {
+        FlowInstance flowInstance = flwInstanceService.selectInstByBusinessId(businessId);
         return ObjectUtil.isNotNull(flowInstance) ? flowInstance.getId() : null;
     }
 }

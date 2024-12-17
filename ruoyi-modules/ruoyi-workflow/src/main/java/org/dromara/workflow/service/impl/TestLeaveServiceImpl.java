@@ -128,7 +128,7 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
     @EventListener(condition = "#processEvent.flowCode.startsWith('leave')")
     public void processHandler(ProcessEvent processEvent) {
         log.info("当前任务执行了{}", processEvent.toString());
-        TestLeave testLeave = baseMapper.selectById(Long.valueOf(processEvent.getBusinessKey()));
+        TestLeave testLeave = baseMapper.selectById(Long.valueOf(processEvent.getBusinessId()));
         testLeave.setStatus(processEvent.getStatus());
         if (processEvent.isSubmit()) {
             testLeave.setStatus(BusinessStatusEnum.WAITING.getStatus());
@@ -149,7 +149,7 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
     @EventListener(condition = "#processTaskEvent.flowCode=='leave'")
     public void processTaskHandler(ProcessTaskEvent processTaskEvent) {
         log.info("当前任务执行了{}", processTaskEvent.toString());
-        TestLeave testLeave = baseMapper.selectById(Long.valueOf(processTaskEvent.getBusinessKey()));
+        TestLeave testLeave = baseMapper.selectById(Long.valueOf(processTaskEvent.getBusinessId()));
         testLeave.setStatus(BusinessStatusEnum.WAITING.getStatus());
         baseMapper.updateById(testLeave);
     }

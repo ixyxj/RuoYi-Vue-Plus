@@ -35,7 +35,7 @@ public class FlowInstanceBo implements Serializable {
     /**
      * 业务id
      */
-    private String businessKey;
+    private String businessId;
 
     /**
      * 模型分类
