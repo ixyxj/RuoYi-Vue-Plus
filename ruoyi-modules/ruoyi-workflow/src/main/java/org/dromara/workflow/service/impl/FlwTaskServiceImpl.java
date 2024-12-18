@@ -208,7 +208,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             return;
         }
         // 添加抄送人记录
-        FlowHisTask flowHisTask = flowHisTaskMapper.selectOne(new LambdaQueryWrapper<>(FlowHisTask.class).eq(FlowHisTask::getTaskId, task.getId()));
+        FlowHisTask flowHisTask = flowHisTaskMapper.selectList(new LambdaQueryWrapper<>(FlowHisTask.class).eq(FlowHisTask::getTaskId, task.getId())).get(0);
         FlowNode flowNode = new FlowNode();
         flowNode.setNodeCode(flowHisTask.getTargetNodeCode());
         flowNode.setNodeName(flowHisTask.getTargetNodeName());
