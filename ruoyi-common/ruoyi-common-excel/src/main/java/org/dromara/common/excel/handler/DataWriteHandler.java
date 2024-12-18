@@ -10,11 +10,15 @@ import com.alibaba.excel.write.handler.context.CellWriteHandlerContext;
 import com.alibaba.excel.write.metadata.holder.WriteSheetHolder;
 import com.alibaba.excel.write.metadata.style.WriteCellStyle;
 import com.alibaba.excel.write.metadata.style.WriteFont;
-import lombok.Data;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
+import org.dromara.common.core.utils.reflect.ReflectUtils;
+import org.dromara.common.excel.annotation.ExcelNotation;
+import org.dromara.common.excel.annotation.ExcelRequired;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -22,7 +26,6 @@ import java.util.Map;
  *
  * @author guzhouyanyu
  */
-@Data
 public class DataWriteHandler implements SheetWriteHandler, CellWriteHandler {
 
     /**
@@ -36,8 +39,16 @@ public class DataWriteHandler implements SheetWriteHandler, CellWriteHandler {
     private final Map<Integer, Short> headColumnMap;
 
 
+    public DataWriteHandler(Class<?> clazz) {
+        notationMap = getNotationMap(clazz);
+        headColumnMap = getRequiredMap(clazz);
+    }
+
     @Override
     public void afterCellDispose(CellWriteHandlerContext context) {
+        if (CollUtil.isEmpty(notationMap) && CollUtil.isEmpty(headColumnMap)) {
+            return;
+        }
         WriteCellData<?> cellData = context.getFirstCellData();
         WriteCellStyle writeCellStyle = cellData.getOrCreateStyle();
 
@@ -73,5 +84,52 @@ public class DataWriteHandler implements SheetWriteHandler, CellWriteHandler {
                 cell.setCellComment(comment);
             }
         }
+    }
+
+    /**
+     * 获取必填列
+     */
+    private static Map<Integer, Short> getRequiredMap(Class<?> clazz) {
+        Map<Integer, Short> requiredMap = new HashMap<>();
+        Field[] fields = clazz.getDeclaredFields();
+        // 检查 fields 数组是否为空
+        if (fields.length == 0) {
+            return requiredMap;
+        }
+        Field[] filteredFields = ReflectUtils.getFields(clazz, field -> !"serialVersionUID".equals(field.getName()));
+
+        for (int i = 0; i < filteredFields.length; i++) {
+            Field field = filteredFields[i];
+            if (!field.isAnnotationPresent(ExcelRequired.class)) {
+                continue;
+            }
+            ExcelRequired excelRequired = field.getAnnotation(ExcelRequired.class);
+            int columnIndex =  excelRequired.index() == -1 ? i : excelRequired.index();
+            requiredMap.put(columnIndex, excelRequired.fontColor().getIndex());
+        }
+        return requiredMap;
+    }
+
+    /**
+     * 获取批注
+     */
+    private static Map<Integer, String> getNotationMap(Class<?> clazz) {
+        Map<Integer, String> notationMap = new HashMap<>();
+        Field[] fields = clazz.getDeclaredFields();
+        // 检查 fields 数组是否为空
+        if (fields.length == 0) {
+            return notationMap;
+        }
+        Field[] filteredFields = ReflectUtils.getFields(clazz, field -> !"serialVersionUID".equals(field.getName()));
+        for (int i = 0; i < filteredFields.length; i++) {
+            Field field = filteredFields[i];
+            if (!field.isAnnotationPresent(ExcelNotation.class)) {
+                continue;
+            }
+            ExcelNotation excelNotation = field.getAnnotation(ExcelNotation.class);
+            int columnIndex =  excelNotation.index() == -1 ? i : excelNotation.index();
+            notationMap.put(columnIndex, excelNotation.value());
+        }
+        return notationMap;
     }
 }

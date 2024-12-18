@@ -16,9 +16,6 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.core.utils.file.FileUtils;
-import org.dromara.common.core.utils.reflect.ReflectUtils;
-import org.dromara.common.excel.annotation.ExcelNotation;
-import org.dromara.common.excel.annotation.ExcelRequired;
 import org.dromara.common.excel.convert.ExcelBigNumberConvert;
 import org.dromara.common.excel.core.*;
 import org.dromara.common.excel.handler.DataWriteHandler;
@@ -27,9 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -197,6 +192,7 @@ public class ExcelUtil {
             .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
             // 大数值自动转换 防止失真
             .registerConverter(new ExcelBigNumberConvert())
+            .registerWriteHandler(new DataWriteHandler(list.get(0).getClass()))
             .sheet(sheetName);
         if (merge) {
             // 合并处理器
@@ -217,7 +213,7 @@ public class ExcelUtil {
      * @param data         模板需要的数据
      * @param response     响应体
      */
-    public static void exportTemplate(List<Object> data, String filename, String templatePath, HttpServletResponse response) {
+    public static <T> void exportTemplate(List<T> data, String filename, String templatePath, HttpServletResponse response) {
         try {
             resetResponse(filename, response);
             ServletOutputStream os = response.getOutputStream();
@@ -236,20 +232,21 @@ public class ExcelUtil {
      * @param data         模板需要的数据
      * @param os           输出流
      */
-    public static void exportTemplate(List<Object> data, String templatePath, OutputStream os) {
+    public static <T> void exportTemplate(List<T> data, String templatePath, OutputStream os) {
+        if (CollUtil.isEmpty(data)) {
+            throw new IllegalArgumentException("数据为空");
+        }
         ClassPathResource templateResource = new ClassPathResource(templatePath);
         ExcelWriter excelWriter = EasyExcel.write(os)
             .withTemplate(templateResource.getStream())
             .autoCloseStream(false)
             // 大数值自动转换 防止失真
             .registerConverter(new ExcelBigNumberConvert())
+            .registerWriteHandler(new DataWriteHandler(data.get(0).getClass()))
             .build();
         WriteSheet writeSheet = EasyExcel.writerSheet().build();
-        if (CollUtil.isEmpty(data)) {
-            throw new IllegalArgumentException("数据为空");
-        }
         // 单表多数据导出 模板格式为 {.属性}
-        for (Object d : data) {
+        for (T d : data) {
             excelWriter.fill(d, writeSheet);
         }
         excelWriter.finish();
@@ -305,6 +302,9 @@ public class ExcelUtil {
      * @param os           输出流
      */
     public static void exportTemplateMultiList(Map<String, Object> data, String templatePath, OutputStream os) {
+        if (CollUtil.isEmpty(data)) {
+            throw new IllegalArgumentException("数据为空");
+        }
         ClassPathResource templateResource = new ClassPathResource(templatePath);
         ExcelWriter excelWriter = EasyExcel.write(os)
             .withTemplate(templateResource.getStream())
@@ -313,9 +313,6 @@ public class ExcelUtil {
             .registerConverter(new ExcelBigNumberConvert())
             .build();
         WriteSheet writeSheet = EasyExcel.writerSheet().build();
-        if (CollUtil.isEmpty(data)) {
-            throw new IllegalArgumentException("数据为空");
-        }
         for (Map.Entry<String, Object> map : data.entrySet()) {
             // 设置列表后续还有数据
             FillConfig fillConfig = FillConfig.builder().forceNewRow(Boolean.TRUE).build();
@@ -339,6 +336,9 @@ public class ExcelUtil {
      * @param os           输出流
      */
     public static void exportTemplateMultiSheet(List<Map<String, Object>> data, String templatePath, OutputStream os) {
+        if (CollUtil.isEmpty(data)) {
+            throw new IllegalArgumentException("数据为空");
+        }
         ClassPathResource templateResource = new ClassPathResource(templatePath);
         ExcelWriter excelWriter = EasyExcel.write(os)
             .withTemplate(templateResource.getStream())
@@ -346,9 +346,6 @@ public class ExcelUtil {
             // 大数值自动转换 防止失真
             .registerConverter(new ExcelBigNumberConvert())
             .build();
-        if (CollUtil.isEmpty(data)) {
-            throw new IllegalArgumentException("数据为空");
-        }
         for (int i = 0; i < data.size(); i++) {
             WriteSheet writeSheet = EasyExcel.writerSheet(i).build();
             for (Map.Entry<String, Object> map : data.get(i).entrySet()) {
@@ -439,91 +436,4 @@ public class ExcelUtil {
         return IdUtil.fastSimpleUUID() + "_" + filename + ".xlsx";
     }
 
-    /**
-     * 获取必填列Map
-     *
-     * @param clazz 类class
-     * @return java.util.Map<java.lang.Integer, java.lang.Short>
-     * @author SunLingDa
-     * @date 2022/11/3 13:23
-     */
-    private static Map<Integer, Short> getRequiredMap(Class<?> clazz) {
-        Map<Integer, Short> requiredMap = new HashMap<>();
-        Field[] fields = clazz.getDeclaredFields();
-        // 检查 fields 数组是否为空
-        if (fields.length == 0) {
-            return requiredMap;
-        }
-        Field[] filteredFields = ReflectUtils.getFields(clazz, field -> !"serialVersionUID".equals(field.getName()));
-
-        for (int i = 0; i < filteredFields.length; i++) {
-            Field field = filteredFields[i];
-            if (!field.isAnnotationPresent(ExcelRequired.class)) {
-                continue;
-            }
-            ExcelRequired excelRequired = field.getAnnotation(ExcelRequired.class);
-            int columnIndex =  excelRequired.index() == -1 ? i : excelRequired.index();
-            requiredMap.put(columnIndex, excelRequired.fontColor().getIndex());
-        }
-        return requiredMap;
-    }
-
-    /**
-     * 获取批注Map
-     *
-     * @param clazz 类class
-     * @return java.util.Map<java.lang.Integer, java.lang.String>
-     * @author SunLingDa
-     * @date 2022/11/3 13:24
-     */
-    private static Map<Integer, String> getNotationMap(Class<?> clazz) {
-        Map<Integer, String> notationMap = new HashMap<>();
-        Field[] fields = clazz.getDeclaredFields();
-        // 检查 fields 数组是否为空
-        if (fields.length == 0) {
-            return notationMap;
-        }
-        Field[] filteredFields = ReflectUtils.getFields(clazz, field -> !"serialVersionUID".equals(field.getName()));
-        for (int i = 0; i < filteredFields.length; i++) {
-            Field field = filteredFields[i];
-            if (!field.isAnnotationPresent(ExcelNotation.class)) {
-                continue;
-            }
-            ExcelNotation excelNotation = field.getAnnotation(ExcelNotation.class);
-            int columnIndex =  excelNotation.index() == -1 ? i : excelNotation.index();
-            notationMap.put(columnIndex, excelNotation.value());
-        }
-        return notationMap;
-    }
-    public static <T> void exportExcelRequire(List<T> list, String sheetName, Class<T> clazz,HttpServletResponse response) {
-        exportExcelTemplate(list,sheetName,clazz,response);
-    }
-    /**
-     * 导出excel模板
-     *
-     * @param list      导出数据集合
-     * @param sheetName 工作表的名称
-     * @param clazz     实体类
-     * @param response  响应体
-     */
-    public static <T> void exportExcelTemplate(List<T> list, String sheetName, Class<T> clazz, HttpServletResponse response) {
-        try {
-            Map<Integer, Short> requiredMap = getRequiredMap(clazz);
-            Map<Integer, String> notationMap = getNotationMap(clazz);
-            resetResponse(sheetName, response);
-            ServletOutputStream os = response.getOutputStream();
-            DataWriteHandler writeHandler = new DataWriteHandler(notationMap, requiredMap);
-            ExcelWriterSheetBuilder builder = EasyExcel.write(os, clazz)
-                .autoCloseStream(false)
-                // 自动适配
-                .registerWriteHandler(new LongestMatchColumnWidthStyleStrategy())
-                .registerWriteHandler(writeHandler)
-                // 大数值自动转换 防止失真
-                .registerConverter(new ExcelBigNumberConvert())
-                .sheet(sheetName);
-            builder.doWrite(list);
-        } catch (IOException e) {
-            throw new RuntimeException("导出Excel异常");
-        }
-    }
 }
