@@ -96,6 +96,26 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     }
 
     /**
+     * 根据业务id查询流程实例详细信息
+     *
+     * @param businessId 业务id
+     * @return 结果
+     */
+    @Override
+    public FlowInstanceVo queryByBusinessId(Long businessId) {
+        FlowInstance instance = this.selectInstByBusinessId(String.valueOf(businessId));
+        FlowInstanceVo instanceVo = BeanUtil.toBean(instance, FlowInstanceVo.class);
+        Definition definition = defService.getById(instanceVo.getDefinitionId());
+        instanceVo.setFlowName(definition.getFlowName());
+        instanceVo.setFlowCode(definition.getFlowCode());
+        instanceVo.setVersion(definition.getVersion());
+        instanceVo.setFormCustom(definition.getFormCustom());
+        instanceVo.setFormPath(definition.getFormPath());
+        instanceVo.setCategory(definition.getCategory());
+        return instanceVo;
+    }
+
+    /**
      * 通用查询条件
      *
      * @param flowInstanceBo 查询条件

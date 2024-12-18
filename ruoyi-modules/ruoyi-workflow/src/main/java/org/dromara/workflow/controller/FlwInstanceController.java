@@ -56,6 +56,16 @@ public class FlwInstanceController extends BaseController {
     }
 
     /**
+     * 根据业务id查询流程实例详细信息
+     *
+     * @param businessId 业务id
+     */
+    @GetMapping("/getInfo/{businessId}")
+    public R<FlowInstanceVo> getInfo(@PathVariable Long businessId) {
+        return R.ok(flwInstanceService.queryByBusinessId(businessId));
+    }
+
+    /**
      * 按照业务id删除流程实例
      *
      * @param businessIds 业务id

@@ -21,8 +21,8 @@ public interface IFlwInstanceService {
     /**
      * 分页查询正在运行的流程实例
      *
-     * @param flowInstanceBo  参数
-     * @param pageQuery 分页
+     * @param flowInstanceBo 流程实例
+     * @param pageQuery      分页
      * @return 结果
      */
     TableDataInfo<FlowInstanceVo> selectRunningInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery);
@@ -30,11 +30,19 @@ public interface IFlwInstanceService {
     /**
      * 分页查询已结束的流程实例
      *
-     * @param flowInstanceBo  参数
-     * @param pageQuery 分页
+     * @param flowInstanceBo 流程实例
+     * @param pageQuery      分页
      * @return 结果
      */
     TableDataInfo<FlowInstanceVo> selectFinishInstanceList(FlowInstanceBo flowInstanceBo, PageQuery pageQuery);
+
+    /**
+     * 根据业务id查询流程实例详细信息
+     *
+     * @param businessId 业务id
+     * @return 结果
+     */
+    FlowInstanceVo queryByBusinessId(Long businessId);
 
     /**
      * 按照业务id查询流程实例
@@ -87,7 +95,7 @@ public interface IFlwInstanceService {
     /**
      * 获取当前登陆人发起的流程实例
      *
-     * @param instanceBo 参数
+     * @param instanceBo 流程实例
      * @param pageQuery  分页
      * @return 结果
      */
@@ -144,7 +152,7 @@ public interface IFlwInstanceService {
     /**
      * 作废流程
      *
-     * @param bo 参数
+     * @param bo 流程实例
      * @return 结果
      */
     boolean processInvalid(FlowInvalidBo bo);

@@ -25,7 +25,6 @@
                fd.flow_name,
                fd.flow_code,
                fd.version,
-               fi.create_by,
                fd.form_custom,
                fd.form_path,
                fd.category

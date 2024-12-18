@@ -117,12 +117,10 @@ public class FlwCategoryController extends BaseController {
         return toAjax(flwCategoryService.deleteWithValidById(categoryId));
     }
 
-
-
     /**
      * 获取流程分类树列表
      *
-     * @param categoryBo 参数
+     * @param categoryBo 流程分类
      */
     @GetMapping("/categoryTree")
     public R<List<Tree<Long>>> categoryTree(FlowCategoryBo categoryBo) {
