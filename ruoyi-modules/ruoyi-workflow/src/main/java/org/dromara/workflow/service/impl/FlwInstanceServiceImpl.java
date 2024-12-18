@@ -178,6 +178,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     public boolean deleteByBusinessIds(List<Long> businessIds) {
         List<FlowInstance> flowInstances = flowInstanceMapper.selectList(new LambdaQueryWrapper<FlowInstance>().in(FlowInstance::getBusinessId, businessIds));
         if (CollUtil.isEmpty(flowInstances)) {
+            log.warn("未找到对应的流程实例信息，无法执行删除操作。");
             return false;
         }
         return insService.remove(StreamUtils.toList(flowInstances, FlowInstance::getId));
@@ -193,8 +194,8 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     public boolean deleteByInstanceIds(List<Long> instanceIds) {
         // 获取实例信息
         List<Instance> instances = insService.getByIds(instanceIds);
-        if (instances.isEmpty()) {
-            log.warn("未找到对应的实例信息，无法执行删除操作。");
+        if (CollUtil.isNotEmpty(instances)) {
+            log.warn("未找到对应的流程实例信息，无法执行删除操作。");
             return false;
         }
         // 获取定义信息
@@ -206,7 +207,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
         instances.forEach(instance -> {
             Definition definition = definitionMap.get(instance.getDefinitionId());
             if (ObjectUtil.isNull(definition)) {
-                log.warn("实例 ID: {} 对应的定义信息未找到，跳过删除事件触发。", instance.getId());
+                log.warn("实例 ID: {} 对应的流程定义信息未找到，跳过删除事件触发。", instance.getId());
                 return;
             }
             flowProcessEventHandler.processDeleteHandler(definition.getFlowCode(), instance.getBusinessId());
