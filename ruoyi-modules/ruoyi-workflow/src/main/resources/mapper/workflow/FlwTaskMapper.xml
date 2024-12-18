@@ -22,14 +22,14 @@
                 t.tenant_id,
                 i.business_id,
                 i.flow_status,
+                i.create_by,
                 d.flow_name,
                 d.flow_code,
                 d.form_custom,
                 COALESCE(t.form_path, d.form_path) as form_path,
                 d.version,
                 uu.processed_by,
-                uu.type,
-                i.create_by
+                uu.type
             from flow_task as t
                     left join flow_user uu on uu.associated = t.id
                     left join flow_definition d on t.definition_id = d.id
@@ -57,19 +57,19 @@
                 a.definition_id,
                 a.instance_id,
                 a.flow_status flow_task_status,
-                b.flow_status,
                 a.message,
                 a.ext,
                 a.create_time,
                 a.update_time,
                 a.tenant_id,
-                b.business_id,
                 a.form_custom,
                 a.form_path,
+                b.flow_status,
+                b.business_id,
+                b.create_by,
                 c.flow_name,
                 c.flow_code,
-                c.version,
-                b.create_by
+                c.version
             from flow_his_task a
                     left join flow_instance b on a.instance_id = b.id
                     left join flow_definition c on a.definition_id = c.id
@@ -84,13 +84,13 @@
     <select id="getTaskCopyByPage" resultMap="FlowTaskResult">
        select * from (
             select
-                b.id ,
-                a.processed_by,
+                b.id,
+                c.business_id,
                 c.flow_status,
+                a.processed_by,
+                a.create_time,
                 b.form_custom,
                 b.form_path,
-                c.business_id,
-                a.create_time,
                 b.node_name,
                 b.node_code,
                 d.flow_name,
