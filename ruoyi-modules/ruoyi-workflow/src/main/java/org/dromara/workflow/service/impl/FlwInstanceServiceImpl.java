@@ -194,7 +194,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     public boolean deleteByInstanceIds(List<Long> instanceIds) {
         // 获取实例信息
         List<Instance> instances = insService.getByIds(instanceIds);
-        if (CollUtil.isNotEmpty(instances)) {
+        if (CollUtil.isEmpty(instances)) {
             log.warn("未找到对应的流程实例信息，无法执行删除操作。");
             return false;
         }
