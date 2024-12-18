@@ -6,12 +6,12 @@ import java.io.Serial;
 import java.io.Serializable;
 
 /**
- * 总体流程监听
+ * 删除流程监听
  *
- * @author may
+ * @author AprilWind
  */
 @Data
-public class ProcessEvent implements Serializable {
+public class ProcessDeleteEvent implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -25,15 +25,5 @@ public class ProcessEvent implements Serializable {
      * 业务id
      */
     private String businessId;
-
-    /**
-     * 状态
-     */
-    private String status;
-
-    /**
-     * 当为true时为申请人节点办理
-     */
-    private boolean submit;
 
 }

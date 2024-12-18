@@ -25,12 +25,12 @@ public class WorkflowServiceImpl implements WorkflowService {
     /**
      * 删除流程实例
      *
-     * @param businessKeys 业务id
+     * @param businessIds 业务id
      * @return 结果
      */
     @Override
-    public boolean deleteInstance(List<Long> businessKeys) {
-        return flwInstanceService.deleteByBusinessIds(businessKeys);
+    public boolean deleteInstance(List<Long> businessIds) {
+        return flwInstanceService.deleteByBusinessIds(businessIds);
     }
 
     /**
@@ -73,7 +73,7 @@ public class WorkflowServiceImpl implements WorkflowService {
      * @return 结果
      */
     @Override
-    public Long getInstanceIdByBusinessKey(String businessId) {
+    public Long getInstanceIdByBusinessId(String businessId) {
         FlowInstance flowInstance = flwInstanceService.selectInstByBusinessId(businessId);
         return ObjectUtil.isNotNull(flowInstance) ? flowInstance.getId() : null;
     }

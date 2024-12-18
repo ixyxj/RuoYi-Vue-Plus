@@ -10,7 +10,6 @@ import java.io.Serializable;
  *
  * @author may
  */
-
 @Data
 public class ProcessTaskEvent implements Serializable {
 

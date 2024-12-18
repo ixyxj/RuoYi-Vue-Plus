@@ -13,10 +13,10 @@ public interface WorkflowService {
     /**
      * 运行中的实例 删除程实例，删除历史记录，删除业务与流程关联信息
      *
-     * @param businessKeys 业务id
+     * @param businessIds 业务id
      * @return 结果
      */
-    boolean deleteInstance(List<Long> businessKeys);
+    boolean deleteInstance(List<Long> businessIds);
 
     /**
      * 获取当前流程状态
@@ -46,5 +46,5 @@ public interface WorkflowService {
      * @param businessId 业务id
      * @return 结果
      */
-    Long getInstanceIdByBusinessKey(String businessId);
+    Long getInstanceIdByBusinessId(String businessId);
 }

@@ -1,17 +1,18 @@
 package org.dromara.workflow.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.domain.event.ProcessDeleteEvent;
 import org.dromara.common.core.domain.event.ProcessEvent;
 import org.dromara.common.core.domain.event.ProcessTaskEvent;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.service.WorkflowService;
 import org.dromara.common.core.utils.MapstructUtils;
-import org.dromara.common.core.utils.StreamUtils;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.common.mybatis.core.domain.BaseEntity;
 import org.dromara.common.mybatis.core.page.PageQuery;
@@ -25,7 +26,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -112,9 +112,8 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Boolean deleteWithValidByIds(Collection<Long> ids) {
-        List<Long> idList = StreamUtils.toList(ids, Long::valueOf);
-        workflowService.deleteInstance(idList);
+    public Boolean deleteWithValidByIds(List<Long> ids) {
+        workflowService.deleteInstance(ids);
         return baseMapper.deleteByIds(ids) > 0;
     }
 
@@ -146,11 +145,27 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
      *
      * @param processTaskEvent 参数
      */
-    @EventListener(condition = "#processTaskEvent.flowCode=='leave'")
+    @EventListener(condition = "#processTaskEvent.flowCode.startsWith('leave')")
     public void processTaskHandler(ProcessTaskEvent processTaskEvent) {
         log.info("当前任务执行了{}", processTaskEvent.toString());
         TestLeave testLeave = baseMapper.selectById(Long.valueOf(processTaskEvent.getBusinessId()));
         testLeave.setStatus(BusinessStatusEnum.WAITING.getStatus());
         baseMapper.updateById(testLeave);
     }
+
+    /**
+     * 监听删除流程事件，仅处理特定流程定义编码为 "leave1" 的事件
+     *
+     * @param processDeleteEvent 参数
+     */
+    @EventListener(condition = "#processDeleteEvent.flowCode.startsWith('leave')")
+    public void processDeleteHandler(ProcessDeleteEvent processDeleteEvent) {
+        log.info("监听删除流程事件，当前任务执行了{}", processDeleteEvent.toString());
+        TestLeave testLeave = baseMapper.selectById(Long.valueOf(processDeleteEvent.getBusinessId()));
+        if (ObjectUtil.isNull(testLeave)) {
+            return;
+        }
+        baseMapper.deleteById(testLeave.getId());
+    }
+
 }

@@ -1,6 +1,7 @@
 package org.dromara.workflow.handler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.domain.event.ProcessDeleteEvent;
 import org.dromara.common.core.domain.event.ProcessEvent;
 import org.dromara.common.core.domain.event.ProcessTaskEvent;
 import org.dromara.common.core.utils.SpringUtils;
@@ -51,4 +52,19 @@ public class FlowProcessEventHandler {
         processTaskEvent.setBusinessId(businessId);
         SpringUtils.context().publishEvent(processTaskEvent);
     }
+
+    /**
+     * 删除流程监听
+     *
+     * @param flowCode    流程定义编码
+     * @param businessId  业务ID
+     */
+    public void processDeleteHandler(String flowCode, String businessId) {
+        log.info("发布删除流程事件, 流程编码: {}, 业务ID: {}", flowCode, businessId);
+        ProcessDeleteEvent processDeleteEvent = new ProcessDeleteEvent();
+        processDeleteEvent.setFlowCode(flowCode);
+        processDeleteEvent.setBusinessId(businessId);
+        SpringUtils.context().publishEvent(processDeleteEvent);
+    }
+
 }

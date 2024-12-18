@@ -2,6 +2,7 @@ package org.dromara.workflow.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -39,6 +40,7 @@ import org.dromara.workflow.domain.bo.FlowInvalidBo;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
 import org.dromara.workflow.domain.vo.VariableVo;
+import org.dromara.workflow.handler.FlowProcessEventHandler;
 import org.dromara.workflow.mapper.FlwInstanceMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.dromara.workflow.service.IFlwTaskService;
@@ -48,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 流程实例 服务层实现
@@ -66,6 +69,7 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     private final FlwInstanceMapper flwInstanceMapper;
     private final TaskService taskService;
     private final IFlwTaskService flwTaskService;
+    private final FlowProcessEventHandler flowProcessEventHandler;
 
     /**
      * 分页查询正在运行的流程实例
@@ -187,6 +191,28 @@ public class FlwInstanceServiceImpl implements IFlwInstanceService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public boolean deleteByInstanceIds(List<Long> instanceIds) {
+        // 获取实例信息
+        List<Instance> instances = insService.getByIds(instanceIds);
+        if (instances.isEmpty()) {
+            log.warn("未找到对应的实例信息，无法执行删除操作。");
+            return false;
+        }
+        // 获取定义信息
+        Map<Long, Definition> definitionMap = defService.getByIds(
+            StreamUtils.toList(instances, Instance::getDefinitionId)
+        ).stream().collect(Collectors.toMap(Definition::getId, definition -> definition));
+
+        // 逐一触发删除事件
+        instances.forEach(instance -> {
+            Definition definition = definitionMap.get(instance.getDefinitionId());
+            if (ObjectUtil.isNull(definition)) {
+                log.warn("实例 ID: {} 对应的定义信息未找到，跳过删除事件触发。", instance.getId());
+                return;
+            }
+            flowProcessEventHandler.processDeleteHandler(definition.getFlowCode(), instance.getBusinessId());
+        });
+
+        // 删除实例
         return insService.remove(instanceIds);
     }
 
