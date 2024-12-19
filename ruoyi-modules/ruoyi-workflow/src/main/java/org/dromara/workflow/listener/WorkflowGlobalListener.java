@@ -14,7 +14,6 @@ import org.dromara.warm.flow.orm.entity.FlowTask;
 import org.dromara.workflow.handler.FlowProcessEventHandler;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.dromara.workflow.service.IFlwTaskService;
-import org.dromara.workflow.utils.WorkflowUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -80,7 +79,7 @@ public class WorkflowGlobalListener implements GlobalListener {
         Definition definition = listenerVariable.getDefinition();
         String businessId = instance.getBusinessId();
         String flowStatus = instance.getFlowStatus();
-        // 判断流程状态（发布：驳回，作废，终止，作废，已完成事件）
+        // 判断流程状态（发布：撤销，退回，作废，终止，已完成事件）
         String status = determineFlowStatus(instance, flowStatus);
         if (StringUtils.isNotBlank(status)) {
             flowProcessEventHandler.processHandler(definition.getFlowCode(), businessId, status, false);

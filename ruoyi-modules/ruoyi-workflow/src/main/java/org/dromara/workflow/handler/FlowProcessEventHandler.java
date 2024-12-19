@@ -18,12 +18,12 @@ import org.springframework.stereotype.Component;
 public class FlowProcessEventHandler {
 
     /**
-     * 总体流程监听(例如: 提交 退回 撤销 终止 作废等)
+     * 总体流程监听(例如: 草稿，撤销，退回，作废，终止，已完成等)
      *
-     * @param flowCode    流程定义编码
+     * @param flowCode   流程定义编码
      * @param businessId 业务id
-     * @param status      状态
-     * @param submit      当为true时为申请人节点办理
+     * @param status     状态
+     * @param submit     当为true时为申请人节点办理
      */
     public void processHandler(String flowCode, String businessId, String status, boolean submit) {
         log.info("发布流程事件，流程状态: {}, 流程编码: {}, 业务ID: {}", status, flowCode, businessId);
@@ -38,9 +38,9 @@ public class FlowProcessEventHandler {
     /**
      * 执行办理任务监听
      *
-     * @param flowCode    流程定义编码
-     * @param nodeCode    审批节点编码
-     * @param taskId      任务id
+     * @param flowCode   流程定义编码
+     * @param nodeCode   审批节点编码
+     * @param taskId     任务id
      * @param businessId 业务id
      */
     public void processTaskHandler(String flowCode, String nodeCode, Long taskId, String businessId) {

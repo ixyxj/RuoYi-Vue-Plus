@@ -118,7 +118,7 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
     }
 
     /**
-     * 总体流程监听(例如: 提交 退回 撤销 终止 作废等)
+     * 总体流程监听(例如: 草稿，撤销，退回，作废，终止，已完成等)
      * 正常使用只需#processEvent.flowCode=='leave1'
      * 示例为了方便则使用startsWith匹配了全部示例key
      *
@@ -154,7 +154,9 @@ public class TestLeaveServiceImpl implements ITestLeaveService {
     }
 
     /**
-     * 监听删除流程事件，仅处理特定流程定义编码为 "leave1" 的事件
+     * 监听删除流程事件
+     * 正常使用只需#processDeleteEvent.flowCode=='leave1'
+     * 示例为了方便则使用startsWith匹配了全部示例key
      *
      * @param processDeleteEvent 参数
      */
