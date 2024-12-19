@@ -26,6 +26,7 @@
                 d.flow_name,
                 d.flow_code,
                 d.form_custom,
+                d.category,
                 COALESCE(t.form_path, d.form_path) as form_path,
                 d.version,
                 uu.processed_by,
@@ -69,6 +70,7 @@
                 b.create_by,
                 c.flow_name,
                 c.flow_code,
+                c.category,
                 c.version
             from flow_his_task a
                     left join flow_instance b on a.instance_id = b.id
@@ -95,6 +97,7 @@
                 b.node_code,
                 d.flow_name,
                 d.flow_code,
+                d.category,
                 d.version
             from flow_user a
                 left join flow_his_task b on a.associated = b.task_id

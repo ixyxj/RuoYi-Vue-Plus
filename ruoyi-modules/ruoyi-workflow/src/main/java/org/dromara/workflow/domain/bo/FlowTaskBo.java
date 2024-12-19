@@ -33,6 +33,11 @@ public class FlowTaskBo implements Serializable {
     private String flowCode;
 
     /**
+     * 流程分类id
+     */
+    private String category;
+
+    /**
      * 流程实例id
      */
     private Long instanceId;
@@ -41,8 +46,10 @@ public class FlowTaskBo implements Serializable {
      * 权限列表
      */
     private List<String> permissionList;
+
     /**
      * 申请人Ids
      */
     private List<Long> createByIds;
+
 }

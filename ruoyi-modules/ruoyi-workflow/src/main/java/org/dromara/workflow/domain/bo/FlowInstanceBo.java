@@ -38,7 +38,7 @@ public class FlowInstanceBo implements Serializable {
     private String businessId;
 
     /**
-     * 模型分类
+     * 流程分类id
      */
     private String category;
 
@@ -47,9 +47,9 @@ public class FlowInstanceBo implements Serializable {
      */
     private String nodeName;
 
-
     /**
      * 申请人Ids
      */
     private List<Long> createByIds;
+
 }

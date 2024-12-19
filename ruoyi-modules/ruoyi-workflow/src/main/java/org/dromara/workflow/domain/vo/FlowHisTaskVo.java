@@ -160,6 +160,16 @@ public class FlowHisTaskVo implements Serializable {
      */
     private String createBy;
 
+    /**
+     * 申请人
+     */
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "createBy")
+    private String createByName;
+
+    /**
+     * 流程分类id
+     */
+    private String category;
 
     /**
      * 审批表单是否自定义（Y是 N否）
@@ -223,9 +233,5 @@ public class FlowHisTaskVo implements Serializable {
         this.cooperateType = cooperateType;
         this.cooperateTypeName = CooperateType.getValueByKey(cooperateType);
     }
-    /**
-     * 申请人
-     */
-    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "createBy")
-    private String createByName;
+
 }

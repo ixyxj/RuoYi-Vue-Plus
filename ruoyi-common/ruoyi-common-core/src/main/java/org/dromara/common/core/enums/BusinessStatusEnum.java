@@ -6,7 +6,6 @@ import lombok.Getter;
 import org.dromara.common.core.exception.ServiceException;
 import org.dromara.common.core.utils.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -116,30 +115,23 @@ public enum BusinessStatusEnum {
     }
 
     /**
-     * 运行中的实例状态
+     * 获取运行中的实例状态列表
      *
-     * @return 运行中的实例状态
+     * @return 包含运行中实例状态的不可变列表
+     * （包含 DRAFT、WAITING、BACK 和 CANCEL 状态）
      */
     public static List<String> runningStatus() {
-        List<String> list = new ArrayList<>();
-        list.add(BusinessStatusEnum.DRAFT.getStatus());
-        list.add(BusinessStatusEnum.WAITING.getStatus());
-        list.add(BusinessStatusEnum.BACK.getStatus());
-        list.add(BusinessStatusEnum.CANCEL.getStatus());
-        return list;
+        return Arrays.asList(DRAFT.status, WAITING.status, BACK.status, CANCEL.status);
     }
 
     /**
-     * 结束实例状态
+     * 获取结束实例的状态列表
      *
-     * @return 结束实例状态
+     * @return 包含结束实例状态的不可变列表
+     * （包含 FINISH、INVALID 和 TERMINATION 状态）
      */
     public static List<String> finishStatus() {
-        List<String> list = new ArrayList<>();
-        list.add(BusinessStatusEnum.FINISH.getStatus());
-        list.add(BusinessStatusEnum.INVALID.getStatus());
-        list.add(BusinessStatusEnum.TERMINATION.getStatus());
-        return list;
+        return Arrays.asList(FINISH.status, INVALID.status, TERMINATION.status);
     }
 
     /**

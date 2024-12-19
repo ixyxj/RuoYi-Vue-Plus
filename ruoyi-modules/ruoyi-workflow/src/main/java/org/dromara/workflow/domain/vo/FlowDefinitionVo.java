@@ -52,7 +52,7 @@ public class FlowDefinitionVo implements Serializable {
     private String flowName;
 
     /**
-     * 流程类别
+     * 流程分类id
      */
     private String category;
 
