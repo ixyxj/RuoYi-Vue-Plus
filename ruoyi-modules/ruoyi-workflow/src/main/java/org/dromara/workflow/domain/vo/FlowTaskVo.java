@@ -4,6 +4,7 @@ import lombok.Data;
 import org.dromara.common.translation.annotation.Translation;
 import org.dromara.common.translation.constant.TransConstant;
 import org.dromara.warm.flow.core.entity.User;
+import org.dromara.workflow.common.constant.FlowConstant;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -118,6 +119,12 @@ public class FlowTaskVo implements Serializable {
      * 流程分类id
      */
     private String category;
+
+    /**
+     * 流程分类名称
+     */
+    @Translation(type = FlowConstant.CATEGORY_ID_TO_NAME, mapper = "category")
+    private String categoryName;
 
     /**
      * 流程状态

@@ -3,6 +3,7 @@ package org.dromara.workflow.domain.vo;
 import lombok.Data;
 import org.dromara.common.translation.annotation.Translation;
 import org.dromara.common.translation.constant.TransConstant;
+import org.dromara.workflow.common.constant.FlowConstant;
 
 import java.util.Date;
 
@@ -125,4 +126,11 @@ public class FlowInstanceVo {
      * 流程分类id
      */
     private String category;
+
+    /**
+     * 流程分类名称
+     */
+    @Translation(type = FlowConstant.CATEGORY_ID_TO_NAME, mapper = "category")
+    private String categoryName;
+
 }
