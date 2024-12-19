@@ -252,10 +252,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
         queryWrapper.in("t.processed_by", SpringUtils.getBean(WorkflowPermissionHandler.class).permissions());
         queryWrapper.in("t.flow_status", BusinessStatusEnum.WAITING.getStatus());
-        if (StringUtils.isNotBlank(flowTaskBo.getCategory())) {
-            List<Long> categoryIds = flwCategoryMapper.selectCategoryIdsByParentId(Convert.toLong(flowTaskBo.getCategory()));
-            queryWrapper.in("d.category", categoryIds);
-        }
         Page<FlowTaskVo> page = this.getFlowTaskVoPage(pageQuery, queryWrapper);
         return TableDataInfo.build(page);
     }
@@ -272,10 +268,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
         queryWrapper.in("t.approver", LoginHelper.getUserIdStr());
         queryWrapper.orderByDesc("t.create_time").orderByDesc("t.update_time");
-        if (StringUtils.isNotBlank(flowTaskBo.getCategory())) {
-            List<Long> categoryIds = flwCategoryMapper.selectCategoryIdsByParentId(Convert.toLong(flowTaskBo.getCategory()));
-            queryWrapper.in("c.category", categoryIds);
-        }
         Page<FlowHisTaskVo> page = flwTaskMapper.getListFinishTask(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
     }
@@ -290,10 +282,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     public TableDataInfo<FlowTaskVo> pageByAllTaskWait(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         queryWrapper.eq("t.node_type", NodeType.BETWEEN.getKey());
-        if (StringUtils.isNotBlank(flowTaskBo.getCategory())) {
-            List<Long> categoryIds = flwCategoryMapper.selectCategoryIdsByParentId(Convert.toLong(flowTaskBo.getCategory()));
-            queryWrapper.in("d.category", categoryIds);
-        }
         Page<FlowTaskVo> page = getFlowTaskVoPage(pageQuery, queryWrapper);
         return TableDataInfo.build(page);
     }
@@ -324,10 +312,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     @Override
     public TableDataInfo<FlowHisTaskVo> pageByAllTaskFinish(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
-        if (StringUtils.isNotBlank(flowTaskBo.getCategory())) {
-            List<Long> categoryIds = flwCategoryMapper.selectCategoryIdsByParentId(Convert.toLong(flowTaskBo.getCategory()));
-            queryWrapper.in("c.category", categoryIds);
-        }
         Page<FlowHisTaskVo> page = flwTaskMapper.getListFinishTask(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
     }
@@ -342,10 +326,6 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
     public TableDataInfo<FlowTaskVo> pageByTaskCopy(FlowTaskBo flowTaskBo, PageQuery pageQuery) {
         QueryWrapper<FlowTaskBo> queryWrapper = buildQueryWrapper(flowTaskBo);
         queryWrapper.in("t.processed_by", LoginHelper.getUserIdStr());
-        if (StringUtils.isNotBlank(flowTaskBo.getCategory())) {
-            List<Long> categoryIds = flwCategoryMapper.selectCategoryIdsByParentId(Convert.toLong(flowTaskBo.getCategory()));
-            queryWrapper.in("d.category", categoryIds);
-        }
         Page<FlowTaskVo> page = flwTaskMapper.getTaskCopyByPage(pageQuery.build(), queryWrapper);
         return TableDataInfo.build(page);
     }
@@ -356,6 +336,10 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         wrapper.like(StringUtils.isNotBlank(flowTaskBo.getFlowName()), "t.flow_name", flowTaskBo.getFlowName());
         wrapper.like(StringUtils.isNotBlank(flowTaskBo.getFlowCode()), "t.flow_code", flowTaskBo.getFlowCode());
         wrapper.in(CollUtil.isNotEmpty(flowTaskBo.getCreateByIds()), "t.create_by", flowTaskBo.getCreateByIds());
+        if (StringUtils.isNotBlank(flowTaskBo.getCategory())) {
+            List<Long> categoryIds = flwCategoryMapper.selectCategoryIdsByParentId(Convert.toLong(flowTaskBo.getCategory()));
+            wrapper.in("t.category", categoryIds);
+        }
         wrapper.orderByDesc("t.create_time");
         return wrapper;
     }
