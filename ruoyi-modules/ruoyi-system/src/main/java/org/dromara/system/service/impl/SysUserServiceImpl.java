@@ -24,10 +24,7 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.system.domain.*;
 import org.dromara.system.domain.bo.SysUserBo;
-import org.dromara.system.domain.vo.SysPostVo;
-import org.dromara.system.domain.vo.SysRoleVo;
-import org.dromara.system.domain.vo.SysUserExportVo;
-import org.dromara.system.domain.vo.SysUserVo;
+import org.dromara.system.domain.vo.*;
 import org.dromara.system.mapper.*;
 import org.dromara.system.service.ISysUserService;
 import org.springframework.cache.annotation.CacheEvict;
@@ -549,6 +546,29 @@ public class SysUserServiceImpl implements ISysUserService, UserService {
         lqw.eq(SysUser::getDeptId, deptId);
         lqw.orderByAsc(SysUser::getUserId);
         return baseMapper.selectVoList(lqw);
+    }
+
+    /**
+     * 获取用户简略信息，包括部门信息
+     *
+     * @param userId 用户ID
+     * @return 用户简略信息
+     */
+    @Override
+    public UserBriefInfoVo getUserBriefInfo(Long userId) {
+        SysUserVo user = baseMapper.selectVoById(userId);
+        if (ObjectUtil.isNull(user)) {
+            return null;
+        }
+        UserBriefInfoVo briefInfo = BeanUtil.toBean(user, UserBriefInfoVo.class);
+        SysDept dept = deptMapper.selectById(briefInfo.getDeptId());
+        if (ObjectUtil.isNotNull(dept)) {
+            briefInfo.setDeptId(dept.getDeptId());
+            briefInfo.setDeptName(dept.getDeptName());
+            briefInfo.setAncestors(dept.getAncestors());
+            briefInfo.setLeader(dept.getLeader());
+        }
+        return briefInfo;
     }
 
     /**

@@ -297,4 +297,15 @@ public class SysUserController extends BaseController {
         return R.ok(userService.selectUserListByDept(deptId));
     }
 
+    /**
+     * 获取用户简略信息，包括部门信息
+     *
+     * @param userId 用户ID
+     * @return 用户简略信息
+     */
+    @GetMapping("/getUserBriefInfo/{userId}")
+    public R<UserBriefInfoVo> getUserBriefInfo(@PathVariable(value = "userId") Long userId) {
+        return R.ok(userService.getUserBriefInfo(userId));
+    }
+
 }

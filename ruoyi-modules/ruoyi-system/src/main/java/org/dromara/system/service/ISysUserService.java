@@ -5,6 +5,7 @@ import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.system.domain.bo.SysUserBo;
 import org.dromara.system.domain.vo.SysUserExportVo;
 import org.dromara.system.domain.vo.SysUserVo;
+import org.dromara.system.domain.vo.UserBriefInfoVo;
 
 import java.util.List;
 
@@ -219,4 +220,13 @@ public interface ISysUserService {
      * @return 结果
      */
     List<SysUserVo> selectUserListByDept(Long deptId);
+
+    /**
+     * 获取用户简略信息，包括部门信息
+     *
+     * @param userId 用户ID
+     * @return 用户简略信息
+     */
+    UserBriefInfoVo getUserBriefInfo(Long userId);
+
 }
