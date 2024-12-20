@@ -133,6 +133,11 @@ public class FlowTaskVo implements Serializable {
     private String flowStatusName;
 
     /**
+     * 办理人类型
+     */
+    private String type;
+
+    /**
      * 办理人ids
      */
     private String assigneeIds;
@@ -148,9 +153,10 @@ public class FlowTaskVo implements Serializable {
     private String processedBy;
 
     /**
-     * 办理人类型
+     * 抄送人名称
      */
-    private String type;
+    @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "processedBy")
+    private String processedByName;
 
     /**
      * 流程签署比例值 大于0为票签，会签
@@ -158,12 +164,12 @@ public class FlowTaskVo implements Serializable {
     private BigDecimal nodeRatio;
 
     /**
-     * 创建者
+     * 申请人id
      */
     private String createBy;
 
     /**
-     * 申请人
+     * 申请人名称
      */
     @Translation(type = TransConstant.USER_ID_TO_NICKNAME, mapper = "createBy")
     private String createByName;
