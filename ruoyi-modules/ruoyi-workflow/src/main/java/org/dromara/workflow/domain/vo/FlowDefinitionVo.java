@@ -42,12 +42,12 @@ public class FlowDefinitionVo implements Serializable {
     private String delFlag;
 
     /**
-     * 流程编码
+     * 流程定义编码
      */
     private String flowCode;
 
     /**
-     * 流程名称
+     * 流程定义名称
      */
     private String flowName;
 
@@ -68,7 +68,7 @@ public class FlowDefinitionVo implements Serializable {
     private String version;
 
     /**
-     * 是否发布（0未开启 1开启）
+     * 是否发布（0未发布 1已发布 9失效）
      */
     private Integer isPublish;
 

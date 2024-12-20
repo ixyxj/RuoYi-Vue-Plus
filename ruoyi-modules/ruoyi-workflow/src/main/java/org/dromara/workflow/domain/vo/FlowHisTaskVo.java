@@ -51,7 +51,7 @@ public class FlowHisTaskVo implements Serializable {
     private Long definitionId;
 
     /**
-     * 流程名称
+     * 流程定义名称
      */
     private String flowName;
 

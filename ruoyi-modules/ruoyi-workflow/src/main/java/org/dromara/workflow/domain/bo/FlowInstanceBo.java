@@ -18,12 +18,12 @@ public class FlowInstanceBo implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 流程名称
+     * 流程定义名称
      */
     private String flowName;
 
     /**
-     * 流程编码
+     * 流程定义编码
      */
     private String flowCode;
 

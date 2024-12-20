@@ -43,12 +43,12 @@ public class FlowInstanceVo {
     private Long definitionId;
 
     /**
-     * 流程名称
+     * 流程定义名称
      */
     private String flowName;
 
     /**
-     * 流程名称
+     * 流程定义编码
      */
     private String flowCode;
 
@@ -93,11 +93,6 @@ public class FlowInstanceVo {
     private Integer activityStatus;
 
     /**
-     * 创建者
-     */
-    private String createBy;
-
-    /**
      * 审批表单是否自定义（Y是 N否）
      */
     private String formCustom;
@@ -116,6 +111,12 @@ public class FlowInstanceVo {
      * 流程定义版本
      */
     private String version;
+
+    /**
+     * 创建者
+     */
+    private String createBy;
+
     /**
      * 申请人
      */
