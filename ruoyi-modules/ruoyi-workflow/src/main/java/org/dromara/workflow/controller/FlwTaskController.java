@@ -10,6 +10,7 @@ import org.dromara.common.log.enums.BusinessType;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
+import org.dromara.warm.flow.core.entity.Node;
 import org.dromara.warm.flow.orm.entity.FlowHisTask;
 import org.dromara.workflow.domain.bo.*;
 import org.dromara.workflow.domain.vo.FlowHisTaskVo;
@@ -176,13 +177,14 @@ public class FlwTaskController extends BaseController {
     }
 
     /**
-     * 获取可驳回节点
+     * 获取可驳回的前置节点
      *
-     * @param instanceId 实例id
+     * @param definitionId 流程定义id
+     * @param nowNodeCode  当前节点
      */
-    @GetMapping("/getBackTaskNode/{instanceId}")
-    public R<List<FlowHisTask>> getBackTaskNode(@PathVariable Long instanceId) {
-        return R.ok(flwTaskService.getBackTaskNode(instanceId));
+    @GetMapping("/getBackTaskNode/{definitionId}/{nowNodeCode}")
+    public R<List<Node>> getBackTaskNode(@PathVariable Long definitionId, @PathVariable String nowNodeCode) {
+        return R.ok(flwTaskService.getBackTaskNode(definitionId, nowNodeCode));
     }
 
     /**

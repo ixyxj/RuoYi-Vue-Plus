@@ -3,6 +3,7 @@ package org.dromara.workflow.service;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
+import org.dromara.warm.flow.core.entity.Node;
 import org.dromara.warm.flow.orm.entity.FlowHisTask;
 import org.dromara.warm.flow.orm.entity.FlowTask;
 import org.dromara.workflow.domain.bo.*;
@@ -98,12 +99,13 @@ public interface IFlwTaskService {
     boolean backProcess(BackProcessBo bo);
 
     /**
-     * 获取可驳回节点
+     * 获取可驳回的前置节点
      *
-     * @param instanceId 实例id
+     * @param definitionId 流程定义id
+     * @param nowNodeCode  当前节点
      * @return 结果
      */
-    List<FlowHisTask> getBackTaskNode(Long instanceId);
+    List<Node> getBackTaskNode(Long definitionId, String nowNodeCode);
 
     /**
      * 终止任务

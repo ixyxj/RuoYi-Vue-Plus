@@ -418,32 +418,29 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      *
      * @param instanceId 实例id
      */
+    /**
+     * 获取可驳回的前置节点
+     *
+     * @param definitionId 流程定义id
+     * @param nowNodeCode  当前节点
+     */
     @Override
-    public List<FlowHisTask> getBackTaskNode(Long instanceId) {
-        //运行中的节点
-        List<FlowTask> flowTaskList = this.selectByInstId(instanceId);
-        // 创建查询条件，查询历史任务记录
-        LambdaQueryWrapper<FlowHisTask> lw = new LambdaQueryWrapper<>(FlowHisTask.class)
-            .select(FlowHisTask::getNodeCode, FlowHisTask::getNodeName)
-            .eq(FlowHisTask::getInstanceId, instanceId)
-            .eq(FlowHisTask::getNodeType, NodeType.BETWEEN.getKey())
-            .orderByDesc(FlowHisTask::getCreateTime);
-
-        List<FlowHisTask> flowHisTasks = flowHisTaskMapper.selectList(lw);
-        if (CollUtil.isEmpty(flowHisTasks)) {
-            return Collections.emptyList();
+    public List<Node> getBackTaskNode(Long definitionId, String nowNodeCode) {
+        List<Node> nodeCodes = nodeService.getByNodeCodes(Collections.singletonList(nowNodeCode), definitionId);
+        if (!CollUtil.isNotEmpty(nodeCodes)) {
+            return nodeCodes;
         }
-        List<FlowHisTask> flowHisTasksList = new ArrayList<>(flowHisTasks.stream()
-            .collect(Collectors.toMap(
-                FlowHisTask::getNodeCode,
-                task -> task,
-                (existing, replacement) -> existing
-            )).values());
-        if (CollUtil.isNotEmpty(flowTaskList)) {
-            List<String> runNode = StreamUtils.toList(flowTaskList, FlowTask::getNodeCode);
-            return StreamUtils.filter(flowHisTasksList, e -> !runNode.contains(e.getNodeCode()));
+        //判断是否配置了固定驳回节点
+        Node node = nodeCodes.get(0);
+        if (StringUtils.isNotBlank(node.getAnyNodeSkip())) {
+            return nodeService.getByNodeCodes(Collections.singletonList(node.getAnyNodeSkip()), definitionId);
         }
-        return flowHisTasksList;
+        //获取可驳回的前置节点
+        List<Node> nodes = nodeService.previousNodeList(definitionId, nowNodeCode);
+        if (CollUtil.isNotEmpty(nodes)) {
+            return StreamUtils.filter(nodes, e -> NodeType.BETWEEN.getKey().equals(e.getNodeType()));
+        }
+        return nodes;
     }
 
     /**
