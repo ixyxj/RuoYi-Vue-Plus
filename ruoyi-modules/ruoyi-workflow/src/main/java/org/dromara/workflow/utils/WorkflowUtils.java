@@ -14,7 +14,6 @@ import org.dromara.common.sse.dto.SseMessageDto;
 import org.dromara.common.sse.utils.SseMessageUtils;
 import org.dromara.warm.flow.core.constant.ExceptionCons;
 import org.dromara.warm.flow.core.dto.FlowParams;
-import org.dromara.warm.flow.core.entity.Instance;
 import org.dromara.warm.flow.core.entity.Node;
 import org.dromara.warm.flow.core.entity.Task;
 import org.dromara.warm.flow.core.entity.User;
@@ -47,19 +46,19 @@ import java.util.Set;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class WorkflowUtils {
 
-    private static final IFlwTaskAssigneeService taskAssigneeService = SpringUtils.getBean(IFlwTaskAssigneeService.class);
-    private static final IFlwTaskService flwTaskService = SpringUtils.getBean(IFlwTaskService.class);
-    private static final UserService userService = SpringUtils.getBean(UserService.class);
-    private static final TaskService taskService = SpringUtils.getBean(TaskService.class);
+    private static final IFlwTaskAssigneeService TASK_ASSIGNEE_SERVICE = SpringUtils.getBean(IFlwTaskAssigneeService.class);
+    private static final IFlwTaskService FLW_TASK_SERVICE = SpringUtils.getBean(IFlwTaskService.class);
     private static final FlowNodeMapper FLOW_NODE_MAPPER = SpringUtils.getBean(FlowNodeMapper.class);
-    private static final NodeService nodeService = SpringUtils.getBean(NodeService.class);
     private static final FlowTaskMapper FLOW_TASK_MAPPER = SpringUtils.getBean(FlowTaskMapper.class);
+    private static final UserService USER_SERVICE = SpringUtils.getBean(UserService.class);
+    private static final TaskService TASK_SERVICE = SpringUtils.getBean(TaskService.class);
+    private static final NodeService NODE_SERVICE = SpringUtils.getBean(NodeService.class);
 
     /**
      * 获取工作流用户service
      */
     public static UserService getFlowUserService() {
-        return userService;
+        return USER_SERVICE;
     }
 
     /**
@@ -77,7 +76,7 @@ public class WorkflowUtils {
         Set<String> processedBySet = new HashSet<>();
         for (User user : userList) {
             // 根据 processedBy 前缀判断处理人类型，分别获取用户列表
-            List<UserDTO> users = taskAssigneeService.fetchUsersByStorageId(user.getProcessedBy());
+            List<UserDTO> users = TASK_ASSIGNEE_SERVICE.fetchUsersByStorageId(user.getProcessedBy());
             // 转换为 FlowUser 并添加到结果集合
             if (CollUtil.isNotEmpty(users)) {
                 users.forEach(dto -> {
@@ -105,12 +104,12 @@ public class WorkflowUtils {
      */
     public static void sendMessage(String flowName, Long instId, List<String> messageType, String message) {
         List<UserDTO> userList = new ArrayList<>();
-        List<FlowTask> list = flwTaskService.selectByInstId(instId);
+        List<FlowTask> list = FLW_TASK_SERVICE.selectByInstId(instId);
         if (StringUtils.isBlank(message)) {
             message = "有新的【" + flowName + "】单据已经提交至您，请您及时处理。";
         }
         for (Task task : list) {
-            List<UserDTO> users = flwTaskService.currentTaskAllUser(task.getId());
+            List<UserDTO> users = FLW_TASK_SERVICE.currentTaskAllUser(task.getId());
             if (CollUtil.isNotEmpty(users)) {
                 userList.addAll(users);
             }
@@ -150,7 +149,7 @@ public class WorkflowUtils {
      * @param flowHisStatus  节点操作状态
      */
     public static void backTask(String message, Long instanceId, String targetNodeCode, String flowStatus, String flowHisStatus) {
-        List<FlowTask> list = flwTaskService.selectByInstId(instanceId);
+        List<FlowTask> list = FLW_TASK_SERVICE.selectByInstId(instanceId);
         if (CollUtil.isNotEmpty(list)) {
             List<FlowTask> tasks = StreamUtils.filter(list, e -> e.getNodeCode().equals(targetNodeCode));
             if (list.size() == tasks.size()) {
@@ -158,7 +157,7 @@ public class WorkflowUtils {
             }
         }
         for (FlowTask task : list) {
-            List<UserDTO> userList = flwTaskService.currentTaskAllUser(task.getId());
+            List<UserDTO> userList = FLW_TASK_SERVICE.currentTaskAllUser(task.getId());
             FlowParams flowParams = FlowParams.build();
             flowParams.nodeCode(targetNodeCode);
             flowParams.message(message);
@@ -169,7 +168,7 @@ public class WorkflowUtils {
             if (CollUtil.isNotEmpty(userList)) {
                 flowParams.handler(userList.get(0).getUserId().toString());
             }
-            taskService.skip(task.getId(), flowParams);
+            TASK_SERVICE.skip(task.getId(), flowParams);
         }
         //解决会签多人审批问题
         backTask(message, instanceId, targetNodeCode, flowStatus, flowHisStatus);
@@ -187,7 +186,7 @@ public class WorkflowUtils {
         AssertUtil.isTrue(CollUtil.isEmpty(flowNodes), ExceptionCons.NOT_PUBLISH_NODE);
         Node startNode = flowNodes.stream().filter(t -> NodeType.isStart(t.getNodeType())).findFirst().orElse(null);
         AssertUtil.isNull(startNode, ExceptionCons.LOST_START_NODE);
-        Node nextNode = nodeService.getNextNode(definitionId, startNode.getNodeCode(), null, SkipType.NONE.getKey());
+        Node nextNode = NODE_SERVICE.getNextNode(definitionId, startNode.getNodeCode(), null, SkipType.NONE.getKey());
         return nextNode.getNodeCode();
     }
 
@@ -200,7 +199,7 @@ public class WorkflowUtils {
         if (CollUtil.isEmpty(taskIds)) {
             return;
         }
-        userService.deleteByTaskIds(taskIds);
+        USER_SERVICE.deleteByTaskIds(taskIds);
         FLOW_TASK_MAPPER.deleteByIds(taskIds);
     }
 }
