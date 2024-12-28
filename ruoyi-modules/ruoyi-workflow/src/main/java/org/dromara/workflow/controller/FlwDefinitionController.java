@@ -40,6 +40,7 @@ public class FlwDefinitionController extends BaseController {
      * 查询流程定义列表
      *
      * @param flowDefinition 参数
+     * @param pageQuery      分页
      */
     @GetMapping("/list")
     public TableDataInfo<FlowDefinitionVo> list(FlowDefinition flowDefinition, PageQuery pageQuery) {
@@ -47,13 +48,14 @@ public class FlwDefinitionController extends BaseController {
     }
 
     /**
-     * 获取历史流程定义列表
+     * 查询未发布的流程定义列表
      *
-     * @param flowCode 参数
+     * @param flowDefinition 参数
+     * @param pageQuery      分页
      */
-    @GetMapping("/getHisListByKey/{flowCode}")
-    public R<List<FlowDefinitionVo>> getHisListByKey(@PathVariable String flowCode) {
-        return R.ok(flwDefinitionService.getHisListByKey(flowCode));
+    @GetMapping("/unPublishList")
+    public TableDataInfo<FlowDefinitionVo> unPublishList(FlowDefinition flowDefinition, PageQuery pageQuery) {
+        return flwDefinitionService.unPublishList(flowDefinition, pageQuery);
     }
 
     /**

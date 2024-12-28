@@ -27,12 +27,13 @@ public interface IFlwDefinitionService {
     TableDataInfo<FlowDefinitionVo> queryList(FlowDefinition flowDefinition, PageQuery pageQuery);
 
     /**
-     * 获取历史流程定义列表
+     * 查询未发布的流程定义列表
      *
-     * @param flowCode 参数
-     * @return 返回列表
+     * @param flowDefinition 参数
+     * @param pageQuery      分页
+     * @return 返回分页列表
      */
-    List<FlowDefinitionVo> getHisListByKey(String flowCode);
+    TableDataInfo<FlowDefinitionVo> unPublishList(FlowDefinition flowDefinition, PageQuery pageQuery);
 
     /**
      * 导出流程定义

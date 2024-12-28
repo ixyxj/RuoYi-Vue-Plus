@@ -20,6 +20,7 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.warm.flow.core.dto.FlowCombine;
 import org.dromara.warm.flow.core.entity.Definition;
+import org.dromara.warm.flow.core.enums.PublishStatus;
 import org.dromara.warm.flow.core.service.DefService;
 import org.dromara.warm.flow.orm.entity.FlowDefinition;
 import org.dromara.warm.flow.orm.entity.FlowHisTask;
@@ -34,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -56,6 +58,7 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
      * 查询流程定义列表
      *
      * @param flowDefinition 流程定义信息
+     * @param pageQuery      分页
      * @return 返回分页列表
      */
     @Override
@@ -73,16 +76,29 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
     }
 
     /**
-     * 获取历史流程定义列表
+     * 查询未发布的流程定义列表
      *
-     * @param flowCode 参数
+     * @param flowDefinition 流程定义信息
+     * @param pageQuery      分页
+     * @return 返回分页列表
      */
     @Override
-    public List<FlowDefinitionVo> getHisListByKey(String flowCode) {
-        LambdaQueryWrapper<FlowDefinition> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(FlowDefinition::getFlowCode, flowCode);
-        List<FlowDefinition> list = flowDefinitionMapper.selectList(wrapper);
-        return BeanUtil.copyToList(list, FlowDefinitionVo.class);
+    public TableDataInfo<FlowDefinitionVo> unPublishList(FlowDefinition flowDefinition, PageQuery pageQuery) {
+        LambdaQueryWrapper<FlowDefinition> wrapper = Wrappers.lambdaQuery();
+        wrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowCode()), FlowDefinition::getFlowCode, flowDefinition.getFlowCode());
+        wrapper.like(StringUtils.isNotBlank(flowDefinition.getFlowName()), FlowDefinition::getFlowName, flowDefinition.getFlowName());
+        wrapper.in(FlowDefinition::getIsPublish, Arrays.asList(PublishStatus.UNPUBLISHED.getKey(), PublishStatus.EXPIRED.getKey()));
+        if (StringUtils.isNotBlank(flowDefinition.getCategory())) {
+            List<Long> categoryIds = flwCategoryMapper.selectCategoryIdsByParentId(Convert.toLong(flowDefinition.getCategory()));
+            wrapper.in(FlowDefinition::getCategory, categoryIds);
+        }
+        wrapper.orderByDesc(FlowDefinition::getCreateTime);
+        Page<FlowDefinition> page = flowDefinitionMapper.selectPage(pageQuery.build(), wrapper);
+        List<FlowDefinition> records = page.getRecords();
+        TableDataInfo<FlowDefinitionVo> build = TableDataInfo.build();
+        build.setRows(BeanUtil.copyToList(records, FlowDefinitionVo.class));
+        build.setTotal(page.getTotal());
+        return build;
     }
 
     /**
