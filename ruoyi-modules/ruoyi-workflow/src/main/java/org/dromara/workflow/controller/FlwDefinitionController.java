@@ -150,7 +150,6 @@ public class FlwDefinitionController extends BaseController {
      */
     @Log(title = "流程定义", businessType = BusinessType.IMPORT)
     @PostMapping("/importDef")
-    @RepeatSubmit()
     @Transactional(rollbackFor = Exception.class)
     public R<Boolean> importDef(MultipartFile file, String category) {
         return R.ok(flwDefinitionService.importXml(file, category));
