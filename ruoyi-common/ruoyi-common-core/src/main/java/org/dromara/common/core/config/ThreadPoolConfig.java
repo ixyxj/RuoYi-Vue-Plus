@@ -4,6 +4,7 @@ import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.concurrent.BasicThreadFactory;
 import org.dromara.common.core.config.properties.ThreadPoolProperties;
+import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.Threads;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,6 +14,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -49,8 +51,23 @@ public class ThreadPoolConfig {
      */
     @Bean(name = "scheduledExecutorService")
     protected ScheduledExecutorService scheduledExecutorService() {
+        ThreadFactory threadFactory;
+        // 是否启用虚拟线程
+        if (SpringUtils.isVirtual()) {
+            // 虚拟线程必须为守护线程，即 daemon 只能是 true
+            threadFactory = new BasicThreadFactory.Builder()
+                .daemon(true)
+                .namingPattern("virtual-schedule-pool-%d")
+                .wrappedFactory(Thread.ofVirtual().factory())
+                .build();
+        } else {
+            threadFactory = new BasicThreadFactory.Builder()
+                .daemon(true)
+                .namingPattern("schedule-pool-%d")
+                .build();
+        }
         ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(core,
-            new BasicThreadFactory.Builder().namingPattern("schedule-pool-%d").daemon(true).build(),
+            threadFactory,
             new ThreadPoolExecutor.CallerRunsPolicy()) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
