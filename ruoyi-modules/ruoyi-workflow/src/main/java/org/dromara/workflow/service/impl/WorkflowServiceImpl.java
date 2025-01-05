@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.common.core.service.WorkflowService;
 import org.dromara.common.core.utils.StringUtils;
 import org.dromara.warm.flow.orm.entity.FlowInstance;
+import org.dromara.workflow.service.IFlwDefinitionService;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ import java.util.Map;
 public class WorkflowServiceImpl implements WorkflowService {
 
     private final IFlwInstanceService flwInstanceService;
+    private final IFlwDefinitionService flwDefinitionService;
 
     /**
      * 删除流程实例
@@ -76,5 +78,15 @@ public class WorkflowServiceImpl implements WorkflowService {
     public Long getInstanceIdByBusinessId(String businessId) {
         FlowInstance flowInstance = flwInstanceService.selectInstByBusinessId(businessId);
         return ObjectUtil.isNotNull(flowInstance) ? flowInstance.getId() : null;
+    }
+
+    /**
+     * 新增租户流程定义
+     *
+     * @param tenantId 租户id
+     */
+    @Override
+    public void syncDef(String tenantId) {
+        flwDefinitionService.syncDef(tenantId);
     }
 }

@@ -35,6 +35,15 @@ public interface IFlwDefinitionService {
      */
     TableDataInfo<FlowDefinitionVo> unPublishList(FlowDefinition flowDefinition, PageQuery pageQuery);
 
+
+    /**
+     * 发布流程定义
+     *
+     * @param id 流程定义id
+     * @return 结果
+     */
+    boolean publish(Long id);
+
     /**
      * 导出流程定义
      *
@@ -47,7 +56,8 @@ public interface IFlwDefinitionService {
     /**
      * 导入流程定义
      *
-     * @param file 文件
+     * @param file     文件
+     * @param category 分类
      * @return 结果
      */
     boolean importXml(MultipartFile file, String category);
@@ -59,4 +69,11 @@ public interface IFlwDefinitionService {
      * @return 结果
      */
     boolean removeDef(List<Long> ids);
+
+    /**
+     * 新增租户流程定义
+     *
+     * @param tenantId 租户id
+     */
+    void syncDef(String tenantId);
 }

@@ -19,22 +19,31 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.warm.flow.core.dto.FlowCombine;
 import org.dromara.warm.flow.core.entity.Definition;
+import org.dromara.warm.flow.core.enums.NodeType;
 import org.dromara.warm.flow.core.enums.PublishStatus;
 import org.dromara.warm.flow.core.service.DefService;
 import org.dromara.warm.flow.orm.entity.FlowDefinition;
 import org.dromara.warm.flow.orm.entity.FlowHisTask;
+import org.dromara.warm.flow.orm.entity.FlowNode;
+import org.dromara.warm.flow.orm.entity.FlowSkip;
 import org.dromara.warm.flow.orm.mapper.FlowDefinitionMapper;
 import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
+import org.dromara.warm.flow.orm.mapper.FlowNodeMapper;
+import org.dromara.warm.flow.orm.mapper.FlowSkipMapper;
 import org.dromara.workflow.domain.vo.FlowDefinitionVo;
 import org.dromara.workflow.mapper.FlwCategoryMapper;
 import org.dromara.workflow.service.IFlwDefinitionService;
+import org.dromara.workflow.utils.WorkflowUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.dromara.common.core.constant.TenantConstants.DEFAULT_TENANT_ID;
 
 /**
  * 流程定义 服务层实现
@@ -50,6 +59,9 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
     private final FlowDefinitionMapper flowDefinitionMapper;
     private final FlowHisTaskMapper flowHisTaskMapper;
     private final FlwCategoryMapper flwCategoryMapper;
+
+    private final FlowNodeMapper flowNodeMapper;
+    private final FlowSkipMapper flowSkipMapper;
 
     /**
      * 查询流程定义列表
@@ -97,6 +109,29 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
         }
         wrapper.orderByDesc(FlowDefinition::getCreateTime);
         return wrapper;
+    }
+
+    /**
+     * 发布流程定义
+     *
+     * @param id 流程定义id
+     */
+    @Override
+    public boolean publish(Long id) {
+        List<FlowNode> flowNodes = flowNodeMapper.selectList(new LambdaQueryWrapper<FlowNode>().eq(FlowNode::getDefinitionId, id));
+        List<String> errorMsg = new ArrayList<>();
+        if (CollUtil.isNotEmpty(flowNodes)) {
+            for (FlowNode flowNode : flowNodes) {
+                String applyNodeCode = WorkflowUtils.applyNodeCode(id);
+                if (StringUtils.isBlank(flowNode.getPermissionFlag()) && !applyNodeCode.equals(flowNode.getNodeCode()) && NodeType.BETWEEN.getKey().equals(flowNode.getNodeType())) {
+                    errorMsg.add(flowNode.getNodeName());
+                }
+            }
+            if (CollUtil.isNotEmpty(errorMsg)) {
+                throw new ServiceException("节点【" + StringUtils.join(errorMsg, ",") + "】未配置办理人!");
+            }
+        }
+        return defService.publish(id);
     }
 
     /**
@@ -174,5 +209,61 @@ public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
             throw new RuntimeException("Failed to remove flow definitions", e);
         }
         return true;
+    }
+
+    /**
+     * 新增租户流程定义
+     *
+     * @param tenantId 租户id
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void syncDef(String tenantId) {
+        List<FlowDefinition> flowDefinitions = flowDefinitionMapper.selectList(new LambdaQueryWrapper<FlowDefinition>().eq(FlowDefinition::getTenantId, DEFAULT_TENANT_ID));
+        if (CollUtil.isEmpty(flowDefinitions)) {
+            return;
+        }
+        List<Long> defIds = StreamUtils.toList(flowDefinitions, FlowDefinition::getId);
+        List<FlowNode> flowNodes = flowNodeMapper.selectList(new LambdaQueryWrapper<FlowNode>().in(FlowNode::getDefinitionId, defIds));
+        List<FlowSkip> flowSkips = flowSkipMapper.selectList(new LambdaQueryWrapper<FlowSkip>().in(FlowSkip::getDefinitionId, defIds));
+        for (FlowDefinition definition : flowDefinitions) {
+            FlowDefinition flowDefinition = BeanUtil.toBean(definition, FlowDefinition.class);
+            flowDefinition.setId(null);
+            flowDefinition.setTenantId(tenantId);
+            flowDefinition.setIsPublish(0);
+            flowDefinition.setCategory(null);
+            int insert = flowDefinitionMapper.insert(flowDefinition);
+            if (insert <= 0) {
+                log.info("同步流程定义【{}】失败！", definition.getFlowCode());
+                continue;
+            }
+            log.info("同步流程定义【{}】成功！", definition.getFlowCode());
+            Long definitionId = flowDefinition.getId();
+            if (CollUtil.isNotEmpty(flowNodes)) {
+                List<FlowNode> nodes = StreamUtils.filter(flowNodes, node -> node.getDefinitionId().equals(definition.getId()));
+                if (CollUtil.isNotEmpty(nodes)) {
+                    List<FlowNode> flowNodeList = BeanUtil.copyToList(nodes, FlowNode.class);
+                    flowNodeList.forEach(e -> {
+                        e.setId(null);
+                        e.setDefinitionId(definitionId);
+                        e.setTenantId(tenantId);
+                        e.setPermissionFlag(null);
+                    });
+                    flowNodeMapper.insertOrUpdate(flowNodeList);
+                }
+            }
+            if (CollUtil.isNotEmpty(flowSkips)) {
+                List<FlowSkip> skips = StreamUtils.filter(flowSkips, skip -> skip.getDefinitionId().equals(definition.getId()));
+                if (CollUtil.isNotEmpty(skips)) {
+                    List<FlowSkip> flowSkipList = BeanUtil.copyToList(skips, FlowSkip.class);
+                    flowSkipList.forEach(e -> {
+                        e.setId(null);
+                        e.setDefinitionId(definitionId);
+                        e.setTenantId(tenantId);
+                    });
+                    flowSkipMapper.insertOrUpdate(flowSkipList);
+                }
+            }
+        }
     }
 }

@@ -104,7 +104,7 @@ public class FlwDefinitionController extends BaseController {
     @RepeatSubmit()
     @Transactional(rollbackFor = Exception.class)
     public R<Boolean> publish(@PathVariable Long id) {
-        return R.ok(defService.publish(id));
+        return R.ok(flwDefinitionService.publish(id));
     }
 
     /**
@@ -146,7 +146,8 @@ public class FlwDefinitionController extends BaseController {
     /**
      * 导入流程定义
      *
-     * @param file 文件
+     * @param file     文件
+     * @param category 分类
      */
     @Log(title = "流程定义", businessType = BusinessType.IMPORT)
     @PostMapping("/importDef")
