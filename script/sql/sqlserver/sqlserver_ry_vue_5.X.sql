@@ -210,7 +210,11 @@ EXEC sys.sp_addextendedproperty
     'TABLE', N'sys_social',
     'COLUMN', N'update_time'
 GO
-
+EXEC sp_addextendedproperty
+    'MS_Description', N'社会化关系表',
+    'SCHEMA', N'dbo',
+    'TABLE', N'sys_social'
+GO
 
 CREATE TABLE sys_tenant
 (

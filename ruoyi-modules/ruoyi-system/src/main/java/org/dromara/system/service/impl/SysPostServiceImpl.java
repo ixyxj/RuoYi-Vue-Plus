@@ -245,4 +245,5 @@ public class SysPostServiceImpl implements ISysPostService, PostService {
         SysPost post = MapstructUtils.convert(bo, SysPost.class);
         return baseMapper.updateById(post);
     }
+
 }

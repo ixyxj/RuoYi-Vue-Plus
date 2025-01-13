@@ -15,6 +15,7 @@ import org.dromara.common.core.constant.Constants;
 import org.dromara.common.core.constant.SystemConstants;
 import org.dromara.common.core.constant.TenantConstants;
 import org.dromara.common.core.exception.ServiceException;
+import org.dromara.common.core.service.WorkflowService;
 import org.dromara.common.core.utils.MapstructUtils;
 import org.dromara.common.core.utils.SpringUtils;
 import org.dromara.common.core.utils.StreamUtils;
@@ -56,6 +57,7 @@ public class SysTenantServiceImpl implements ISysTenantService {
     private final SysDictTypeMapper dictTypeMapper;
     private final SysDictDataMapper dictDataMapper;
     private final SysConfigMapper configMapper;
+    private final WorkflowService workflowService;
 
     /**
      * 查询租户
@@ -121,7 +123,9 @@ public class SysTenantServiceImpl implements ISysTenantService {
 
         // 获取所有租户编号
         List<String> tenantIds = baseMapper.selectObjs(
-            new LambdaQueryWrapper<SysTenant>().select(SysTenant::getTenantId), x -> {return Convert.toStr(x);});
+            new LambdaQueryWrapper<SysTenant>().select(SysTenant::getTenantId), x -> {
+                return Convert.toStr(x);
+            });
         String tenantId = generateTenantId(tenantIds);
         add.setTenantId(tenantId);
         boolean flag = baseMapper.insert(add) > 0;
@@ -191,6 +195,8 @@ public class SysTenantServiceImpl implements ISysTenantService {
             config.setTenantId(tenantId);
         }
         configMapper.insertBatch(sysConfigList);
+        //新增租户流程定义
+        workflowService.syncDef(tenantId);
         return true;
     }
 
@@ -399,7 +405,9 @@ public class SysTenantServiceImpl implements ISysTenantService {
         // 获取所有租户编号
         List<String> tenantIds = baseMapper.selectObjs(
             new LambdaQueryWrapper<SysTenant>().select(SysTenant::getTenantId)
-                .eq(SysTenant::getStatus, SystemConstants.NORMAL), x -> {return Convert.toStr(x);});
+                .eq(SysTenant::getStatus, SystemConstants.NORMAL), x -> {
+                return Convert.toStr(x);
+            });
         List<SysDictType> saveTypeList = new ArrayList<>();
         List<SysDictData> saveDataList = new ArrayList<>();
         Set<String> set = new HashSet<>();
