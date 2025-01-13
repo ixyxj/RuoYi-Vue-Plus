@@ -132,11 +132,10 @@ public class FlwTaskAssigneeServiceImpl implements IFlwTaskAssigneeService, Hand
         List<UserDTO> list = new ArrayList<>();
         for (String str : storageId.split(StrUtil.COMMA)) {
             String[] parts = str.split(StrUtil.COLON, 2);
-            TaskAssigneeEnum enumd = TaskAssigneeEnum.USER;
-            if (parts.length >= 2) {
-                enumd = TaskAssigneeEnum.fromDesc(parts[0] + StrUtil.COLON);
+            if (parts.length < 2) {
+                list.addAll(getUsersByType(TaskAssigneeEnum.USER, List.of(Long.valueOf(parts[0]))));
             }
-            list.addAll(getUsersByType(enumd, List.of(Long.valueOf(parts[1]))));
+            list.addAll(getUsersByType(TaskAssigneeEnum.fromCode(parts[0] + StrUtil.COLON), List.of(Long.valueOf(parts[1]))));
         }
         return list;
     }
