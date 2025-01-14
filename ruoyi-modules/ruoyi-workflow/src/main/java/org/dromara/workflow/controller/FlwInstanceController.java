@@ -9,12 +9,12 @@ import org.dromara.common.mybatis.core.page.PageQuery;
 import org.dromara.common.mybatis.core.page.TableDataInfo;
 import org.dromara.common.web.core.BaseController;
 import org.dromara.warm.flow.core.service.InsService;
+import org.dromara.workflow.common.ConditionalOnEnable;
 import org.dromara.workflow.domain.bo.FlowCancelBo;
 import org.dromara.workflow.domain.bo.FlowInstanceBo;
 import org.dromara.workflow.domain.bo.FlowInvalidBo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
 import org.dromara.workflow.service.IFlwInstanceService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,15 +26,14 @@ import java.util.Map;
  *
  * @author may
  */
+@ConditionalOnEnable
 @Validated
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/workflow/instance")
 public class FlwInstanceController extends BaseController {
 
-    @Autowired(required = false)
-    private InsService insService;
-
+    private final InsService insService;
     private final IFlwInstanceService flwInstanceService;
 
     /**

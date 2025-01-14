@@ -32,8 +32,8 @@ import org.dromara.warm.flow.core.service.*;
 import org.dromara.warm.flow.orm.entity.*;
 import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
 import org.dromara.warm.flow.orm.mapper.FlowInstanceMapper;
-import org.dromara.warm.flow.orm.mapper.FlowNodeMapper;
 import org.dromara.warm.flow.orm.mapper.FlowTaskMapper;
+import org.dromara.workflow.common.ConditionalOnEnable;
 import org.dromara.workflow.common.enums.TaskAssigneeType;
 import org.dromara.workflow.common.enums.TaskStatusEnum;
 import org.dromara.workflow.domain.bo.*;
@@ -45,7 +45,6 @@ import org.dromara.workflow.mapper.FlwCategoryMapper;
 import org.dromara.workflow.mapper.FlwTaskMapper;
 import org.dromara.workflow.service.IFlwTaskService;
 import org.dromara.workflow.utils.WorkflowUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,36 +59,23 @@ import static org.dromara.workflow.common.constant.FlowConstant.*;
  *
  * @author may
  */
+@ConditionalOnEnable
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class FlwTaskServiceImpl implements IFlwTaskService {
 
-    @Autowired(required = false)
-    private TaskService taskService;
-    @Autowired(required = false)
-    private InsService insService;
-    @Autowired(required = false)
-    private DefService defService;
-    @Autowired(required = false)
-    private HisTaskService hisTaskService;
-    @Autowired(required = false)
-    private NodeService nodeService;
-
-    @Autowired(required = false)
-    private FlowInstanceMapper flowInstanceMapper;
-    @Autowired(required = false)
-    private FlowTaskMapper flowTaskMapper;
-    @Autowired(required = false)
-    private FlowHisTaskMapper flowHisTaskMapper;
-    @Autowired(required = false)
-    private FlowNodeMapper flowNodeMapper;
-
+    private final TaskService taskService;
+    private final InsService insService;
+    private final DefService defService;
+    private final HisTaskService hisTaskService;
+    private final NodeService nodeService;
+    private final FlowInstanceMapper flowInstanceMapper;
+    private final FlowTaskMapper flowTaskMapper;
+    private final FlowHisTaskMapper flowHisTaskMapper;
     private final IdentifierGenerator identifierGenerator;
     private final FlowProcessEventHandler flowProcessEventHandler;
-
     private final UserService userService;
-
     private final FlwTaskMapper flwTaskMapper;
     private final FlwCategoryMapper flwCategoryMapper;
 

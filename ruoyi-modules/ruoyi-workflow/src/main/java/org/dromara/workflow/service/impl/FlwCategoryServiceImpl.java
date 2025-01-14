@@ -13,13 +13,13 @@ import org.dromara.common.mybatis.helper.DataBaseHelper;
 import org.dromara.common.satoken.utils.LoginHelper;
 import org.dromara.warm.flow.core.service.DefService;
 import org.dromara.warm.flow.orm.entity.FlowDefinition;
+import org.dromara.workflow.common.ConditionalOnEnable;
 import org.dromara.workflow.common.constant.FlowConstant;
 import org.dromara.workflow.domain.FlowCategory;
 import org.dromara.workflow.domain.bo.FlowCategoryBo;
 import org.dromara.workflow.domain.vo.FlowCategoryVo;
 import org.dromara.workflow.mapper.FlwCategoryMapper;
 import org.dromara.workflow.service.IFlwCategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -32,13 +32,12 @@ import java.util.List;
  *
  * @author may
  */
+@ConditionalOnEnable
 @RequiredArgsConstructor
 @Service
 public class FlwCategoryServiceImpl implements IFlwCategoryService {
 
-    @Autowired(required = false)
-    private DefService defService;
-
+    private final DefService defService;
     private final FlwCategoryMapper baseMapper;
 
     /**

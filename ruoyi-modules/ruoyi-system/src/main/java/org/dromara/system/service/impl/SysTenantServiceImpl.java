@@ -57,7 +57,6 @@ public class SysTenantServiceImpl implements ISysTenantService {
     private final SysDictTypeMapper dictTypeMapper;
     private final SysDictDataMapper dictDataMapper;
     private final SysConfigMapper configMapper;
-    private final WorkflowService workflowService;
 
     /**
      * 查询租户
@@ -195,8 +194,13 @@ public class SysTenantServiceImpl implements ISysTenantService {
             config.setTenantId(tenantId);
         }
         configMapper.insertBatch(sysConfigList);
-        //新增租户流程定义
-        workflowService.syncDef(tenantId);
+
+        // 未开启工作流不执行下方操作
+        if (SpringUtils.getProperty("workflow.enabled", Boolean.class, false)) {
+            WorkflowService workflowService = SpringUtils.getBean(WorkflowService.class);
+            // 新增租户流程定义
+            workflowService.syncDef(tenantId);
+        }
         return true;
     }
 

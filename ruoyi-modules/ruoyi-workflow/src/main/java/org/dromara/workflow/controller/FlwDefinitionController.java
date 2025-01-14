@@ -12,9 +12,9 @@ import org.dromara.common.web.core.BaseController;
 import org.dromara.warm.flow.core.entity.Definition;
 import org.dromara.warm.flow.core.service.DefService;
 import org.dromara.warm.flow.orm.entity.FlowDefinition;
+import org.dromara.workflow.common.ConditionalOnEnable;
 import org.dromara.workflow.domain.vo.FlowDefinitionVo;
 import org.dromara.workflow.service.IFlwDefinitionService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -28,15 +28,14 @@ import java.util.List;
  *
  * @author may
  */
+@ConditionalOnEnable
 @Validated
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/workflow/definition")
 public class FlwDefinitionController extends BaseController {
 
-    @Autowired(required = false)
-    private DefService defService;
-
+    private final DefService defService;
     private final IFlwDefinitionService flwDefinitionService;
 
     /**

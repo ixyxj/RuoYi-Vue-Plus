@@ -34,6 +34,7 @@ import org.dromara.warm.flow.orm.entity.FlowInstance;
 import org.dromara.warm.flow.orm.entity.FlowTask;
 import org.dromara.warm.flow.orm.mapper.FlowHisTaskMapper;
 import org.dromara.warm.flow.orm.mapper.FlowInstanceMapper;
+import org.dromara.workflow.common.ConditionalOnEnable;
 import org.dromara.workflow.common.enums.TaskStatusEnum;
 import org.dromara.workflow.domain.bo.FlowCancelBo;
 import org.dromara.workflow.domain.bo.FlowInstanceBo;
@@ -47,7 +48,6 @@ import org.dromara.workflow.mapper.FlwInstanceMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.dromara.workflow.service.IFlwTaskService;
 import org.dromara.workflow.utils.WorkflowUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,26 +60,19 @@ import java.util.stream.Collectors;
  *
  * @author may
  */
+@ConditionalOnEnable
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class FlwInstanceServiceImpl implements IFlwInstanceService {
 
-    @Autowired(required = false)
-    private InsService insService;
-    @Autowired(required = false)
-    private DefService defService;
-    @Autowired(required = false)
-    private TaskService taskService;
-    @Autowired(required = false)
-    private FlowHisTaskMapper flowHisTaskMapper;
-    @Autowired(required = false)
-    private FlowInstanceMapper flowInstanceMapper;
-
+    private final InsService insService;
+    private final DefService defService;
+    private final TaskService taskService;
+    private final FlowHisTaskMapper flowHisTaskMapper;
+    private final FlowInstanceMapper flowInstanceMapper;
     private final FlowProcessEventHandler flowProcessEventHandler;
-
     private final IFlwTaskService flwTaskService;
-
     private final FlwInstanceMapper flwInstanceMapper;
     private final FlwCategoryMapper flwCategoryMapper;
 
