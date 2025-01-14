@@ -14,6 +14,7 @@ import org.dromara.workflow.domain.bo.FlowInstanceBo;
 import org.dromara.workflow.domain.bo.FlowInvalidBo;
 import org.dromara.workflow.domain.vo.FlowInstanceVo;
 import org.dromara.workflow.service.IFlwInstanceService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,8 +32,10 @@ import java.util.Map;
 @RequestMapping("/workflow/instance")
 public class FlwInstanceController extends BaseController {
 
+    @Autowired(required = false)
+    private InsService insService;
+
     private final IFlwInstanceService flwInstanceService;
-    private final InsService insService;
 
     /**
      * 查询正在运行的流程实例列表

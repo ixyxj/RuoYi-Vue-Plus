@@ -45,6 +45,7 @@ import org.dromara.workflow.mapper.FlwCategoryMapper;
 import org.dromara.workflow.mapper.FlwTaskMapper;
 import org.dromara.workflow.service.IFlwTaskService;
 import org.dromara.workflow.utils.WorkflowUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,19 +65,32 @@ import static org.dromara.workflow.common.constant.FlowConstant.*;
 @Service
 public class FlwTaskServiceImpl implements IFlwTaskService {
 
-    private final TaskService taskService;
-    private final InsService insService;
-    private final FlowInstanceMapper flowInstanceMapper;
-    private final FlwTaskMapper flwTaskMapper;
-    private final UserService userService;
-    private final FlowTaskMapper flowTaskMapper;
-    private final FlowHisTaskMapper flowHisTaskMapper;
-    private final FlowProcessEventHandler flowProcessEventHandler;
-    private final DefService defService;
-    private final HisTaskService hisTaskService;
+    @Autowired(required = false)
+    private TaskService taskService;
+    @Autowired(required = false)
+    private InsService insService;
+    @Autowired(required = false)
+    private DefService defService;
+    @Autowired(required = false)
+    private HisTaskService hisTaskService;
+    @Autowired(required = false)
+    private NodeService nodeService;
+
+    @Autowired(required = false)
+    private FlowInstanceMapper flowInstanceMapper;
+    @Autowired(required = false)
+    private FlowTaskMapper flowTaskMapper;
+    @Autowired(required = false)
+    private FlowHisTaskMapper flowHisTaskMapper;
+    @Autowired(required = false)
+    private FlowNodeMapper flowNodeMapper;
+
     private final IdentifierGenerator identifierGenerator;
-    private final NodeService nodeService;
-    private final FlowNodeMapper flowNodeMapper;
+    private final FlowProcessEventHandler flowProcessEventHandler;
+
+    private final UserService userService;
+
+    private final FlwTaskMapper flwTaskMapper;
     private final FlwCategoryMapper flwCategoryMapper;
 
     /**

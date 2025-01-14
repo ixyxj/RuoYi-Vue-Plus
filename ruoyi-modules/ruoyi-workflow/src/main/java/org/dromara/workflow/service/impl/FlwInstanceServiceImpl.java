@@ -47,6 +47,7 @@ import org.dromara.workflow.mapper.FlwInstanceMapper;
 import org.dromara.workflow.service.IFlwInstanceService;
 import org.dromara.workflow.service.IFlwTaskService;
 import org.dromara.workflow.utils.WorkflowUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,14 +65,22 @@ import java.util.stream.Collectors;
 @Service
 public class FlwInstanceServiceImpl implements IFlwInstanceService {
 
-    private final InsService insService;
-    private final DefService defService;
-    private final FlowHisTaskMapper flowHisTaskMapper;
-    private final FlowInstanceMapper flowInstanceMapper;
-    private final FlwInstanceMapper flwInstanceMapper;
-    private final TaskService taskService;
-    private final IFlwTaskService flwTaskService;
+    @Autowired(required = false)
+    private InsService insService;
+    @Autowired(required = false)
+    private DefService defService;
+    @Autowired(required = false)
+    private TaskService taskService;
+    @Autowired(required = false)
+    private FlowHisTaskMapper flowHisTaskMapper;
+    @Autowired(required = false)
+    private FlowInstanceMapper flowInstanceMapper;
+
     private final FlowProcessEventHandler flowProcessEventHandler;
+
+    private final IFlwTaskService flwTaskService;
+
+    private final FlwInstanceMapper flwInstanceMapper;
     private final FlwCategoryMapper flwCategoryMapper;
 
     /**

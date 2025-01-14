@@ -19,6 +19,7 @@ import org.dromara.workflow.domain.bo.FlowCategoryBo;
 import org.dromara.workflow.domain.vo.FlowCategoryVo;
 import org.dromara.workflow.mapper.FlwCategoryMapper;
 import org.dromara.workflow.service.IFlwCategoryService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -35,8 +36,10 @@ import java.util.List;
 @Service
 public class FlwCategoryServiceImpl implements IFlwCategoryService {
 
+    @Autowired(required = false)
+    private DefService defService;
+
     private final FlwCategoryMapper baseMapper;
-    private final DefService defService;
 
     /**
      * 查询流程分类

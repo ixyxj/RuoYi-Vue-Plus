@@ -36,6 +36,7 @@ import org.dromara.workflow.domain.vo.FlowDefinitionVo;
 import org.dromara.workflow.mapper.FlwCategoryMapper;
 import org.dromara.workflow.service.IFlwDefinitionService;
 import org.dromara.workflow.utils.WorkflowUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -57,12 +58,18 @@ import static org.dromara.common.core.constant.TenantConstants.DEFAULT_TENANT_ID
 @Service
 public class FlwDefinitionServiceImpl implements IFlwDefinitionService {
 
-    private final DefService defService;
-    private final FlowDefinitionMapper flowDefinitionMapper;
-    private final FlowHisTaskMapper flowHisTaskMapper;
+    @Autowired(required = false)
+    private DefService defService;
+    @Autowired(required = false)
+    private FlowDefinitionMapper flowDefinitionMapper;
+    @Autowired(required = false)
+    private FlowHisTaskMapper flowHisTaskMapper;
+    @Autowired(required = false)
+    private FlowNodeMapper flowNodeMapper;
+    @Autowired(required = false)
+    private FlowSkipMapper flowSkipMapper;
+
     private final FlwCategoryMapper flwCategoryMapper;
-    private final FlowNodeMapper flowNodeMapper;
-    private final FlowSkipMapper flowSkipMapper;
 
     /**
      * 查询流程定义列表
