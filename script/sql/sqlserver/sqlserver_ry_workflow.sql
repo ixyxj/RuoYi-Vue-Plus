@@ -1086,7 +1086,7 @@ INSERT flow_category VALUES (100, N'000000', 0, N'0', N'OA审批', 0, N'0', 103,
 GO
 INSERT flow_category VALUES (101, N'000000', 100, N'0,100', N'假勤管理', 0, N'0', 103, 1, getdate(), NULL, NULL);
 GO
-INSERT flow_category VALUES (102, N'000000', 100, N'0,100', N'人事管理', 0, N'0', 103, 1, getdate(), NULL, NULL);
+INSERT flow_category VALUES (102, N'000000', 100, N'0,100', N'人事管理', 1, N'0', 103, 1, getdate(), NULL, NULL);
 GO
 INSERT flow_category VALUES (103, N'000000', 101, N'0,100,101', N'请假', 0, N'0', 103, 1, getdate(), NULL, NULL);
 GO
