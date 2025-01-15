@@ -188,7 +188,7 @@ EXEC sys.sp_addextendedproperty
     'COLUMN', N'oauth_token_secret'
 GO
 EXEC sys.sp_addextendedproperty
-    'MS_Description', N'删除标志（0代表存在 2代表删除）' ,
+    'MS_Description', N'删除标志（0代表存在 1代表删除）' ,
     'SCHEMA', N'dbo',
     'TABLE', N'sys_social',
     'COLUMN', N'del_flag'
@@ -304,7 +304,7 @@ EXEC sp_addextendedproperty
 'COLUMN', N'status'
 GO
 EXEC sp_addextendedproperty
-'MS_Description', N'删除标志（0代表存在 2代表删除）',
+'MS_Description', N'删除标志（0代表存在 1代表删除）',
 'SCHEMA', N'dbo',
 'TABLE', N'sys_client',
 'COLUMN', N'del_flag'
