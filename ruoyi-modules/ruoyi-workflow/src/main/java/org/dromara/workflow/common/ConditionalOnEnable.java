@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE, ElementType.METHOD })
-@ConditionalOnProperty(value = "work-flow.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "warm-flow.enabled", havingValue = "true")
 public @interface ConditionalOnEnable {
 }
