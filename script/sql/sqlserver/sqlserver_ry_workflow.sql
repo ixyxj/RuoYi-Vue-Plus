@@ -458,6 +458,7 @@ CREATE TABLE flow_instance (
     variable nvarchar(max) NULL,
     flow_status nvarchar(20) NOT NULL,
     activity_status tinyint DEFAULT('1') NULL,
+    def_json nvarchar(max) NULL,
     create_by nvarchar(64) NULL,
     create_time datetime2(7)  NULL,
     update_time datetime2(7)  NULL,
@@ -533,6 +534,13 @@ EXEC sp_addextendedproperty
 'SCHEMA', N'dbo',
 'TABLE', N'flow_instance',
 'COLUMN', N'activity_status'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'流程定义json',
+'SCHEMA', N'dbo',
+'TABLE', N'flow_instance',
+'COLUMN', N'def_json'
 GO
 
 EXEC sp_addextendedproperty
@@ -698,8 +706,8 @@ CREATE TABLE flow_his_task (
     definition_id bigint NOT NULL,
     instance_id bigint NOT NULL,
     task_id bigint NOT NULL,
-    node_code nvarchar(100) NULL,
-    node_name nvarchar(100) NULL,
+    node_code nvarchar(200) NULL,
+    node_name nvarchar(200) NULL,
     node_type tinyint  NULL,
     target_node_code nvarchar(100) NULL,
     target_node_name nvarchar(100) NULL,
@@ -711,6 +719,7 @@ CREATE TABLE flow_his_task (
     form_custom nchar(1) DEFAULT('N') NULL,
     form_path nvarchar(100) NULL,
     message nvarchar(500) NULL,
+    variable nvarchar(max) NULL,
     ext nvarchar(500) NULL,
     create_time datetime2(7)  NULL,
     update_time datetime2(7)  NULL,
@@ -840,6 +849,13 @@ EXEC sp_addextendedproperty
 'SCHEMA', N'dbo',
 'TABLE', N'flow_his_task',
 'COLUMN', N'message'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'任务变量',
+'SCHEMA', N'dbo',
+'TABLE', N'flow_his_task',
+'COLUMN', N'variable'
 GO
 
 EXEC sp_addextendedproperty
