@@ -2,6 +2,7 @@ package org.dromara.web.controller;
 
 import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.exception.NotLoginException;
+import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
@@ -111,7 +112,7 @@ public class AuthController {
     }
 
     /**
-     * 第三方登录请求
+     * 获取跳转URL
      *
      * @param source 登录来源
      * @return 结果
@@ -133,13 +134,15 @@ public class AuthController {
     }
 
     /**
-     * 第三方登录回调业务处理 绑定授权
+     * 前端回调绑定授权(需要token)
      *
      * @param loginBody 请求体
      * @return 结果
      */
     @PostMapping("/social/callback")
     public R<Void> socialCallback(@RequestBody SocialLoginBody loginBody) {
+        // 校验token
+        StpUtil.checkLogin();
         // 获取第三方登录信息
         AuthResponse<AuthUser> response = SocialUtils.loginAuth(
                 loginBody.getSource(), loginBody.getSocialCode(),
@@ -155,12 +158,14 @@ public class AuthController {
 
 
     /**
-     * 取消授权
+     * 取消授权(需要token)
      *
      * @param socialId socialId
      */
     @DeleteMapping(value = "/unlock/{socialId}")
     public R<Void> unlockSocial(@PathVariable Long socialId) {
+        // 校验token
+        StpUtil.checkLogin();
         Boolean rows = socialUserService.deleteWithValidById(socialId);
         return rows ? R.ok() : R.fail("取消授权失败");
     }
