@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.common.core.domain.dto.StartProcessReturnDTO;
 import org.dromara.common.core.domain.dto.UserDTO;
 import org.dromara.common.core.enums.BusinessStatusEnum;
 import org.dromara.common.core.exception.ServiceException;
@@ -86,7 +87,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public Map<String, Object> startWorkFlow(StartProcessBo startProcessBo) {
+    public StartProcessReturnDTO startWorkFlow(StartProcessBo startProcessBo) {
         String businessId = startProcessBo.getBusinessId();
         if (StringUtils.isBlank(businessId)) {
             throw new ServiceException("启动工作流时必须包含业务ID");
@@ -102,7 +103,10 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         if (ObjectUtil.isNotNull(flowInstance)) {
             BusinessStatusEnum.checkStartStatus(flowInstance.getFlowStatus());
             List<Task> taskList = taskService.list(new FlowTask().setInstanceId(flowInstance.getId()));
-            return Map.of(PROCESS_INSTANCE_ID, taskList.get(0).getInstanceId(), TASK_ID, taskList.get(0).getId());
+            StartProcessReturnDTO dto = new StartProcessReturnDTO();
+            dto.setProcessInstanceId(taskList.get(0).getInstanceId());
+            dto.setTaskId(taskList.get(0).getId());
+            return dto;
         }
         FlowParams flowParams = new FlowParams();
         flowParams.flowCode(startProcessBo.getFlowCode());
@@ -119,7 +123,10 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         if (taskList.size() > 1) {
             throw new ServiceException("请检查流程第一个环节是否为申请人！");
         }
-        return Map.of(PROCESS_INSTANCE_ID, instance.getId(), TASK_ID, taskList.get(0).getId());
+        StartProcessReturnDTO dto = new StartProcessReturnDTO();
+        dto.setProcessInstanceId(instance.getId());
+        dto.setTaskId(taskList.get(0).getId());
+        return dto;
     }
 
     /**
@@ -146,7 +153,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             Definition definition = defService.getById(flowTask.getDefinitionId());
             // 检查流程状态是否为草稿、已撤销或已退回状态，若是则执行流程提交监听
             if (BusinessStatusEnum.isDraftOrCancelOrBack(ins.getFlowStatus())) {
-                flowProcessEventHandler.processHandler(definition.getFlowCode(), ins.getBusinessId(), ins.getFlowStatus(), true);
+                flowProcessEventHandler.processHandler(definition.getFlowCode(), ins.getBusinessId(), ins.getFlowStatus(), null, true);
             }
             // 构建流程参数，包括变量、跳转类型、消息、处理人、权限等信息
             FlowParams flowParams = new FlowParams();
@@ -347,7 +354,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
         wrapper.in(CollUtil.isNotEmpty(flowTaskBo.getCreateByIds()), "t.create_by", flowTaskBo.getCreateByIds());
         if (StringUtils.isNotBlank(flowTaskBo.getCategory())) {
             List<Long> categoryIds = flwCategoryMapper.selectCategoryIdsByParentId(Convert.toLong(flowTaskBo.getCategory()));
-            wrapper.in("t.category", categoryIds);
+            wrapper.in("t.category", StreamUtils.toList(categoryIds, Convert::toStr));
         }
         wrapper.orderByDesc("t.create_time");
         return wrapper;
@@ -381,6 +388,7 @@ public class FlwTaskServiceImpl implements IFlwTaskService {
             flowParams.skipType(SkipType.REJECT.getKey());
             flowParams.flowStatus(applyNodeCode.equals(bo.getNodeCode()) ? TaskStatusEnum.BACK.getStatus() : TaskStatusEnum.WAITING.getStatus())
                 .hisStatus(TaskStatusEnum.BACK.getStatus());
+            flowParams.hisTaskExt(bo.getFileId());
             taskService.skip(task.getId(), flowParams);
 
             Instance instance = insService.getById(inst.getId());

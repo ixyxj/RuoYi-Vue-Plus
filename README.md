@@ -10,7 +10,7 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://gitee.com/dromara/RuoYi-Vue-Plus/blob/master/LICENSE)
 [![使用IntelliJ IDEA开发维护](https://img.shields.io/badge/IntelliJ%20IDEA-提供支持-blue.svg)](https://www.jetbrains.com/?from=RuoYi-Vue-Plus)
 <br>
-[![RuoYi-Vue-Plus](https://img.shields.io/badge/RuoYi_Vue_Plus-5.3.0--BETA-success.svg)](https://gitee.com/dromara/RuoYi-Vue-Plus)
+[![RuoYi-Vue-Plus](https://img.shields.io/badge/RuoYi_Vue_Plus-5.3.0-success.svg)](https://gitee.com/dromara/RuoYi-Vue-Plus)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4-blue.svg)]()
 [![JDK-17](https://img.shields.io/badge/JDK-17-green.svg)]()
 [![JDK-21](https://img.shields.io/badge/JDK-21-green.svg)]()
@@ -23,7 +23,6 @@
 > 系统演示: [传送门](https://plus-doc.dromara.org/#/common/demo_system)
 
 > 官方前端项目地址: [plus-ui](https://gitee.com/JavaLionLi/plus-ui)<br>
-> 成员前端项目地址: 基于vben [ruoyi-plus-vben](https://gitee.com/dapppp/ruoyi-plus-vben)<br>
 > 成员前端项目地址: 基于vben5 [ruoyi-plus-vben5](https://gitee.com/dapppp/ruoyi-plus-vben5)
 
 > 文档地址: [plus-doc](https://plus-doc.dromara.org)
